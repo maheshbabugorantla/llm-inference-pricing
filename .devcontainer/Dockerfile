@@ -104,6 +104,11 @@ RUN npm install -g @anthropic-ai/claude-code
 COPY init-firewall.sh /usr/local/bin/init-firewall.sh
 RUN chmod 0755 /usr/local/bin/init-firewall.sh
 
+# ---- Python 3.12 via uv (Debian bookworm ships 3.11) ------------------------
+# Runs as root so uv can place the managed Python in /root/.local; a symlink
+# makes it available to all users. The node-user uv step below also gains it.
+RUN uv python install 3.12
+
 # ---- Default user + shell ---------------------------------------------------
 USER $USERNAME
 WORKDIR /workspace
@@ -111,11 +116,18 @@ WORKDIR /workspace
 ENV SHELL=/bin/zsh
 ENV CLAUDE_CONFIG_DIR=/home/$USERNAME/.claude
 
-# Persist zsh history
+# Inside the container use .venv-linux to avoid clobbering the host macOS .venv.
+# The host's .venv contains arm64 Mach-O binaries; this one contains ELF/Linux.
+ENV VIRTUAL_ENV=/workspace/.venv-linux
+ENV PATH="/workspace/.venv-linux/bin:$PATH"
+
+# Persist zsh history + activate container venv
 RUN echo 'export HISTFILE=/commandhistory/.zsh_history' >> /home/$USERNAME/.zshrc \
  && echo 'export HISTSIZE=10000' >> /home/$USERNAME/.zshrc \
  && echo 'export SAVEHIST=10000' >> /home/$USERNAME/.zshrc \
- && echo 'setopt INC_APPEND_HISTORY SHARE_HISTORY' >> /home/$USERNAME/.zshrc
+ && echo 'setopt INC_APPEND_HISTORY SHARE_HISTORY' >> /home/$USERNAME/.zshrc \
+ && echo 'export VIRTUAL_ENV=/workspace/.venv-linux' >> /home/$USERNAME/.zshrc \
+ && echo 'export PATH="/workspace/.venv-linux/bin:$PATH"' >> /home/$USERNAME/.zshrc
 
 # Block `git commit --no-verify` (pre-commit bypass)
 RUN cat >> /home/$USERNAME/.zshrc <<'EOF'
