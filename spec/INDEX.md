@@ -18,7 +18,8 @@
 - [x] **M03** — `pricing` app + Provider + PricingSnapshot + TimescaleDB → `M03-pricing-app-schema.md`
 - [x] **M04** — RunPod Tier 1 scraper (on-demand + 4 reserved tiers in one call) → `M04-runpod-scraper.md`
 - [x] **M05** — Tier 2 page scrapers (Lambda, Vast, Nebius) → `M05-tier2-page-scrapers.md`
-- [ ] **M05.5** — Tier 1 hyperscaler scrapers (AWS, GCP, Azure) → `M05.5-hyperscaler-scrapers.md`
+- [x] **M05.6** — Pricing Data Pipeline (GH Actions + JSON artifacts) → `M05.6-pricing-data-pipeline.md`
+- [ ] **M05.5** — Tier 1 hyperscaler scrapers (AWS, GCP, Azure) → `M05.5-hyperscaler-scrapers.md` *(deferred until M05.6 ships; reuses the dump/load pipeline)*
 - [ ] **M06** — `current_cost_cells` materialized view + cost service → `M06-current-cost-cells.md`
 - [ ] **M07** — Ops hardening (continuous aggregate, retention, Sentry, canary CI) → `M07-ops-hardening.md`
 - [ ] **M08** — On-prem (`HardwareSKU`, `OnPremDeployment`, generator) → `M08-on-prem.md`
@@ -34,8 +35,9 @@ M00 (bootstrap)
          └─ M03 (pricing schema)
              ├─ M04 (RunPod) ─┐
              ├─ M05 (Tier 2) ─┤
-             └─ M05.5 (hyper) ─┤
-                               └─ M06 (cost cells)
+             │   └─ M05.6 (pipeline) ─┤
+             └─ M05.5 (hyper) ─────────┤
+                                       └─ M06 (cost cells)
                                    └─ M07 (ops)
                                        ├─ M08 (on-prem)
                                        │   └─ (back into M06 refresh)
