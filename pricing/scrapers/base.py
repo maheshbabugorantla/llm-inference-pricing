@@ -6,6 +6,10 @@ from typing import Annotated
 from pydantic import BaseModel, ConfigDict, Field
 
 
+class ParserDriftError(Exception):
+    """Raised when a page scraper yields zero prices, indicating HTML structure drift."""
+
+
 class ScrapedPrice(BaseModel):
     model_config = ConfigDict(frozen=True, extra="forbid")
 
