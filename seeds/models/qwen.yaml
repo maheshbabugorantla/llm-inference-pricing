@@ -1,0 +1,20 @@
+# Qwen2.5-Coder-32B-Instruct
+# Source: Qwen/Qwen2.5-Coder-32B-Instruct config.json (verified 2026-05-18).
+# max_context: 131072 via RoPE scaling (base config shows 32768).
+
+- slug: qwen-2-5-coder-32b
+  display_name: Qwen2.5-Coder-32B-Instruct
+  family: qwen
+  architecture: dense
+  total_params_b: 32.5
+  active_params_b: 32.5
+  num_layers: 64
+  num_attention_heads: 40
+  num_kv_heads: 8
+  head_dim: 128
+  max_context: 131072
+  hf_repo: Qwen/Qwen2.5-Coder-32B-Instruct
+  license: apache-2.0
+  is_coding_specialist: true
+  recommended_quant: fp8-e4m3
+  recommended_tp: 1

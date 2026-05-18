@@ -1,0 +1,55 @@
+# 8 quantization formats supported by vLLM / SGLang.
+# weight_bits and kv_cache_bits must be in {4, 8, 16}.
+
+- slug: fp16
+  display_name: FP16
+  weight_bits: 16
+  kv_cache_bits: 16
+  notes: Full-precision baseline. Supported on all hardware.
+
+- slug: bf16
+  display_name: BF16
+  weight_bits: 16
+  kv_cache_bits: 16
+  notes: BFloat16 — same storage as FP16 but larger exponent range. Preferred by most modern LLM training and inference stacks.
+
+- slug: fp8-e4m3
+  display_name: FP8 (E4M3)
+  weight_bits: 8
+  kv_cache_bits: 8
+  requires_nvidia_arch: [hopper, ada, blackwell]
+  requires_amd_arch: [cdna3]
+  notes: FP8 E4M3 format. Recommended for inference on H100/H200/B200 and MI300X. Better precision-per-bit than E5M2.
+
+- slug: fp8-e5m2
+  display_name: FP8 (E5M2)
+  weight_bits: 8
+  kv_cache_bits: 8
+  requires_nvidia_arch: [hopper, ada, blackwell]
+  requires_amd_arch: [cdna3]
+  notes: FP8 E5M2 format. Larger dynamic range than E4M3; used in some training pipelines; slightly lower inference accuracy.
+
+- slug: int8-awq
+  display_name: INT8 (AWQ)
+  weight_bits: 8
+  kv_cache_bits: 8
+  notes: W8A8 INT8 with AWQ calibration. Broader hardware compatibility than FP8 (works on Ampere and older).
+
+- slug: int4-awq
+  display_name: INT4 (AWQ)
+  weight_bits: 4
+  kv_cache_bits: 8
+  notes: 4-bit AWQ weight quantization with INT8 KV cache. Best throughput on memory-constrained GPUs (A100 40GB, L40S, RTX 4090).
+
+- slug: int4-gptq
+  display_name: INT4 (GPTQ)
+  weight_bits: 4
+  kv_cache_bits: 8
+  notes: 4-bit GPTQ weight quantization. Slightly lower quality than AWQ but broader tooling support and faster to quantize.
+
+- slug: fp4-nvfp4
+  display_name: FP4 (NV FP4)
+  weight_bits: 4
+  kv_cache_bits: 4
+  requires_nvidia_arch: [blackwell]
+  notes: NVIDIA FP4 format native to Blackwell (B200/B100). Highest compute density; requires NV FP4 hardware support.

@@ -105,9 +105,12 @@ COPY init-firewall.sh /usr/local/bin/init-firewall.sh
 RUN chmod 0755 /usr/local/bin/init-firewall.sh
 
 # ---- Python 3.12 via uv (Debian bookworm ships 3.11) ------------------------
-# Runs as root so uv can place the managed Python in /root/.local; a symlink
-# makes it available to all users. The node-user uv step below also gains it.
-RUN uv python install 3.12
+# Install to /opt/uv-python so the path is stable across container restarts.
+# Without this, uv installs to ~/.local which is not volume-persisted, causing
+# .venv-linux symlinks to break on every new `docker run`.
+ENV UV_PYTHON_INSTALL_DIR=/opt/uv-python
+RUN uv python install 3.12 \
+ && chmod -R a+rX /opt/uv-python
 
 # ---- Default user + shell ---------------------------------------------------
 USER $USERNAME

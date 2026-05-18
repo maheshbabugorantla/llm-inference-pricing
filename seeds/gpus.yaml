@@ -1,0 +1,185 @@
+# 12 GPU entries. TFLOPS values are peak Tensor Core with sparsity unless noted.
+# Sources: NVIDIA product data sheets, AMD Instinct data sheets (May 2025).
+
+# ── NVIDIA Hopper ─────────────────────────────────────────────────────────────
+
+- slug: nvidia-h100-sxm-80
+  display_name: NVIDIA H100 SXM5 80GB
+  vendor: nvidia
+  architecture: hopper
+  vram_gb: 80
+  memory_bandwidth_gbs: 3350
+  fp16_tflops: 989.4
+  fp8_tflops: 1978.9
+  int8_tops: 1978.9
+  tdp_watts: 700
+  interconnect: nvlink
+  nvlink_bandwidth_gbs: 900
+  supports_fp8_native: true
+  supports_fp4_native: false
+
+- slug: nvidia-h100-pcie-80
+  display_name: NVIDIA H100 PCIe 80GB
+  vendor: nvidia
+  architecture: hopper
+  vram_gb: 80
+  memory_bandwidth_gbs: 2000
+  fp16_tflops: 756.5
+  fp8_tflops: 1513.0
+  int8_tops: 1513.0
+  tdp_watts: 350
+  interconnect: pcie
+  supports_fp8_native: true
+  supports_fp4_native: false
+
+- slug: nvidia-h200
+  display_name: NVIDIA H200 SXM 141GB
+  vendor: nvidia
+  architecture: hopper
+  vram_gb: 141
+  memory_bandwidth_gbs: 4800
+  fp16_tflops: 989.4
+  fp8_tflops: 1978.9
+  int8_tops: 1978.9
+  tdp_watts: 700
+  interconnect: nvlink
+  nvlink_bandwidth_gbs: 900
+  supports_fp8_native: true
+  supports_fp4_native: false
+
+# ── NVIDIA Ampere ─────────────────────────────────────────────────────────────
+
+- slug: nvidia-a100-sxm-80
+  display_name: NVIDIA A100 SXM4 80GB
+  vendor: nvidia
+  architecture: ampere
+  vram_gb: 80
+  memory_bandwidth_gbs: 2000
+  fp16_tflops: 312.0
+  fp8_tflops:
+  int8_tops: 624.0
+  tdp_watts: 400
+  interconnect: nvlink
+  nvlink_bandwidth_gbs: 600
+  supports_fp8_native: false
+  supports_fp4_native: false
+
+- slug: nvidia-a100-sxm-40
+  display_name: NVIDIA A100 SXM4 40GB
+  vendor: nvidia
+  architecture: ampere
+  vram_gb: 40
+  memory_bandwidth_gbs: 1555
+  fp16_tflops: 312.0
+  fp8_tflops:
+  int8_tops: 624.0
+  tdp_watts: 400
+  interconnect: nvlink
+  nvlink_bandwidth_gbs: 600
+  supports_fp8_native: false
+  supports_fp4_native: false
+
+# ── NVIDIA Ada Lovelace ────────────────────────────────────────────────────────
+
+- slug: nvidia-l40s
+  display_name: NVIDIA L40S 48GB
+  vendor: nvidia
+  architecture: ada
+  vram_gb: 48
+  memory_bandwidth_gbs: 864
+  fp16_tflops: 362.1
+  fp8_tflops: 724.2
+  int8_tops: 724.2
+  tdp_watts: 350
+  interconnect: pcie
+  supports_fp8_native: true
+  supports_fp4_native: false
+
+- slug: nvidia-l4
+  display_name: NVIDIA L4 24GB
+  vendor: nvidia
+  architecture: ada
+  vram_gb: 24
+  memory_bandwidth_gbs: 300
+  fp16_tflops: 121.1
+  fp8_tflops: 242.2
+  int8_tops: 242.2
+  tdp_watts: 72
+  interconnect: pcie
+  supports_fp8_native: true
+  supports_fp4_native: false
+
+- slug: nvidia-rtx-4090
+  display_name: NVIDIA GeForce RTX 4090 24GB
+  vendor: nvidia
+  architecture: ada
+  vram_gb: 24
+  memory_bandwidth_gbs: 1008
+  fp16_tflops: 165.2
+  fp8_tflops: 330.3
+  int8_tops: 330.3
+  tdp_watts: 450
+  interconnect: pcie
+  supports_fp8_native: true
+  supports_fp4_native: false
+
+- slug: nvidia-rtx-6000-ada
+  display_name: NVIDIA RTX 6000 Ada Generation 48GB
+  vendor: nvidia
+  architecture: ada
+  vram_gb: 48
+  memory_bandwidth_gbs: 960
+  fp16_tflops: 181.2
+  fp8_tflops: 362.5
+  int8_tops: 362.5
+  tdp_watts: 300
+  interconnect: pcie
+  supports_fp8_native: true
+  supports_fp4_native: false
+
+# ── NVIDIA Blackwell ───────────────────────────────────────────────────────────
+
+- slug: nvidia-b200
+  display_name: NVIDIA B200 SXM 192GB
+  vendor: nvidia
+  architecture: blackwell
+  vram_gb: 192
+  memory_bandwidth_gbs: 8000
+  fp16_tflops: 2250.0
+  fp8_tflops: 4500.0
+  int8_tops: 4500.0
+  tdp_watts: 1000
+  interconnect: nvlink
+  nvlink_bandwidth_gbs: 1800
+  supports_fp8_native: true
+  supports_fp4_native: true
+
+# ── AMD Instinct ───────────────────────────────────────────────────────────────
+
+- slug: amd-mi300x
+  display_name: AMD Instinct MI300X 192GB
+  vendor: amd
+  architecture: cdna3
+  vram_gb: 192
+  memory_bandwidth_gbs: 5300
+  fp16_tflops: 1307.4
+  fp8_tflops: 2614.9
+  int8_tops: 2614.9
+  tdp_watts: 750
+  interconnect: xgmi
+  supports_fp8_native: true
+  supports_fp4_native: false
+
+- slug: amd-mi250x
+  display_name: AMD Instinct MI250X 128GB
+  vendor: amd
+  architecture: cdna2
+  vram_gb: 128
+  memory_bandwidth_gbs: 3277
+  fp16_tflops: 383.0
+  fp8_tflops:
+  int8_tops: 383.0
+  tdp_watts: 560
+  interconnect: xgmi
+  supports_fp8_native: false
+  supports_fp4_native: false

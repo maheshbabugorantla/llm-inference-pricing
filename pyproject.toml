@@ -59,3 +59,6 @@ django_settings_module = "pricing_dashboard.settings"
 DJANGO_SETTINGS_MODULE = "pricing_dashboard.settings"
 python_files = ["test_*.py"]
 addopts = "-ra --strict-markers"
+markers = [
+    "smoke: slow integration tests against real seeds and live DB (deselect with -m 'not smoke')",
+]

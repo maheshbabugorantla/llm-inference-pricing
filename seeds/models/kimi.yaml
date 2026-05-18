@@ -1,0 +1,21 @@
+# Kimi-K2-Instruct (Moonshot AI)
+# Architecture: MoE, 384 routed experts, 8 activated per token.
+# Source: moonshotai/Kimi-K2-Instruct config.json (verified 2026-05-18).
+# Total/active params from Moonshot AI announcement (June 2025).
+
+- slug: kimi-k2-instruct
+  display_name: Kimi-K2-Instruct
+  family: kimi
+  architecture: moe
+  total_params_b: 1000.0
+  active_params_b: 32.0
+  num_layers: 61
+  num_attention_heads: 64
+  num_kv_heads: 64
+  head_dim: 64
+  max_context: 131072
+  hf_repo: moonshotai/Kimi-K2-Instruct
+  license: modified-mit
+  is_coding_specialist: true
+  recommended_quant: fp8-e4m3
+  recommended_tp: 8

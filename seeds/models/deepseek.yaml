@@ -1,0 +1,21 @@
+# DeepSeek-V3
+# Architecture: MoE, 256 routed experts + 1 shared, 8 activated per token.
+# Uses Multi-head Latent Attention (MLA); head_dim here is v_head_dim.
+# Source: deepseek-ai/DeepSeek-V3 config.json (verified 2026-05-18).
+
+- slug: deepseek-v3
+  display_name: DeepSeek-V3
+  family: deepseek
+  architecture: moe
+  total_params_b: 671.0
+  active_params_b: 37.0
+  num_layers: 61
+  num_attention_heads: 128
+  num_kv_heads: 128
+  head_dim: 128
+  max_context: 163840
+  hf_repo: deepseek-ai/DeepSeek-V3
+  license: deepseek
+  is_coding_specialist: true
+  recommended_quant: fp8-e4m3
+  recommended_tp: 8
