@@ -7,12 +7,14 @@ from django.core.management.base import BaseCommand, CommandError
 if TYPE_CHECKING:
     from argparse import ArgumentParser
 
-from pricing.scrapers import runpod
+from pricing.scrapers import lambda_labs, nebius, runpod, vast
 from pricing.services.scrape_runner import persist_prices
 
 _SCRAPERS = {
     "runpod": (runpod.scrape, runpod.map_runpod_gpu),
-    # M05/M05.5 will add more here
+    "lambda": (lambda_labs.scrape, lambda_labs.map_lambda_gpu),
+    "vast": (vast.scrape, vast.map_vast_gpu),
+    "nebius": (nebius.scrape, nebius.map_nebius_gpu),
 }
 
 

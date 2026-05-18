@@ -1,0 +1,29 @@
+- slug: runpod
+  display_name: RunPod
+  provider_type: cloud
+  data_source_tier: realtime_api
+  pricing_url: https://www.runpod.io/pricing
+  has_api: true
+  api_endpoint: https://api.runpod.io/graphql
+
+- slug: lambda
+  display_name: Lambda Labs
+  provider_type: cloud
+  data_source_tier: scraped_page
+  pricing_url: https://lambdalabs.com/service/gpu-cloud
+  has_api: false
+
+- slug: vast
+  display_name: Vast.ai
+  provider_type: cloud
+  data_source_tier: realtime_api
+  pricing_url: https://vast.ai/pricing
+  has_api: true
+  api_endpoint: https://console.vast.ai/api/v0/bundles/
+
+- slug: nebius
+  display_name: Nebius
+  provider_type: cloud
+  data_source_tier: scraped_page
+  pricing_url: https://nebius.com/prices
+  has_api: false
