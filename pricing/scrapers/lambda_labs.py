@@ -1,13 +1,16 @@
 """Lambda Labs GPU Cloud scraper.
 
 Pricing page: https://lambda.ai/instances
-Approach: HTTP GET → find 'var newIslands = [...]' script → extract TabsIsland
-JSON → parse embedded HTML pricing tables.
+Approach: HTTP GET → find ALL 'var newIslands = [...]' script blocks → collect
+every island across blocks → find TabsIsland → parse embedded HTML tables.
 
 The page embeds per-GPU pricing in a TabsIsland component with tabs for
 different multi-GPU configurations (8x, 4x, 2x, 1x). Each row has a
 data-plan attribute with the GPU name and a PRICE/GPU/HR* column.
 Tier captured: on_demand only (Lambda has no spot/interruptible pricing).
+
+Note: the page contains multiple separate 'var newIslands = [...]' declarations
+(one per page section). Only one of them holds the TabsIsland; we collect all.
 """
 
 from __future__ import annotations
@@ -44,13 +47,10 @@ def map_lambda_gpu(display_name: str) -> str | None:
 
 
 def _extract_islands(html: str) -> list[dict[str, Any]]:
-    soup = BeautifulSoup(html, "html.parser")
-    for script in soup.find_all("script"):
-        txt = script.get_text()
-        m = _ISLANDS_RE.search(txt)
-        if m:
-            return json.loads(m.group(1))  # type: ignore[no-any-return]
-    return []
+    islands: list[dict[str, Any]] = []
+    for m in _ISLANDS_RE.finditer(html):
+        islands.extend(json.loads(m.group(1)))
+    return islands
 
 
 def parse_lambda_html(html: str) -> list[ScrapedPrice]:
