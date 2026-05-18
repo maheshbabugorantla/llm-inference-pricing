@@ -35,6 +35,7 @@ packages = ["pricing_dashboard", "catalog", "pricing", "seeds"]
 [tool.ruff]
 target-version = "py312"
 line-length = 110
+exclude = ["*/migrations/*"]
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "DJ", "TCH", "RUF"]

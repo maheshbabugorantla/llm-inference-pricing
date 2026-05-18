@@ -3,12 +3,10 @@ from __future__ import annotations
 import factory
 from factory.django import DjangoModelFactory
 
-from catalog.models import GPU, Model, Quantization
-
 
 class QuantizationFactory(DjangoModelFactory):
     class Meta:
-        model = Quantization
+        model = "catalog.Quantization"
 
     slug = factory.Sequence(lambda n: f"fp16-{n}")
     display_name = "FP16"
@@ -18,7 +16,7 @@ class QuantizationFactory(DjangoModelFactory):
 
 class GPUFactory(DjangoModelFactory):
     class Meta:
-        model = GPU
+        model = "catalog.GPU"
 
     slug = factory.Sequence(lambda n: f"nvidia-test-gpu-{n}")
     display_name = "Test GPU"
@@ -33,7 +31,7 @@ class GPUFactory(DjangoModelFactory):
 
 class ModelFactory(DjangoModelFactory):
     class Meta:
-        model = Model
+        model = "catalog.Model"
 
     slug = factory.Sequence(lambda n: f"test-model-{n}")
     display_name = "Test Model"
