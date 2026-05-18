@@ -1,0 +1,105 @@
+{
+  "prices": [
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA HGX H200",
+      "hourly_usd": "1.45",
+      "raw": {
+        "gpu": "NVIDIA HGX H200",
+        "price_text": "$1.45",
+        "tier": "preemptible"
+      },
+      "region": "",
+      "tier": "preemptible"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA HGX H200",
+      "hourly_usd": "3.50",
+      "raw": {
+        "gpu": "NVIDIA HGX H200",
+        "price_text": "$3.50",
+        "tier": "on_demand"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA HGX H100",
+      "hourly_usd": "1.25",
+      "raw": {
+        "gpu": "NVIDIA HGX H100",
+        "price_text": "$1.25",
+        "tier": "preemptible"
+      },
+      "region": "",
+      "tier": "preemptible"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA HGX H100",
+      "hourly_usd": "2.95",
+      "raw": {
+        "gpu": "NVIDIA HGX H100",
+        "price_text": "$2.95",
+        "tier": "on_demand"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA L40S with Intel CPU",
+      "hourly_usd": "0.90",
+      "raw": {
+        "gpu": "NVIDIA L40S with Intel CPU",
+        "price_text": "from $0.90",
+        "tier": "preemptible"
+      },
+      "region": "",
+      "tier": "preemptible"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA L40S with Intel CPU",
+      "hourly_usd": "1.82",
+      "raw": {
+        "gpu": "NVIDIA L40S with Intel CPU",
+        "price_text": "from $1.82",
+        "tier": "on_demand"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA L40S with AMD CPU",
+      "hourly_usd": "0.74",
+      "raw": {
+        "gpu": "NVIDIA L40S with AMD CPU",
+        "price_text": "from $0.74",
+        "tier": "preemptible"
+      },
+      "region": "",
+      "tier": "preemptible"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA L40S with AMD CPU",
+      "hourly_usd": "1.55",
+      "raw": {
+        "gpu": "NVIDIA L40S with AMD CPU",
+        "price_text": "from $1.55",
+        "tier": "on_demand"
+      },
+      "region": "",
+      "tier": "on_demand"
+    }
+  ],
+  "provider_slug": "nebius",
+  "schema_version": 1,
+  "scraped_at": "2026-05-18T22:56:30.343333Z",
+  "scraper_version": "1d7f5c7",
+  "source_url": "https://nebius.com/prices"
+}

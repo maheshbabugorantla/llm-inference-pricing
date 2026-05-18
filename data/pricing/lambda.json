@@ -1,0 +1,153 @@
+{
+  "prices": [
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA B200 SXM6",
+      "hourly_usd": "6.69",
+      "raw": {
+        "gpu": "NVIDIA B200 SXM6",
+        "price_text": "$6.69",
+        "tab": "8x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA H100 SXM",
+      "hourly_usd": "3.99",
+      "raw": {
+        "gpu": "NVIDIA H100 SXM",
+        "price_text": "$3.99",
+        "tab": "8x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA A100 SXM",
+      "hourly_usd": "2.79",
+      "raw": {
+        "gpu": "NVIDIA A100 SXM",
+        "price_text": "$2.79",
+        "tab": "8x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA A100 SXM",
+      "hourly_usd": "1.99",
+      "raw": {
+        "gpu": "NVIDIA A100 SXM",
+        "price_text": "$1.99",
+        "tab": "8x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA B200 SXM6",
+      "hourly_usd": "6.79",
+      "raw": {
+        "gpu": "NVIDIA B200 SXM6",
+        "price_text": "$6.79",
+        "tab": "4x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA H100 SXM",
+      "hourly_usd": "4.09",
+      "raw": {
+        "gpu": "NVIDIA H100 SXM",
+        "price_text": "$4.09",
+        "tab": "4x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA B200 SXM6",
+      "hourly_usd": "6.89",
+      "raw": {
+        "gpu": "NVIDIA B200 SXM6",
+        "price_text": "$6.89",
+        "tab": "2x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA H100 SXM",
+      "hourly_usd": "4.19",
+      "raw": {
+        "gpu": "NVIDIA H100 SXM",
+        "price_text": "$4.19",
+        "tab": "2x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA B200 SXM6",
+      "hourly_usd": "6.99",
+      "raw": {
+        "gpu": "NVIDIA B200 SXM6",
+        "price_text": "$6.99",
+        "tab": "1x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA H100 SXM",
+      "hourly_usd": "4.29",
+      "raw": {
+        "gpu": "NVIDIA H100 SXM",
+        "price_text": "$4.29",
+        "tab": "1x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA H100 PCIe",
+      "hourly_usd": "3.29",
+      "raw": {
+        "gpu": "NVIDIA H100 PCIe",
+        "price_text": "$3.29",
+        "tab": "1x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "NVIDIA A100 SXM",
+      "hourly_usd": "1.99",
+      "raw": {
+        "gpu": "NVIDIA A100 SXM",
+        "price_text": "$1.99",
+        "tab": "1x"
+      },
+      "region": "",
+      "tier": "on_demand"
+    }
+  ],
+  "provider_slug": "lambda",
+  "schema_version": 1,
+  "scraped_at": "2026-05-18T22:56:28.648269Z",
+  "scraper_version": "1d7f5c7",
+  "source_url": "https://lambda.ai/instances"
+}
