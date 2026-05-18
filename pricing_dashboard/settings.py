@@ -85,4 +85,12 @@ DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TASK_ALWAYS_EAGER = False
-CELERY_BEAT_SCHEDULE: dict[str, object] = {}
+
+from celery.schedules import crontab  # noqa: E402
+
+CELERY_BEAT_SCHEDULE: dict[str, object] = {
+    "scrape-runpod-hourly": {
+        "task": "pricing.tasks.scrape_runpod",
+        "schedule": crontab(minute=3),
+    },
+}
