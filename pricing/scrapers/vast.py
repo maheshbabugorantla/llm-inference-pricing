@@ -22,13 +22,14 @@ logger = logging.getLogger("pricing.scrapers.vast")
 
 VAST_GPU_MAP: dict[str, str] = {
     "RTX 4090": "nvidia-rtx-4090",
-    "H100 SXM5": "nvidia-h100-sxm-80",
+    "H100 SXM": "nvidia-h100-sxm-80",
     "H100 PCIe": "nvidia-h100-pcie-80",
-    "H200 SXM5": "nvidia-h200",
-    "A100 SXM4": "nvidia-a100-sxm-80",
-    "A100 PCIe": "nvidia-a100-sxm-40",
+    "H200": "nvidia-h200",
+    "A100 SXM": "nvidia-a100-sxm-80",
     "L40S": "nvidia-l40s",
     "RTX 6000 Ada": "nvidia-rtx-6000-ada",
+    "B200": "nvidia-b200",
+    "L4": "nvidia-l4",
 }
 
 _VAST_URL = "https://console.vast.ai/api/v0/bundles/"

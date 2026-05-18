@@ -12,17 +12,17 @@ from pricing.scrapers.base import ScrapedPrice
 logger = logging.getLogger("pricing.scrapers.runpod")
 
 RUNPOD_GPU_MAP: dict[str, str] = {
-    "NVIDIA H100 SXM": "nvidia-h100-sxm-80",
-    "NVIDIA H100 PCIe": "nvidia-h100-pcie-80",
-    "NVIDIA H200 SXM": "nvidia-h200",
-    "NVIDIA A100 SXM 80GB": "nvidia-a100-sxm-80",
-    "NVIDIA A100 SXM 40GB": "nvidia-a100-sxm-40",
-    "NVIDIA L40S": "nvidia-l40s",
-    "NVIDIA L4": "nvidia-l4",
-    "NVIDIA RTX 4090": "nvidia-rtx-4090",
-    "NVIDIA RTX 6000 Ada": "nvidia-rtx-6000-ada",
-    "NVIDIA B200": "nvidia-b200",
-    "AMD Instinct MI300X": "amd-mi300x",
+    "H100 SXM": "nvidia-h100-sxm-80",
+    "H100 PCIe": "nvidia-h100-pcie-80",
+    "H200 SXM": "nvidia-h200",
+    "A100 SXM": "nvidia-a100-sxm-80",
+    "A100 SXM 40GB": "nvidia-a100-sxm-40",
+    "L40S": "nvidia-l40s",
+    "L4": "nvidia-l4",
+    "RTX 4090": "nvidia-rtx-4090",
+    "RTX 6000 Ada": "nvidia-rtx-6000-ada",
+    "B200": "nvidia-b200",
+    "MI300X": "amd-mi300x",
 }
 
 _TIER_FIELDS: dict[str, str] = {

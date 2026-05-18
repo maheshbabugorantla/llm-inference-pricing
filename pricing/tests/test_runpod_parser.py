@@ -12,7 +12,7 @@ FIXTURE = Path(__file__).parent / "fixtures" / "runpod_gputypes_response.json"
 def test_parse_yields_community_and_secure_tiers() -> None:
     payload = json.loads(FIXTURE.read_text())
     prices = parse_runpod_response(payload)
-    tiers = {p.tier for p in prices if p.gpu_slug_hint == "NVIDIA H100 SXM"}
+    tiers = {p.tier for p in prices if p.gpu_slug_hint == "H100 SXM"}
     assert "community" in tiers
     assert "secure" in tiers
 
@@ -20,7 +20,7 @@ def test_parse_yields_community_and_secure_tiers() -> None:
 def test_parse_yields_reserved_tiers_when_present() -> None:
     payload = json.loads(FIXTURE.read_text())
     prices = parse_runpod_response(payload)
-    tiers = {p.tier for p in prices if p.gpu_slug_hint == "NVIDIA H100 SXM"}
+    tiers = {p.tier for p in prices if p.gpu_slug_hint == "H100 SXM"}
     assert "reserved-1mo" in tiers
     assert "reserved-1yr" in tiers
 
@@ -51,6 +51,6 @@ def test_parse_returns_decimals_not_floats() -> None:
 def test_parse_skips_null_price_fields() -> None:
     payload = json.loads(FIXTURE.read_text())
     prices = parse_runpod_response(payload)
-    rtx_tiers = {p.tier for p in prices if p.gpu_slug_hint == "NVIDIA RTX 4090"}
+    rtx_tiers = {p.tier for p in prices if p.gpu_slug_hint == "RTX 4090"}
     assert "reserved-1mo" not in rtx_tiers
     assert "community" in rtx_tiers

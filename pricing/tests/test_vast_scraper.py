@@ -12,7 +12,7 @@ FIXTURE = Path(__file__).parent / "fixtures" / "vast_bundles_sample.json"
 def test_vast_aggregates_bundles_to_p50_hourly() -> None:
     payload = json.loads(FIXTURE.read_text())
     prices = parse_vast_response(payload)
-    h100_od = next(p for p in prices if p.gpu_slug_hint == "H100 SXM5" and p.tier == "on_demand")
+    h100_od = next(p for p in prices if p.gpu_slug_hint == "H100 SXM" and p.tier == "on_demand")
     # on-demand bundles: 2.05, 2.15, 2.25, 2.40 → p50 ≈ median of 4 = (2.15+2.25)/2 = 2.20
     assert Decimal("2.0") < h100_od.hourly_usd < Decimal("2.5")
 
