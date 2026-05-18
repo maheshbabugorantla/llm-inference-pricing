@@ -96,3 +96,73 @@ class Model(models.Model):
             raise ValidationError(
                 {"active_params_b": "dense models must have active_params_b == total_params_b"}
             )
+
+
+class BenchmarkSource(models.Model):
+    PUBLISHER_CHOICES: ClassVar[list[tuple[str, str]]] = [
+        ("vllm", "vLLM"),
+        ("sglang", "SGLang"),
+        ("nvidia", "NVIDIA"),
+        ("anyscale", "Anyscale"),
+        ("mlperf", "MLPerf"),
+        ("other", "Other"),
+    ]
+    ENGINE_CHOICES: ClassVar[list[tuple[str, str]]] = [
+        ("vllm", "vLLM"),
+        ("sglang", "SGLang"),
+        ("tgi", "TGI"),
+        ("trt-llm", "TensorRT-LLM"),
+    ]
+
+    slug = models.SlugField(unique=True, max_length=128)
+    title = models.CharField(max_length=256)
+    url = models.URLField()
+    publisher = models.CharField(max_length=32, choices=PUBLISHER_CHOICES)
+    published_at = models.DateField()
+    engine = models.CharField(max_length=16, choices=ENGINE_CHOICES)
+    engine_version = models.CharField(max_length=32)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-published_at",)
+
+    def __str__(self) -> str:
+        return self.title
+
+
+class BenchmarkPoint(models.Model):
+    model = models.ForeignKey(Model, on_delete=models.PROTECT)
+    gpu = models.ForeignKey(GPU, on_delete=models.PROTECT)
+    quantization = models.ForeignKey(Quantization, on_delete=models.PROTECT)
+    tp_size = models.PositiveSmallIntegerField()
+    batch_size = models.PositiveSmallIntegerField()
+    context_length = models.PositiveIntegerField()
+
+    prefill_tps_aggregate = models.FloatField(help_text="Input tokens/sec across the batch")
+    decode_tps_aggregate = models.FloatField(help_text="Output tokens/sec across the batch")
+    ttft_ms = models.FloatField(null=True, blank=True)
+
+    source = models.ForeignKey(BenchmarkSource, on_delete=models.PROTECT)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("model", "gpu", "quantization", "tp_size", "batch_size", "context_length")
+        constraints: ClassVar = [
+            models.UniqueConstraint(
+                fields=["model", "gpu", "quantization", "tp_size", "batch_size", "context_length"],
+                name="unique_benchmark_point",
+            )
+        ]
+        indexes: ClassVar = [
+            models.Index(fields=["model", "gpu"]),
+            models.Index(fields=["gpu", "quantization"]),
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.model.slug} on {self.gpu.slug} @ {self.quantization.slug} "
+            f"tp{self.tp_size} batch{self.batch_size} ctx{self.context_length}"
+        )

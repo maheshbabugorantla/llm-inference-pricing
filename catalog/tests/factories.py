@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import datetime
+
 import factory
 from factory.django import DjangoModelFactory
 
@@ -49,3 +51,31 @@ class ModelFactory(DjangoModelFactory):
     is_coding_specialist = True
     recommended_quant = factory.SubFactory(QuantizationFactory)
     recommended_tp = 1
+
+
+class BenchmarkSourceFactory(DjangoModelFactory):
+    class Meta:
+        model = "catalog.BenchmarkSource"
+
+    slug = factory.Sequence(lambda n: f"src-{n}")
+    title = "Test benchmark"
+    url = "https://example.com/bench"
+    publisher = "vllm"
+    published_at = factory.LazyFunction(datetime.date.today)
+    engine = "vllm"
+    engine_version = "0.7.0"
+
+
+class BenchmarkPointFactory(DjangoModelFactory):
+    class Meta:
+        model = "catalog.BenchmarkPoint"
+
+    model = factory.SubFactory(ModelFactory)
+    gpu = factory.SubFactory(GPUFactory)
+    quantization = factory.SubFactory(QuantizationFactory)
+    tp_size = 1
+    batch_size = 8
+    context_length = 4096
+    prefill_tps_aggregate = 28400.0
+    decode_tps_aggregate = 920.0
+    source = factory.SubFactory(BenchmarkSourceFactory)
