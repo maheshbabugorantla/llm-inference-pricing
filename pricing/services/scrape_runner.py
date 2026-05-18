@@ -11,6 +11,7 @@ from pricing.models import PricingSnapshot, Provider
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Iterable
+    from datetime import datetime
 
     from pricing.scrapers.base import ScrapedPrice
 
@@ -22,13 +23,14 @@ def persist_prices(
     prices: Iterable[ScrapedPrice],
     *,
     gpu_slug_resolver: Callable[[str], str | None],
+    scraped_at: datetime | None = None,
 ) -> int:
     """Persist a batch of scraped prices as PricingSnapshot rows.
 
     Returns the number of rows written. Unmapped GPUs are skipped (info log).
     Missing Provider raises Provider.DoesNotExist (configuration error).
     """
-    now = timezone.now()
+    now = scraped_at if scraped_at is not None else timezone.now()
     providers_cache: dict[str, Provider] = {}
     gpus_cache: dict[str, GPU] = {}
     written = 0
