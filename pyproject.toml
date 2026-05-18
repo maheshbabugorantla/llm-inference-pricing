@@ -44,7 +44,7 @@ ignore = ["E501"]
 python_version = "3.12"
 strict = true
 plugins = ["mypy_django_plugin.main"]
-exclude = ["migrations/"]
+exclude = ["migrations/", ".*/tests/.*"]
 explicit_package_bases = true
 
 [[tool.mypy.overrides]]
