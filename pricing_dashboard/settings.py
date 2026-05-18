@@ -93,4 +93,16 @@ CELERY_BEAT_SCHEDULE: dict[str, object] = {
         "task": "pricing.tasks.scrape_runpod",
         "schedule": crontab(minute=3),
     },
+    "scrape-lambda-daily": {
+        "task": "pricing.tasks.scrape_lambda",
+        "schedule": crontab(minute=15, hour=6),
+    },
+    "scrape-vast-daily": {
+        "task": "pricing.tasks.scrape_vast",
+        "schedule": crontab(minute=15, hour=6),
+    },
+    "scrape-nebius-daily": {
+        "task": "pricing.tasks.scrape_nebius",
+        "schedule": crontab(minute=15, hour=6),
+    },
 }
