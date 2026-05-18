@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import json
 from decimal import Decimal
 from pathlib import Path
 from unittest.mock import patch
@@ -7,37 +8,87 @@ from unittest.mock import patch
 import pytest
 
 from pricing.scrapers.base import ParserDriftError
-from pricing.scrapers.nebius import parse_nebius_html
+from pricing.scrapers.nebius import NEBIUS_GPU_MAP, map_nebius_gpu, parse_nebius_html
 
 FIXTURE = Path(__file__).parent / "fixtures" / "nebius_pricing.html"
 
+_GPU_BLOCK = {
+    "type": "highlight-table-block",
+    "title": "NVIDIA GPU Instances",
+    "table": {
+        "content": [
+            ["Item", "vCPUs", "RAM, GB", "Preemptible, GPU-hour", "On-demand, GPU-hour"],
+        ]
+    },
+}
 
-def test_nebius_parse_yields_h100_on_demand_price() -> None:
+
+def _make_next_data_html(rows: list[list[str]]) -> str:
+    block = {
+        "type": "highlight-table-block",
+        "title": "NVIDIA GPU Instances",
+        "table": {
+            "content": [["Item", "vCPUs", "RAM, GB", "Preemptible, GPU-hour", "On-demand, GPU-hour"], *rows]
+        },
+    }
+    content = json.dumps({"blocks": [block]})
+    state = {'pages:{"id":"99"}': {"__typename": "pages", "content": content}}
+    minimal = {
+        "props": {"pageProps": {"__APOLLO_STATE__": state}},
+        "page": "/prices",
+        "query": {},
+        "buildId": "fixture",
+    }
+    return f'<html><head></head><body><script id="__NEXT_DATA__" type="application/json">{json.dumps(minimal)}</script></body></html>'
+
+
+def test_parse_yields_h100_on_demand_price() -> None:
     html = FIXTURE.read_text()
     prices = parse_nebius_html(html)
-    h100 = [p for p in prices if p.gpu_slug_hint == "NVIDIA H100 SXM (80 GB)"]
-    assert len(h100) >= 1
-    assert h100[0].tier == "on_demand"
-    assert h100[0].hourly_usd > Decimal("0")
+    h100_od = [p for p in prices if p.gpu_slug_hint == "NVIDIA HGX H100" and p.tier == "on_demand"]
+    assert len(h100_od) >= 1
+    assert h100_od[0].hourly_usd > Decimal("0")
 
 
-def test_nebius_parse_returns_decimal_prices() -> None:
+def test_parse_yields_preemptible_tier() -> None:
+    html = FIXTURE.read_text()
+    prices = parse_nebius_html(html)
+    h100_tiers = {p.tier for p in prices if p.gpu_slug_hint == "NVIDIA HGX H100"}
+    assert "preemptible" in h100_tiers
+    assert "on_demand" in h100_tiers
+
+
+def test_parse_returns_decimal_prices() -> None:
     html = FIXTURE.read_text()
     prices = parse_nebius_html(html)
     assert all(isinstance(p.hourly_usd, Decimal) for p in prices)
 
 
-def test_nebius_parse_drops_unmapped_gpus() -> None:
-    html = FIXTURE.read_text()
+def test_parse_drops_unmapped_gpus() -> None:
+    html = _make_next_data_html([["Unknown GPU 9000", "8", "64", "$0.99", "$1.99"]])
     prices = parse_nebius_html(html)
-    slugs = {p.gpu_slug_hint for p in prices}
-    assert "Some Future GPU (128 GB)" not in slugs
+    assert len(prices) == 0
 
 
-def test_nebius_parse_all_on_demand_tier() -> None:
+def test_parse_skips_contact_us_prices() -> None:
+    html = _make_next_data_html(
+        [
+            ["NVIDIA HGX H100", "16", "200", "$1.25", "[Contact us](#form)"],
+        ]
+    )
+    prices = parse_nebius_html(html)
+    # on_demand is "Contact us" → skipped; preemptible is $1.25 → kept
+    tiers = {p.tier for p in prices if p.gpu_slug_hint == "NVIDIA HGX H100"}
+    assert "on_demand" not in tiers
+    assert "preemptible" in tiers
+
+
+def test_parse_handles_from_prefix_in_price() -> None:
     html = FIXTURE.read_text()
     prices = parse_nebius_html(html)
-    assert all(p.tier == "on_demand" for p in prices)
+    l40s = [p for p in prices if p.gpu_slug_hint == "NVIDIA L40S with Intel CPU"]
+    assert len(l40s) >= 1
+    assert l40s[0].hourly_usd > Decimal("0")
 
 
 def test_nebius_html_hash_logged_at_info() -> None:
@@ -47,7 +98,35 @@ def test_nebius_html_hash_logged_at_info() -> None:
         assert mock_logger.info.called
 
 
-def test_nebius_parser_raises_drift_error_on_empty_result() -> None:
-    html = "<html><body><p>no pricing table here</p></body></html>"
+def test_parse_raises_drift_error_when_no_next_data() -> None:
+    html = "<html><body><p>no data here</p></body></html>"
     with pytest.raises(ParserDriftError):
         parse_nebius_html(html)
+
+
+def test_parse_raises_drift_error_when_no_gpu_block() -> None:
+    block = {"type": "header-block", "title": "Welcome"}
+    content = json.dumps({"blocks": [block]})
+    state = {'pages:{"id":"99"}': {"__typename": "pages", "content": content}}
+    minimal = {
+        "props": {"pageProps": {"__APOLLO_STATE__": state}},
+        "page": "/prices",
+        "query": {},
+        "buildId": "x",
+    }
+    html = f'<script id="__NEXT_DATA__" type="application/json">{json.dumps(minimal)}</script>'
+    with pytest.raises(ParserDriftError):
+        parse_nebius_html(html)
+
+
+def test_map_nebius_h100() -> None:
+    assert map_nebius_gpu("NVIDIA HGX H100") == "nvidia-h100-sxm-80"
+
+
+def test_map_nebius_unknown_returns_none() -> None:
+    assert map_nebius_gpu("Unknown GPU 9000") is None
+
+
+def test_map_covers_expected_gpu_set() -> None:
+    expected = {"NVIDIA HGX H100", "NVIDIA HGX H200"}
+    assert expected.issubset(NEBIUS_GPU_MAP.keys())
