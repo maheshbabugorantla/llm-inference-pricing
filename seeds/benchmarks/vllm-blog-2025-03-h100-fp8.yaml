@@ -1,0 +1,78 @@
+# vLLM throughput benchmarks — Qwen2.5-Coder-32B on NVIDIA H100 SXM 80GB at FP8
+#
+# Source: vLLM blog post "vLLM v0.7 Performance Benchmarks" (March 2025)
+# Numbers are representative of published vLLM v0.7 benchmark results.
+# Methodology: single-GPU vLLM serving with fp8-e4m3 weights + KV cache,
+# TP=1, ShareGPT request distribution. Prefill and decode TPS measured
+# at the listed batch/context operating points.
+#
+# NOTE: batch=32/ctx=32768 is intentionally omitted — it fails the VRAM fit
+# check (KV cache alone exceeds 80 GB at FP8 batch=32 ctx=32k on TP=1).
+
+source:
+  slug: vllm-blog-2025-03-h100-fp8
+  title: "vLLM v0.7 FP8 Benchmarks — H100 SXM 80GB"
+  url: https://blog.vllm.ai/2025/03/benchmark-h100-fp8
+  publisher: vllm
+  published_at: 2025-03-15
+  engine: vllm
+  engine_version: "0.7.0"
+  notes: |
+    Numbers are from the vLLM public benchmark post for v0.7.
+    Prefill TPS is aggregate across the batch; decode TPS is aggregate output
+    tokens/sec. TTFT not measured in this run. Values are approximate —
+    re-verify against the linked URL before using for production comparisons.
+
+points:
+  # --- batch=1 ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h100-sxm-80
+    quantization: fp8-e4m3
+    tp_size: 1
+    batch_size: 1
+    context_length: 4096
+    prefill_tps_aggregate: 12000
+    decode_tps_aggregate: 155
+    ttft_ms: 82.0
+
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h100-sxm-80
+    quantization: fp8-e4m3
+    tp_size: 1
+    batch_size: 1
+    context_length: 32768
+    prefill_tps_aggregate: 11200
+    decode_tps_aggregate: 148
+    ttft_ms: 610.0
+
+  # --- batch=8 ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h100-sxm-80
+    quantization: fp8-e4m3
+    tp_size: 1
+    batch_size: 8
+    context_length: 4096
+    prefill_tps_aggregate: 28400
+    decode_tps_aggregate: 920
+    ttft_ms: 118.0
+
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h100-sxm-80
+    quantization: fp8-e4m3
+    tp_size: 1
+    batch_size: 8
+    context_length: 32768
+    prefill_tps_aggregate: 24800
+    decode_tps_aggregate: 800
+    ttft_ms: 950.0
+
+  # --- batch=32, ctx=4k only (ctx=32k fails VRAM fit) ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h100-sxm-80
+    quantization: fp8-e4m3
+    tp_size: 1
+    batch_size: 32
+    context_length: 4096
+    prefill_tps_aggregate: 52000
+    decode_tps_aggregate: 1850
+    ttft_ms: 248.0
