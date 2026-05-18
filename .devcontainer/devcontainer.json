@@ -1,0 +1,71 @@
+{
+  "name": "llm-inference-pricing",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "args": {
+      "TZ": "${localEnv:TZ:America/Chicago}"
+    }
+  },
+
+  // Non-root: matches the USERNAME=node in the Dockerfile.
+  "remoteUser": "node",
+  "containerUser": "node",
+  "updateRemoteUserUID": true,
+  "workspaceFolder": "/workspace",
+  "workspaceMount": "source=${localWorkspaceFolder},target=/workspace,type=bind,consistency=cached",
+
+  // ---- Capabilities + security --------------------------------------------
+  // NET_ADMIN / NET_RAW: required for iptables (init-firewall.sh).
+  "runArgs": [
+    "--cap-add=NET_ADMIN",
+    "--cap-add=NET_RAW",
+    "--init"
+  ],
+
+  // ---- Persistent state ----------------------------------------------------
+  // Claude Code auth + sessions persist across container rebuilds.
+  // Shell history persists. Bind-mount the host Docker socket so claude can
+  // run `docker compose up` from inside the container to start db/redis.
+  "mounts": [
+    "source=llm-pricing-claude-config,target=/home/node/.claude,type=volume",
+    "source=llm-pricing-claude-cache,target=/home/node/.cache,type=volume",
+    "source=llm-pricing-claude-history,target=/commandhistory,type=volume",
+    "source=/var/run/docker.sock,target=/var/run/docker.sock,type=bind"
+  ],
+
+  // ---- Init script: firewall + ownership fixups ---------------------------
+  // Runs once after the container is created.
+  "postCreateCommand": "sudo /usr/local/bin/init-firewall.sh",
+
+  // Optional: run when container starts (every time). Re-resolve IPs since
+  // DNS may have changed since the last `postCreateCommand`.
+  "postStartCommand": "sudo /usr/local/bin/init-firewall.sh",
+
+  // ---- VS Code customizations ---------------------------------------------
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        "ms-python.python",
+        "ms-python.vscode-pylance",
+        "ms-python.mypy-type-checker",
+        "charliermarsh.ruff",
+        "ms-azuretools.vscode-docker",
+        "tamasfe.even-better-toml",
+        "redhat.vscode-yaml",
+        "eamodio.gitlens"
+      ],
+      "settings": {
+        "python.defaultInterpreterPath": "/workspace/.venv/bin/python",
+        "python.terminal.activateEnvironment": true,
+        "[python]": {
+          "editor.formatOnSave": true,
+          "editor.defaultFormatter": "charliermarsh.ruff",
+          "editor.codeActionsOnSave": {
+            "source.organizeImports.ruff": "explicit"
+          }
+        },
+        "terminal.integrated.defaultProfile.linux": "zsh"
+      }
+    }
+  }
+}

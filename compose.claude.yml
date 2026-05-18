@@ -1,0 +1,79 @@
+# compose.claude.yml
+#
+# Run Claude Code in a sandboxed container WITHOUT VS Code / DevContainers.
+# Pairs with the project's docker-compose.yml (created in M00).
+#
+# Usage:
+#   # First time: build the image
+#   docker compose -f compose.claude.yml build claude
+#
+#   # Start a session
+#   docker compose -f compose.claude.yml run --rm claude
+#
+#   # Inside the container shell:
+#   claude --dangerously-skip-permissions
+#
+# After M00 has created docker-compose.yml with postgres/redis services,
+# merge them with `-f docker-compose.yml -f compose.claude.yml`:
+#
+#   docker compose -f docker-compose.yml -f compose.claude.yml up -d db redis
+#   docker compose -f docker-compose.yml -f compose.claude.yml run --rm claude
+
+services:
+  claude:
+    build:
+      context: ./.devcontainer
+      dockerfile: Dockerfile
+    image: llm-pricing-claude:latest
+    container_name: llm-pricing-claude
+    hostname: claude
+    init: true
+    stdin_open: true
+    tty: true
+    working_dir: /workspace
+
+    # Firewall capabilities
+    cap_add:
+      - NET_ADMIN
+      - NET_RAW
+
+    # Mount project read-write, docker socket for `docker compose` from within,
+    # persistent volumes for ~/.claude (auth) and shell history.
+    volumes:
+      - .:/workspace:cached
+      - /var/run/docker.sock:/var/run/docker.sock
+      - claude-config:/home/node/.claude
+      - claude-cache:/home/node/.cache
+      - claude-history:/commandhistory
+
+    environment:
+      - TZ=${TZ:-America/Chicago}
+      - CLAUDE_CONFIG_DIR=/home/node/.claude
+      - SHELL=/bin/zsh
+      # Pass through API key if you use it; otherwise login via the CLI.
+      - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+
+    # Run the firewall on entry, then drop to a zsh shell.
+    entrypoint: ["/bin/zsh", "-c"]
+    command:
+      - |
+        sudo /usr/local/bin/init-firewall.sh && exec zsh
+
+    networks:
+      - llm-pricing-dev
+
+networks:
+  llm-pricing-dev:
+    # Joins the network created by the project's docker-compose.yml so claude
+    # can reach the `db` and `redis` service hostnames. Adjust the name
+    # to match what compose creates (typically `<projectdir>_default`).
+    external: true
+    name: ${COMPOSE_PROJECT_NAME:-llm-pricing-spec}_default
+
+volumes:
+  claude-config:
+    name: llm-pricing-claude-config
+  claude-cache:
+    name: llm-pricing-claude-cache
+  claude-history:
+    name: llm-pricing-claude-history
