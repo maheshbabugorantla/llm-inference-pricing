@@ -14,5 +14,6 @@ repos:
           - types-PyYAML
           - celery
           - psycopg[binary]
+          - pydantic>=2.5
         args: [catalog, pricing]
         pass_filenames: false
