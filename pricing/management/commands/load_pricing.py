@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 
 logger = logging.getLogger("pricing.management.load_pricing")
 
-_DATA_DIR = Path(__file__).resolve().parents[4] / "data" / "pricing"
+_DATA_DIR = Path(__file__).resolve().parents[3] / "data" / "pricing"
 
 
 class Command(BaseCommand):
