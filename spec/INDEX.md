@@ -17,7 +17,7 @@
 - [x] **M02** — Benchmarks + fit calculation → `M02-benchmarks-and-fit.md`
 - [x] **M03** — `pricing` app + Provider + PricingSnapshot + TimescaleDB → `M03-pricing-app-schema.md`
 - [x] **M04** — RunPod Tier 1 scraper (on-demand + 4 reserved tiers in one call) → `M04-runpod-scraper.md`
-- [ ] **M05** — Tier 2 page scrapers (Lambda, Vast, Nebius) → `M05-tier2-page-scrapers.md`
+- [x] **M05** — Tier 2 page scrapers (Lambda, Vast, Nebius) → `M05-tier2-page-scrapers.md`
 - [ ] **M05.5** — Tier 1 hyperscaler scrapers (AWS, GCP, Azure) → `M05.5-hyperscaler-scrapers.md`
 - [ ] **M06** — `current_cost_cells` materialized view + cost service → `M06-current-cost-cells.md`
 - [ ] **M07** — Ops hardening (continuous aggregate, retention, Sentry, canary CI) → `M07-ops-hardening.md`
