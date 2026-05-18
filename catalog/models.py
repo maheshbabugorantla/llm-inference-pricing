@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from typing import ClassVar
+
 from django.core.exceptions import ValidationError
 from django.db import models
 
@@ -32,13 +34,31 @@ class Quantization(models.Model):
 
 
 class GPU(models.Model):
-    """Placeholder; expanded with full fields in M01.T03."""
+    VENDOR_CHOICES: ClassVar[list[tuple[str, str]]] = [("nvidia", "NVIDIA"), ("amd", "AMD")]
+
+    slug = models.SlugField(unique=True, max_length=64)
+    display_name = models.CharField(max_length=128)
+    vendor = models.CharField(max_length=16, choices=VENDOR_CHOICES)
+    architecture = models.CharField(max_length=32)
+    vram_gb = models.PositiveIntegerField()
+    memory_bandwidth_gbs = models.PositiveIntegerField()
+    fp16_tflops = models.FloatField()
+    fp8_tflops = models.FloatField(null=True, blank=True)
+    int8_tops = models.FloatField(null=True, blank=True)
+    tdp_watts = models.PositiveIntegerField()
+    interconnect = models.CharField(max_length=32)
+    nvlink_bandwidth_gbs = models.PositiveIntegerField(null=True, blank=True)
+    supports_fp8_native = models.BooleanField(default=False)
+    supports_fp4_native = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ("pk",)
+        ordering = ("vendor", "slug")
 
     def __str__(self) -> str:
-        return str(self.pk)
+        return self.display_name
 
 
 class Model(models.Model):
