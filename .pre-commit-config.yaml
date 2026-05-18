@@ -6,11 +6,11 @@ repos:
         args: [--fix]
       - id: ruff-format
   - repo: https://github.com/pre-commit/mirrors-mypy
-    rev: v1.10.0
+    rev: v2.0.0
     hooks:
       - id: mypy
         additional_dependencies:
-          - django-stubs[compatible-mypy]
+          - django-stubs[compatible-mypy]==6.0.4
           - types-PyYAML
           - celery
           - psycopg[binary]
