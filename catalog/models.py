@@ -62,10 +62,37 @@ class GPU(models.Model):
 
 
 class Model(models.Model):
-    """Placeholder; expanded with full fields in M01.T04."""
+    ARCH_CHOICES: ClassVar[list[tuple[str, str]]] = [("dense", "Dense"), ("moe", "Mixture of Experts")]
+
+    slug = models.SlugField(unique=True, max_length=128)
+    display_name = models.CharField(max_length=128)
+    family = models.CharField(max_length=64)
+    architecture = models.CharField(max_length=16, choices=ARCH_CHOICES)
+    total_params_b = models.FloatField()
+    active_params_b = models.FloatField()
+    num_layers = models.PositiveIntegerField()
+    num_attention_heads = models.PositiveIntegerField()
+    num_kv_heads = models.PositiveIntegerField()
+    head_dim = models.PositiveIntegerField()
+    max_context = models.PositiveIntegerField()
+    hf_repo = models.CharField(max_length=128)
+    license = models.CharField(max_length=64)
+    is_coding_specialist = models.BooleanField(default=False)
+    recommended_quant = models.ForeignKey(Quantization, on_delete=models.PROTECT, related_name="+")
+    recommended_tp = models.PositiveSmallIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        ordering = ("pk",)
+        ordering = ("family", "slug")
 
     def __str__(self) -> str:
-        return str(self.pk)
+        return self.display_name
+
+    def clean(self) -> None:
+        if self.recommended_tp not in VALID_TP_SIZES:
+            raise ValidationError({"recommended_tp": f"must be one of {VALID_TP_SIZES}"})
+        if self.architecture == "dense" and self.total_params_b != self.active_params_b:
+            raise ValidationError(
+                {"active_params_b": "dense models must have active_params_b == total_params_b"}
+            )
