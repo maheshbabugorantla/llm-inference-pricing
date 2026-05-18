@@ -1,0 +1,57 @@
+name: Scrape Pricing
+
+on:
+  schedule:
+    # 06:17 UTC daily — offset to avoid top-of-hour runner contention
+    - cron: "17 6 * * *"
+  workflow_dispatch:
+
+concurrency:
+  group: scrape-pricing
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  scrape:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+
+      - name: Scrape all providers
+        env:
+          DJANGO_SETTINGS_MODULE: pricing_dashboard.settings
+          # Placeholder DB env vars so settings.py imports without a real DB.
+          # dump_pricing never queries the DB; these values are never used.
+          DB_HOST: localhost
+          DB_PORT: "5432"
+          DB_NAME: pricing
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          REDIS_URL: redis://localhost:6379/0
+        run: python manage.py dump_pricing --provider all
+
+      - name: Commit updated artifacts
+        run: |
+          git config user.name "pricing-bot"
+          git config user.email "pricing-bot@users.noreply.github.com"
+          if git status --porcelain data/pricing/ | grep -q .; then
+            git add data/pricing/
+            git commit -m "data(pricing): refresh $(date -u +%Y-%m-%d) snapshots"
+            git push origin HEAD:main
+          else
+            echo "No pricing data changed."
+          fi
