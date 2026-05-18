@@ -15,5 +15,7 @@ repos:
           - celery
           - psycopg[binary]
           - pydantic>=2.5
+          - httpx>=0.27
+          - tenacity>=8.2
         args: [catalog, pricing]
         pass_filenames: false
