@@ -1,0 +1,30 @@
+{
+  "data": {
+    "gpuTypes": [
+      {
+        "displayName": "NVIDIA H100 SXM",
+        "memoryInGb": 80,
+        "communityPrice": 1.99,
+        "securePrice": 2.69,
+        "communitySpotPrice": 0.99,
+        "secureSpotPrice": 1.49,
+        "oneMonthPrice": 1.79,
+        "threeMonthPrice": 1.69,
+        "sixMonthPrice": 1.59,
+        "oneYearPrice": 1.49
+      },
+      {
+        "displayName": "NVIDIA RTX 4090",
+        "memoryInGb": 24,
+        "communityPrice": 0.39,
+        "securePrice": 0.69,
+        "communitySpotPrice": 0.19,
+        "secureSpotPrice": 0.39,
+        "oneMonthPrice": null,
+        "threeMonthPrice": null,
+        "sixMonthPrice": null,
+        "oneYearPrice": null
+      }
+    ]
+  }
+}
