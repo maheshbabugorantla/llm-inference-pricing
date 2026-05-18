@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+import datetime as _dt
+
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
 # These constants intentionally duplicate the ones in catalog/models.py.
@@ -92,3 +94,51 @@ class ModelYAML(BaseModel):
         if self.architecture == "dense" and self.total_params_b != self.active_params_b:
             raise ValueError("dense models must have total_params_b == active_params_b")
         return self
+
+
+class BenchmarkSourceYAML(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    slug: str
+    title: str
+    url: str
+    publisher: str
+    published_at: _dt.date
+    engine: str
+    engine_version: str
+    notes: str = ""
+
+
+class BenchmarkPointYAML(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    model: str
+    gpu: str
+    quantization: str
+    tp_size: int
+    batch_size: int
+    context_length: int
+    prefill_tps_aggregate: float
+    decode_tps_aggregate: float
+    ttft_ms: float | None = None
+
+    @field_validator("tp_size")
+    @classmethod
+    def _tp_valid(cls, v: int) -> int:
+        if v not in VALID_TP_SIZES:
+            raise ValueError(f"tp_size must be one of {VALID_TP_SIZES}")
+        return v
+
+    @field_validator("prefill_tps_aggregate", "decode_tps_aggregate")
+    @classmethod
+    def _tps_positive(cls, v: float) -> float:
+        if v <= 0:
+            raise ValueError("throughput must be positive")
+        return v
+
+
+class BenchmarkFileYAML(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    source: BenchmarkSourceYAML
+    points: list[BenchmarkPointYAML]
