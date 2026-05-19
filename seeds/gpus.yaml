@@ -154,6 +154,64 @@
   supports_fp8_native: true
   supports_fp4_native: true
 
+# ── NVIDIA Turing / Volta / Pascal (GCP N1-attached) ─────────────────────────
+
+- slug: nvidia-t4
+  display_name: NVIDIA T4 16GB
+  vendor: nvidia
+  architecture: turing
+  vram_gb: 16
+  memory_bandwidth_gbs: 320
+  fp16_tflops: 65.1
+  fp8_tflops:
+  int8_tops: 130.0
+  tdp_watts: 70
+  interconnect: pcie
+  supports_fp8_native: false
+  supports_fp4_native: false
+
+- slug: nvidia-v100
+  display_name: NVIDIA Tesla V100 PCIe 16GB
+  vendor: nvidia
+  architecture: volta
+  vram_gb: 16
+  memory_bandwidth_gbs: 897
+  fp16_tflops: 112.0
+  fp8_tflops:
+  int8_tops: 112.0
+  tdp_watts: 250
+  interconnect: pcie
+  supports_fp8_native: false
+  supports_fp4_native: false
+
+- slug: nvidia-p100
+  display_name: NVIDIA Tesla P100 PCIe 16GB
+  vendor: nvidia
+  architecture: pascal
+  vram_gb: 16
+  memory_bandwidth_gbs: 732
+  fp16_tflops: 21.2
+  fp8_tflops:
+  int8_tops:
+  tdp_watts: 250
+  interconnect: pcie
+  supports_fp8_native: false
+  supports_fp4_native: false
+
+- slug: nvidia-p4
+  display_name: NVIDIA Tesla P4 8GB
+  vendor: nvidia
+  architecture: pascal
+  vram_gb: 8
+  memory_bandwidth_gbs: 192
+  fp16_tflops: 5.5
+  fp8_tflops:
+  int8_tops: 22.0
+  tdp_watts: 75
+  interconnect: pcie
+  supports_fp8_native: false
+  supports_fp4_native: false
+
 # ── AMD Instinct ───────────────────────────────────────────────────────────────
 
 - slug: amd-mi300x
