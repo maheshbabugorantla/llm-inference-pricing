@@ -27,3 +27,11 @@
   data_source_tier: scraped_page
   pricing_url: https://nebius.com/prices
   has_api: false
+
+- slug: gcp
+  display_name: Google Cloud
+  provider_type: cloud
+  data_source_tier: realtime_api
+  pricing_url: https://cloud.google.com/compute/gpus-pricing
+  has_api: true
+  api_endpoint: https://cloudbilling.googleapis.com/v1/

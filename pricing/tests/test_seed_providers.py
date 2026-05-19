@@ -10,7 +10,7 @@ from pricing.models import Provider
 def test_seed_providers_creates_all_known_providers() -> None:
     call_command("seed_providers")
     slugs = set(Provider.objects.values_list("slug", flat=True))
-    assert {"runpod", "lambda", "vast", "nebius"}.issubset(slugs)
+    assert {"runpod", "lambda", "vast", "nebius", "gcp"}.issubset(slugs)
 
 
 @pytest.mark.django_db
