@@ -32,7 +32,7 @@ jobs:
         run: uv pip install --system -e ".[dev]"
 
       - name: Write GCP service account key
-        if: ${{ env.GCP_SA_KEY != '' }}
+        if: ${{ secrets.GCP_SA_KEY != '' }}
         env:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
@@ -50,7 +50,6 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: postgres
           REDIS_URL: redis://localhost:6379/0
-          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: python manage.py dump_pricing --provider all
 
       - name: Commit updated artifacts
