@@ -19,7 +19,8 @@
 - [x] **M04** — RunPod Tier 1 scraper (on-demand + 4 reserved tiers in one call) → `M04-runpod-scraper.md`
 - [x] **M05** — Tier 2 page scrapers (Lambda, Vast, Nebius) → `M05-tier2-page-scrapers.md`
 - [x] **M05.6** — Pricing Data Pipeline (GH Actions + JSON artifacts) → `M05.6-pricing-data-pipeline.md`
-- [ ] **M05.5** — Tier 1 hyperscaler scrapers (AWS, GCP, Azure) → `M05.5-hyperscaler-scrapers.md` *(deferred until M05.6 ships; reuses the dump/load pipeline)*
+- [x] **M05.5a** — GCP scraper (carved from M05.5; AWS+Azure deferred) → `M05.5a-gcp-scraper.md`
+- [ ] **M05.5b** — Tier 1 hyperscaler scrapers (AWS, Azure) → `M05.5-hyperscaler-scrapers.md` *(deferred until after M06)*
 - [ ] **M06** — `current_cost_cells` materialized view + cost service → `M06-current-cost-cells.md`
 - [ ] **M07** — Ops hardening (continuous aggregate, retention, Sentry, canary CI) → `M07-ops-hardening.md`
 - [ ] **M08** — On-prem (`HardwareSKU`, `OnPremDeployment`, generator) → `M08-on-prem.md`
