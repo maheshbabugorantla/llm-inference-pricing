@@ -311,11 +311,11 @@
         "id": "NVIDIA B200",
         "memoryInGb": 180,
         "oneMonthPrice": null,
-        "oneYearPrice": 4.67,
-        "securePrice": 5.49,
+        "oneYearPrice": 5.01,
+        "securePrice": 5.89,
         "secureSpotPrice": 5.49,
-        "sixMonthPrice": 4.78,
-        "threeMonthPrice": 5.16
+        "sixMonthPrice": 5.12,
+        "threeMonthPrice": 5.54
       },
       "region": "",
       "tier": "community"
@@ -323,7 +323,7 @@
     {
       "available": true,
       "gpu_slug_hint": "B200",
-      "hourly_usd": "5.49",
+      "hourly_usd": "5.89",
       "raw": {
         "communityPrice": 5.98,
         "communitySpotPrice": null,
@@ -331,11 +331,11 @@
         "id": "NVIDIA B200",
         "memoryInGb": 180,
         "oneMonthPrice": null,
-        "oneYearPrice": 4.67,
-        "securePrice": 5.49,
+        "oneYearPrice": 5.01,
+        "securePrice": 5.89,
         "secureSpotPrice": 5.49,
-        "sixMonthPrice": 4.78,
-        "threeMonthPrice": 5.16
+        "sixMonthPrice": 5.12,
+        "threeMonthPrice": 5.54
       },
       "region": "",
       "tier": "secure"
@@ -351,11 +351,11 @@
         "id": "NVIDIA B200",
         "memoryInGb": 180,
         "oneMonthPrice": null,
-        "oneYearPrice": 4.67,
-        "securePrice": 5.49,
+        "oneYearPrice": 5.01,
+        "securePrice": 5.89,
         "secureSpotPrice": 5.49,
-        "sixMonthPrice": 4.78,
-        "threeMonthPrice": 5.16
+        "sixMonthPrice": 5.12,
+        "threeMonthPrice": 5.54
       },
       "region": "",
       "tier": "secure-spot"
@@ -363,7 +363,7 @@
     {
       "available": true,
       "gpu_slug_hint": "B200",
-      "hourly_usd": "5.16",
+      "hourly_usd": "5.54",
       "raw": {
         "communityPrice": 5.98,
         "communitySpotPrice": null,
@@ -371,11 +371,11 @@
         "id": "NVIDIA B200",
         "memoryInGb": 180,
         "oneMonthPrice": null,
-        "oneYearPrice": 4.67,
-        "securePrice": 5.49,
+        "oneYearPrice": 5.01,
+        "securePrice": 5.89,
         "secureSpotPrice": 5.49,
-        "sixMonthPrice": 4.78,
-        "threeMonthPrice": 5.16
+        "sixMonthPrice": 5.12,
+        "threeMonthPrice": 5.54
       },
       "region": "",
       "tier": "reserved-3mo"
@@ -383,7 +383,7 @@
     {
       "available": true,
       "gpu_slug_hint": "B200",
-      "hourly_usd": "4.78",
+      "hourly_usd": "5.12",
       "raw": {
         "communityPrice": 5.98,
         "communitySpotPrice": null,
@@ -391,11 +391,11 @@
         "id": "NVIDIA B200",
         "memoryInGb": 180,
         "oneMonthPrice": null,
-        "oneYearPrice": 4.67,
-        "securePrice": 5.49,
+        "oneYearPrice": 5.01,
+        "securePrice": 5.89,
         "secureSpotPrice": 5.49,
-        "sixMonthPrice": 4.78,
-        "threeMonthPrice": 5.16
+        "sixMonthPrice": 5.12,
+        "threeMonthPrice": 5.54
       },
       "region": "",
       "tier": "reserved-6mo"
@@ -403,7 +403,7 @@
     {
       "available": true,
       "gpu_slug_hint": "B200",
-      "hourly_usd": "4.67",
+      "hourly_usd": "5.01",
       "raw": {
         "communityPrice": 5.98,
         "communitySpotPrice": null,
@@ -411,11 +411,11 @@
         "id": "NVIDIA B200",
         "memoryInGb": 180,
         "oneMonthPrice": null,
-        "oneYearPrice": 4.67,
-        "securePrice": 5.49,
+        "oneYearPrice": 5.01,
+        "securePrice": 5.89,
         "secureSpotPrice": 5.49,
-        "sixMonthPrice": 4.78,
-        "threeMonthPrice": 5.16
+        "sixMonthPrice": 5.12,
+        "threeMonthPrice": 5.54
       },
       "region": "",
       "tier": "reserved-1yr"
@@ -571,11 +571,11 @@
         "id": "NVIDIA H100 80GB HBM3",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.54,
-        "securePrice": 2.99,
+        "oneYearPrice": 2.8,
+        "securePrice": 3.29,
         "secureSpotPrice": 2.99,
-        "sixMonthPrice": 2.6,
-        "threeMonthPrice": 2.81
+        "sixMonthPrice": 2.86,
+        "threeMonthPrice": 3.09
       },
       "region": "",
       "tier": "community"
@@ -583,7 +583,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H100 SXM",
-      "hourly_usd": "2.99",
+      "hourly_usd": "3.29",
       "raw": {
         "communityPrice": 2.69,
         "communitySpotPrice": 2.69,
@@ -591,11 +591,11 @@
         "id": "NVIDIA H100 80GB HBM3",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.54,
-        "securePrice": 2.99,
+        "oneYearPrice": 2.8,
+        "securePrice": 3.29,
         "secureSpotPrice": 2.99,
-        "sixMonthPrice": 2.6,
-        "threeMonthPrice": 2.81
+        "sixMonthPrice": 2.86,
+        "threeMonthPrice": 3.09
       },
       "region": "",
       "tier": "secure"
@@ -611,11 +611,11 @@
         "id": "NVIDIA H100 80GB HBM3",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.54,
-        "securePrice": 2.99,
+        "oneYearPrice": 2.8,
+        "securePrice": 3.29,
         "secureSpotPrice": 2.99,
-        "sixMonthPrice": 2.6,
-        "threeMonthPrice": 2.81
+        "sixMonthPrice": 2.86,
+        "threeMonthPrice": 3.09
       },
       "region": "",
       "tier": "community-spot"
@@ -631,11 +631,11 @@
         "id": "NVIDIA H100 80GB HBM3",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.54,
-        "securePrice": 2.99,
+        "oneYearPrice": 2.8,
+        "securePrice": 3.29,
         "secureSpotPrice": 2.99,
-        "sixMonthPrice": 2.6,
-        "threeMonthPrice": 2.81
+        "sixMonthPrice": 2.86,
+        "threeMonthPrice": 3.09
       },
       "region": "",
       "tier": "secure-spot"
@@ -643,7 +643,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H100 SXM",
-      "hourly_usd": "2.81",
+      "hourly_usd": "3.09",
       "raw": {
         "communityPrice": 2.69,
         "communitySpotPrice": 2.69,
@@ -651,11 +651,11 @@
         "id": "NVIDIA H100 80GB HBM3",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.54,
-        "securePrice": 2.99,
+        "oneYearPrice": 2.8,
+        "securePrice": 3.29,
         "secureSpotPrice": 2.99,
-        "sixMonthPrice": 2.6,
-        "threeMonthPrice": 2.81
+        "sixMonthPrice": 2.86,
+        "threeMonthPrice": 3.09
       },
       "region": "",
       "tier": "reserved-3mo"
@@ -663,7 +663,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H100 SXM",
-      "hourly_usd": "2.6",
+      "hourly_usd": "2.86",
       "raw": {
         "communityPrice": 2.69,
         "communitySpotPrice": 2.69,
@@ -671,11 +671,11 @@
         "id": "NVIDIA H100 80GB HBM3",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.54,
-        "securePrice": 2.99,
+        "oneYearPrice": 2.8,
+        "securePrice": 3.29,
         "secureSpotPrice": 2.99,
-        "sixMonthPrice": 2.6,
-        "threeMonthPrice": 2.81
+        "sixMonthPrice": 2.86,
+        "threeMonthPrice": 3.09
       },
       "region": "",
       "tier": "reserved-6mo"
@@ -683,7 +683,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H100 SXM",
-      "hourly_usd": "2.54",
+      "hourly_usd": "2.8",
       "raw": {
         "communityPrice": 2.69,
         "communitySpotPrice": 2.69,
@@ -691,11 +691,11 @@
         "id": "NVIDIA H100 80GB HBM3",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.54,
-        "securePrice": 2.99,
+        "oneYearPrice": 2.8,
+        "securePrice": 3.29,
         "secureSpotPrice": 2.99,
-        "sixMonthPrice": 2.6,
-        "threeMonthPrice": 2.81
+        "sixMonthPrice": 2.86,
+        "threeMonthPrice": 3.09
       },
       "region": "",
       "tier": "reserved-1yr"
@@ -711,11 +711,11 @@
         "id": "NVIDIA H100 PCIe",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.03,
-        "securePrice": 2.39,
+        "oneYearPrice": 2.46,
+        "securePrice": 2.89,
         "secureSpotPrice": 2.39,
-        "sixMonthPrice": 2.08,
-        "threeMonthPrice": 2.25
+        "sixMonthPrice": 2.51,
+        "threeMonthPrice": 2.72
       },
       "region": "",
       "tier": "community"
@@ -723,7 +723,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H100 PCIe",
-      "hourly_usd": "2.39",
+      "hourly_usd": "2.89",
       "raw": {
         "communityPrice": 1.99,
         "communitySpotPrice": 1.99,
@@ -731,11 +731,11 @@
         "id": "NVIDIA H100 PCIe",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.03,
-        "securePrice": 2.39,
+        "oneYearPrice": 2.46,
+        "securePrice": 2.89,
         "secureSpotPrice": 2.39,
-        "sixMonthPrice": 2.08,
-        "threeMonthPrice": 2.25
+        "sixMonthPrice": 2.51,
+        "threeMonthPrice": 2.72
       },
       "region": "",
       "tier": "secure"
@@ -751,11 +751,11 @@
         "id": "NVIDIA H100 PCIe",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.03,
-        "securePrice": 2.39,
+        "oneYearPrice": 2.46,
+        "securePrice": 2.89,
         "secureSpotPrice": 2.39,
-        "sixMonthPrice": 2.08,
-        "threeMonthPrice": 2.25
+        "sixMonthPrice": 2.51,
+        "threeMonthPrice": 2.72
       },
       "region": "",
       "tier": "community-spot"
@@ -771,11 +771,11 @@
         "id": "NVIDIA H100 PCIe",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.03,
-        "securePrice": 2.39,
+        "oneYearPrice": 2.46,
+        "securePrice": 2.89,
         "secureSpotPrice": 2.39,
-        "sixMonthPrice": 2.08,
-        "threeMonthPrice": 2.25
+        "sixMonthPrice": 2.51,
+        "threeMonthPrice": 2.72
       },
       "region": "",
       "tier": "secure-spot"
@@ -783,7 +783,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H100 PCIe",
-      "hourly_usd": "2.25",
+      "hourly_usd": "2.72",
       "raw": {
         "communityPrice": 1.99,
         "communitySpotPrice": 1.99,
@@ -791,11 +791,11 @@
         "id": "NVIDIA H100 PCIe",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.03,
-        "securePrice": 2.39,
+        "oneYearPrice": 2.46,
+        "securePrice": 2.89,
         "secureSpotPrice": 2.39,
-        "sixMonthPrice": 2.08,
-        "threeMonthPrice": 2.25
+        "sixMonthPrice": 2.51,
+        "threeMonthPrice": 2.72
       },
       "region": "",
       "tier": "reserved-3mo"
@@ -803,7 +803,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H100 PCIe",
-      "hourly_usd": "2.08",
+      "hourly_usd": "2.51",
       "raw": {
         "communityPrice": 1.99,
         "communitySpotPrice": 1.99,
@@ -811,11 +811,11 @@
         "id": "NVIDIA H100 PCIe",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.03,
-        "securePrice": 2.39,
+        "oneYearPrice": 2.46,
+        "securePrice": 2.89,
         "secureSpotPrice": 2.39,
-        "sixMonthPrice": 2.08,
-        "threeMonthPrice": 2.25
+        "sixMonthPrice": 2.51,
+        "threeMonthPrice": 2.72
       },
       "region": "",
       "tier": "reserved-6mo"
@@ -823,7 +823,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H100 PCIe",
-      "hourly_usd": "2.03",
+      "hourly_usd": "2.46",
       "raw": {
         "communityPrice": 1.99,
         "communitySpotPrice": 1.99,
@@ -831,11 +831,11 @@
         "id": "NVIDIA H100 PCIe",
         "memoryInGb": 80,
         "oneMonthPrice": null,
-        "oneYearPrice": 2.03,
-        "securePrice": 2.39,
+        "oneYearPrice": 2.46,
+        "securePrice": 2.89,
         "secureSpotPrice": 2.39,
-        "sixMonthPrice": 2.08,
-        "threeMonthPrice": 2.25
+        "sixMonthPrice": 2.51,
+        "threeMonthPrice": 2.72
       },
       "region": "",
       "tier": "reserved-1yr"
@@ -851,11 +851,11 @@
         "id": "NVIDIA H200",
         "memoryInGb": 141,
         "oneMonthPrice": null,
-        "oneYearPrice": 3.39,
-        "securePrice": 3.99,
+        "oneYearPrice": 3.73,
+        "securePrice": 4.39,
         "secureSpotPrice": 3.99,
-        "sixMonthPrice": 3.47,
-        "threeMonthPrice": 3.75
+        "sixMonthPrice": 3.82,
+        "threeMonthPrice": 4.13
       },
       "region": "",
       "tier": "community"
@@ -863,7 +863,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H200 SXM",
-      "hourly_usd": "3.99",
+      "hourly_usd": "4.39",
       "raw": {
         "communityPrice": 3.59,
         "communitySpotPrice": null,
@@ -871,11 +871,11 @@
         "id": "NVIDIA H200",
         "memoryInGb": 141,
         "oneMonthPrice": null,
-        "oneYearPrice": 3.39,
-        "securePrice": 3.99,
+        "oneYearPrice": 3.73,
+        "securePrice": 4.39,
         "secureSpotPrice": 3.99,
-        "sixMonthPrice": 3.47,
-        "threeMonthPrice": 3.75
+        "sixMonthPrice": 3.82,
+        "threeMonthPrice": 4.13
       },
       "region": "",
       "tier": "secure"
@@ -891,11 +891,11 @@
         "id": "NVIDIA H200",
         "memoryInGb": 141,
         "oneMonthPrice": null,
-        "oneYearPrice": 3.39,
-        "securePrice": 3.99,
+        "oneYearPrice": 3.73,
+        "securePrice": 4.39,
         "secureSpotPrice": 3.99,
-        "sixMonthPrice": 3.47,
-        "threeMonthPrice": 3.75
+        "sixMonthPrice": 3.82,
+        "threeMonthPrice": 4.13
       },
       "region": "",
       "tier": "secure-spot"
@@ -903,7 +903,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H200 SXM",
-      "hourly_usd": "3.75",
+      "hourly_usd": "4.13",
       "raw": {
         "communityPrice": 3.59,
         "communitySpotPrice": null,
@@ -911,11 +911,11 @@
         "id": "NVIDIA H200",
         "memoryInGb": 141,
         "oneMonthPrice": null,
-        "oneYearPrice": 3.39,
-        "securePrice": 3.99,
+        "oneYearPrice": 3.73,
+        "securePrice": 4.39,
         "secureSpotPrice": 3.99,
-        "sixMonthPrice": 3.47,
-        "threeMonthPrice": 3.75
+        "sixMonthPrice": 3.82,
+        "threeMonthPrice": 4.13
       },
       "region": "",
       "tier": "reserved-3mo"
@@ -923,7 +923,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H200 SXM",
-      "hourly_usd": "3.47",
+      "hourly_usd": "3.82",
       "raw": {
         "communityPrice": 3.59,
         "communitySpotPrice": null,
@@ -931,11 +931,11 @@
         "id": "NVIDIA H200",
         "memoryInGb": 141,
         "oneMonthPrice": null,
-        "oneYearPrice": 3.39,
-        "securePrice": 3.99,
+        "oneYearPrice": 3.73,
+        "securePrice": 4.39,
         "secureSpotPrice": 3.99,
-        "sixMonthPrice": 3.47,
-        "threeMonthPrice": 3.75
+        "sixMonthPrice": 3.82,
+        "threeMonthPrice": 4.13
       },
       "region": "",
       "tier": "reserved-6mo"
@@ -943,7 +943,7 @@
     {
       "available": true,
       "gpu_slug_hint": "H200 SXM",
-      "hourly_usd": "3.39",
+      "hourly_usd": "3.73",
       "raw": {
         "communityPrice": 3.59,
         "communitySpotPrice": null,
@@ -951,11 +951,11 @@
         "id": "NVIDIA H200",
         "memoryInGb": 141,
         "oneMonthPrice": null,
-        "oneYearPrice": 3.39,
-        "securePrice": 3.99,
+        "oneYearPrice": 3.73,
+        "securePrice": 4.39,
         "secureSpotPrice": 3.99,
-        "sixMonthPrice": 3.47,
-        "threeMonthPrice": 3.75
+        "sixMonthPrice": 3.82,
+        "threeMonthPrice": 4.13
       },
       "region": "",
       "tier": "reserved-1yr"
@@ -1363,7 +1363,7 @@
   ],
   "provider_slug": "runpod",
   "schema_version": 1,
-  "scraped_at": "2026-05-19T07:32:25.297409Z",
-  "scraper_version": "e02cb7c",
+  "scraped_at": "2026-05-20T07:32:12.824506Z",
+  "scraper_version": "0980dcc",
   "source_url": "https://api.runpod.io/graphql"
 }
