@@ -9,8 +9,6 @@ from pathlib import Path
 import pytest
 
 from pricing.scrapers.aws import (
-    _INSTANCE_GPU_MAP,
-    map_aws_gpu,
     parse_aws_capacity_blocks,
     parse_aws_prices,
 )
@@ -93,8 +91,9 @@ def test_aws_unmapped_instance_type_is_logged_not_dropped_silently(caplog, p5_pr
         {
             "attributes": {"instanceType": "p99.huge", "regionCode": "us-east-1"},
             "terms": {"OnDemand": {"k": {"priceDimensions": {"kk": {"pricePerUnit": {"USD": "999"}}}}}},
-        }
-    ] + p5_products
+        },
+        *p5_products,
+    ]
     import logging
 
     with caplog.at_level(logging.INFO, logger="pricing.scrapers.aws"):
