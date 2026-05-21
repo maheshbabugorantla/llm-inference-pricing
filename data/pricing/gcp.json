@@ -387,7 +387,7 @@
   ],
   "provider_slug": "gcp",
   "schema_version": 1,
-  "scraped_at": "2026-05-20T07:32:10.313208Z",
-  "scraper_version": "0980dcc",
+  "scraped_at": "2026-05-21T07:36:42.645994Z",
+  "scraper_version": "2c79eee",
   "source_url": "https://cloudbilling.googleapis.com/v1/services/6F81-5844-456A/skus"
 }

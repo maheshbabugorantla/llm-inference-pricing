@@ -426,7 +426,7 @@
       "hourly_usd": "0.34",
       "raw": {
         "communityPrice": 0.34,
-        "communitySpotPrice": 0.29,
+        "communitySpotPrice": 0.34,
         "displayName": "RTX 4090",
         "id": "NVIDIA GeForce RTX 4090",
         "memoryInGb": 24,
@@ -446,7 +446,7 @@
       "hourly_usd": "0.69",
       "raw": {
         "communityPrice": 0.34,
-        "communitySpotPrice": 0.29,
+        "communitySpotPrice": 0.34,
         "displayName": "RTX 4090",
         "id": "NVIDIA GeForce RTX 4090",
         "memoryInGb": 24,
@@ -463,10 +463,10 @@
     {
       "available": true,
       "gpu_slug_hint": "RTX 4090",
-      "hourly_usd": "0.29",
+      "hourly_usd": "0.34",
       "raw": {
         "communityPrice": 0.34,
-        "communitySpotPrice": 0.29,
+        "communitySpotPrice": 0.34,
         "displayName": "RTX 4090",
         "id": "NVIDIA GeForce RTX 4090",
         "memoryInGb": 24,
@@ -486,7 +486,7 @@
       "hourly_usd": "0.69",
       "raw": {
         "communityPrice": 0.34,
-        "communitySpotPrice": 0.29,
+        "communitySpotPrice": 0.34,
         "displayName": "RTX 4090",
         "id": "NVIDIA GeForce RTX 4090",
         "memoryInGb": 24,
@@ -506,7 +506,7 @@
       "hourly_usd": "0.65",
       "raw": {
         "communityPrice": 0.34,
-        "communitySpotPrice": 0.29,
+        "communitySpotPrice": 0.34,
         "displayName": "RTX 4090",
         "id": "NVIDIA GeForce RTX 4090",
         "memoryInGb": 24,
@@ -526,7 +526,7 @@
       "hourly_usd": "0.6",
       "raw": {
         "communityPrice": 0.34,
-        "communitySpotPrice": 0.29,
+        "communitySpotPrice": 0.34,
         "displayName": "RTX 4090",
         "id": "NVIDIA GeForce RTX 4090",
         "memoryInGb": 24,
@@ -546,7 +546,7 @@
       "hourly_usd": "0.59",
       "raw": {
         "communityPrice": 0.34,
-        "communitySpotPrice": 0.29,
+        "communitySpotPrice": 0.34,
         "displayName": "RTX 4090",
         "id": "NVIDIA GeForce RTX 4090",
         "memoryInGb": 24,
@@ -1086,7 +1086,7 @@
       "hourly_usd": "0.79",
       "raw": {
         "communityPrice": 0.79,
-        "communitySpotPrice": 0.67,
+        "communitySpotPrice": 0.79,
         "displayName": "L40S",
         "id": "NVIDIA L40S",
         "memoryInGb": 48,
@@ -1106,7 +1106,7 @@
       "hourly_usd": "0.86",
       "raw": {
         "communityPrice": 0.79,
-        "communitySpotPrice": 0.67,
+        "communitySpotPrice": 0.79,
         "displayName": "L40S",
         "id": "NVIDIA L40S",
         "memoryInGb": 48,
@@ -1123,10 +1123,10 @@
     {
       "available": true,
       "gpu_slug_hint": "L40S",
-      "hourly_usd": "0.67",
+      "hourly_usd": "0.79",
       "raw": {
         "communityPrice": 0.79,
-        "communitySpotPrice": 0.67,
+        "communitySpotPrice": 0.79,
         "displayName": "L40S",
         "id": "NVIDIA L40S",
         "memoryInGb": 48,
@@ -1146,7 +1146,7 @@
       "hourly_usd": "0.86",
       "raw": {
         "communityPrice": 0.79,
-        "communitySpotPrice": 0.67,
+        "communitySpotPrice": 0.79,
         "displayName": "L40S",
         "id": "NVIDIA L40S",
         "memoryInGb": 48,
@@ -1166,7 +1166,7 @@
       "hourly_usd": "0.748",
       "raw": {
         "communityPrice": 0.79,
-        "communitySpotPrice": 0.67,
+        "communitySpotPrice": 0.79,
         "displayName": "L40S",
         "id": "NVIDIA L40S",
         "memoryInGb": 48,
@@ -1186,7 +1186,7 @@
       "hourly_usd": "0.731",
       "raw": {
         "communityPrice": 0.79,
-        "communitySpotPrice": 0.67,
+        "communitySpotPrice": 0.79,
         "displayName": "L40S",
         "id": "NVIDIA L40S",
         "memoryInGb": 48,
@@ -1206,7 +1206,7 @@
       "hourly_usd": "0.705",
       "raw": {
         "communityPrice": 0.79,
-        "communitySpotPrice": 0.67,
+        "communitySpotPrice": 0.79,
         "displayName": "L40S",
         "id": "NVIDIA L40S",
         "memoryInGb": 48,
@@ -1226,7 +1226,7 @@
       "hourly_usd": "0.74",
       "raw": {
         "communityPrice": 0.74,
-        "communitySpotPrice": 0.63,
+        "communitySpotPrice": 0.74,
         "displayName": "RTX 6000 Ada",
         "id": "NVIDIA RTX 6000 Ada Generation",
         "memoryInGb": 48,
@@ -1246,7 +1246,7 @@
       "hourly_usd": "0.77",
       "raw": {
         "communityPrice": 0.74,
-        "communitySpotPrice": 0.63,
+        "communitySpotPrice": 0.74,
         "displayName": "RTX 6000 Ada",
         "id": "NVIDIA RTX 6000 Ada Generation",
         "memoryInGb": 48,
@@ -1263,10 +1263,10 @@
     {
       "available": true,
       "gpu_slug_hint": "RTX 6000 Ada",
-      "hourly_usd": "0.63",
+      "hourly_usd": "0.74",
       "raw": {
         "communityPrice": 0.74,
-        "communitySpotPrice": 0.63,
+        "communitySpotPrice": 0.74,
         "displayName": "RTX 6000 Ada",
         "id": "NVIDIA RTX 6000 Ada Generation",
         "memoryInGb": 48,
@@ -1286,7 +1286,7 @@
       "hourly_usd": "0.77",
       "raw": {
         "communityPrice": 0.74,
-        "communitySpotPrice": 0.63,
+        "communitySpotPrice": 0.74,
         "displayName": "RTX 6000 Ada",
         "id": "NVIDIA RTX 6000 Ada Generation",
         "memoryInGb": 48,
@@ -1306,7 +1306,7 @@
       "hourly_usd": "0.67",
       "raw": {
         "communityPrice": 0.74,
-        "communitySpotPrice": 0.63,
+        "communitySpotPrice": 0.74,
         "displayName": "RTX 6000 Ada",
         "id": "NVIDIA RTX 6000 Ada Generation",
         "memoryInGb": 48,
@@ -1326,7 +1326,7 @@
       "hourly_usd": "0.655",
       "raw": {
         "communityPrice": 0.74,
-        "communitySpotPrice": 0.63,
+        "communitySpotPrice": 0.74,
         "displayName": "RTX 6000 Ada",
         "id": "NVIDIA RTX 6000 Ada Generation",
         "memoryInGb": 48,
@@ -1346,7 +1346,7 @@
       "hourly_usd": "0.631",
       "raw": {
         "communityPrice": 0.74,
-        "communitySpotPrice": 0.63,
+        "communitySpotPrice": 0.74,
         "displayName": "RTX 6000 Ada",
         "id": "NVIDIA RTX 6000 Ada Generation",
         "memoryInGb": 48,
@@ -1363,7 +1363,7 @@
   ],
   "provider_slug": "runpod",
   "schema_version": 1,
-  "scraped_at": "2026-05-20T07:32:12.824506Z",
-  "scraper_version": "0980dcc",
+  "scraped_at": "2026-05-21T07:36:44.085034Z",
+  "scraper_version": "2c79eee",
   "source_url": "https://api.runpod.io/graphql"
 }
