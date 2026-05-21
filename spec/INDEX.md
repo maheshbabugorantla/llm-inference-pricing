@@ -21,7 +21,7 @@
 - [x] **M05.6** — Pricing Data Pipeline (GH Actions + JSON artifacts) → `M05.6-pricing-data-pipeline.md`
 - [x] **M05.5a** — GCP scraper (carved from M05.5; AWS+Azure deferred) → `M05.5a-gcp-scraper.md`
 - [ ] **M05.5b** — Tier 1 hyperscaler scrapers (AWS, Azure) → `M05.5-hyperscaler-scrapers.md` *(deferred until after M06)*
-- [ ] **M06** — `current_cost_cells` materialized view + cost service → `M06-current-cost-cells.md`
+- [x] **M06** — `current_cost_cells` materialized view + cost service → `M06-current-cost-cells.md`
 - [ ] **M07** — Ops hardening (continuous aggregate, retention, Sentry, canary CI) → `M07-ops-hardening.md`
 - [ ] **M08** — On-prem (`HardwareSKU`, `OnPremDeployment`, generator) → `M08-on-prem.md`
 - [ ] **M09** — Reserved cloud (`ReservedCapacityProduct`, `ReservedCloudDeployment`, generator) → `M09-reserved-cloud.md`
