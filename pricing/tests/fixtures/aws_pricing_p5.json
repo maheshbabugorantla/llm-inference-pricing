@@ -1,0 +1,74 @@
+[
+  {
+    "attributes": {
+      "instanceType": "p5.48xlarge",
+      "regionCode": "us-east-1",
+      "operatingSystem": "Linux",
+      "tenancy": "Shared",
+      "capacitystatus": "Used"
+    },
+    "terms": {
+      "OnDemand": {
+        "JRTCKXETXF.JRTCKXETXF": {
+          "priceDimensions": {
+            "JRTCKXETXF.JRTCKXETXF.6YS6EN2CT7": {
+              "description": "Linux/UNIX Usage, p5.48xlarge in US East (N. Virginia)",
+              "unit": "Hrs",
+              "pricePerUnit": {
+                "USD": "98.3232"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "attributes": {
+      "instanceType": "p4d.24xlarge",
+      "regionCode": "us-east-1",
+      "operatingSystem": "Linux",
+      "tenancy": "Shared",
+      "capacitystatus": "Used"
+    },
+    "terms": {
+      "OnDemand": {
+        "ABC123.JRTCKXETXF": {
+          "priceDimensions": {
+            "ABC123.JRTCKXETXF.6YS6EN2CT7": {
+              "description": "Linux/UNIX Usage, p4d.24xlarge in US East (N. Virginia)",
+              "unit": "Hrs",
+              "pricePerUnit": {
+                "USD": "32.7726"
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  {
+    "attributes": {
+      "instanceType": "g5.48xlarge",
+      "regionCode": "us-east-1",
+      "operatingSystem": "Linux",
+      "tenancy": "Shared",
+      "capacitystatus": "Used"
+    },
+    "terms": {
+      "OnDemand": {
+        "DEF456.JRTCKXETXF": {
+          "priceDimensions": {
+            "DEF456.JRTCKXETXF.6YS6EN2CT7": {
+              "description": "Linux/UNIX Usage, g5.48xlarge in US East (N. Virginia)",
+              "unit": "Hrs",
+              "pricePerUnit": {
+                "USD": "16.2880"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+]
