@@ -1,0 +1,13 @@
+slug: dell-r760xa-8xh100
+display_name: Dell PowerEdge R760xa 8x H100
+vendor: dell
+num_gpus: 8
+gpu_slug: nvidia-h100-sxm-80
+cpu_model: Intel Xeon Platinum 8480+
+cpu_sockets: 2
+ram_gb: 2048
+nvme_tb: 16
+network_gbps: 400
+host_tdp_watts: 1600
+reference_msrp_usd: 350000.00
+notes: "Dell R760xa, 8x H100 SXM5 80GB"

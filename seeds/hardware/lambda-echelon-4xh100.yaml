@@ -1,0 +1,13 @@
+slug: lambda-echelon-4xh100
+display_name: Lambda Echelon 4x H100
+vendor: lambda-echelon
+num_gpus: 4
+gpu_slug: nvidia-h100-sxm-80
+cpu_model: Intel Xeon Platinum 8480+
+cpu_sockets: 2
+ram_gb: 1024
+nvme_tb: 30
+network_gbps: 400
+host_tdp_watts: 1200
+reference_msrp_usd: 180000.00
+notes: "Lambda Echelon H100 node, 4x SXM5 H100 80GB"

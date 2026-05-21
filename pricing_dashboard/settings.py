@@ -147,6 +147,10 @@ CELERY_BEAT_SCHEDULE: dict[str, object] = {
         "task": "pricing.tasks.scrape_azure",
         "schedule": crontab(minute=4),
     },
+    "regenerate-on-prem": {
+        "task": "pricing.tasks.regenerate_on_prem_snapshots_task",
+        "schedule": crontab(minute=5),
+    },
     "refresh-cost-cells": {
         "task": "pricing.tasks.refresh_current_cost_cells",
         "schedule": crontab(minute=10),

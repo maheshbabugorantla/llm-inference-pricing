@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import ClassVar
 
 from django.db import models
 from django.db.models import Q
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 class Provider(models.Model):
@@ -60,3 +63,68 @@ class PricingSnapshot(models.Model):
 
     def __str__(self) -> str:
         return f"{self.provider.slug}/{self.gpu.slug}/{self.tier} @ {self.scraped_at:%Y-%m-%d %H:%M}"
+
+
+class HardwareSKU(models.Model):
+    slug = models.SlugField(unique=True, max_length=128)
+    display_name = models.CharField(max_length=128)
+    vendor = models.CharField(max_length=64)
+    num_gpus = models.PositiveSmallIntegerField()
+    gpu = models.ForeignKey("catalog.GPU", on_delete=models.PROTECT)
+    cpu_model = models.CharField(max_length=128)
+    cpu_sockets = models.PositiveSmallIntegerField()
+    ram_gb = models.PositiveIntegerField()
+    nvme_tb = models.PositiveIntegerField()
+    network_gbps = models.PositiveIntegerField()
+    host_tdp_watts = models.PositiveIntegerField(help_text="non-GPU power draw at peak")
+    reference_msrp_usd = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("vendor", "slug")
+
+    def __str__(self) -> str:
+        return self.display_name
+
+
+class OnPremDeployment(models.Model):
+    slug = models.SlugField(unique=True, max_length=128)
+    display_name = models.CharField(max_length=128)
+    hardware_sku = models.ForeignKey(HardwareSKU, on_delete=models.PROTECT)
+    num_nodes = models.PositiveIntegerField(default=1)
+
+    capex_per_node_usd = models.DecimalField(max_digits=10, decimal_places=2)
+    salvage_pct = models.DecimalField(max_digits=4, decimal_places=3, default=Decimal("0.100"))
+    depreciation_years = models.PositiveSmallIntegerField(default=4)
+
+    expected_utilization_pct = models.DecimalField(max_digits=4, decimal_places=3, default=Decimal("0.700"))
+
+    power_usd_per_kwh = models.DecimalField(max_digits=6, decimal_places=4)
+    pue = models.DecimalField(max_digits=4, decimal_places=3, default=Decimal("1.400"))
+    monthly_colo_usd = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+    monthly_bandwidth_usd = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
+
+    sysadmin_annual_burdened_usd = models.DecimalField(max_digits=10, decimal_places=2)
+    gpu_count_per_admin = models.PositiveIntegerField(default=128)
+
+    is_active = models.BooleanField(default=True)
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("slug",)
+
+    def __str__(self) -> str:
+        return self.display_name
+
+
+@receiver(post_save, sender=OnPremDeployment)
+def _regenerate_on_save(sender: type[OnPremDeployment], instance: OnPremDeployment, **kwargs: object) -> None:
+    if not kwargs.get("created", False) and not instance.is_active:
+        return
+    from pricing.generators.on_prem import regenerate_on_prem_snapshots
+
+    regenerate_on_prem_snapshots()

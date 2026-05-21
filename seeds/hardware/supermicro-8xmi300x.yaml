@@ -1,0 +1,13 @@
+slug: supermicro-8xmi300x
+display_name: Supermicro 8x MI300X
+vendor: supermicro
+num_gpus: 8
+gpu_slug: amd-mi300x
+cpu_model: AMD EPYC 9654
+cpu_sockets: 2
+ram_gb: 1536
+nvme_tb: 30
+network_gbps: 400
+host_tdp_watts: 1400
+reference_msrp_usd: 320000.00
+notes: "Supermicro AS-8125GS-TNHR, 8x AMD MI300X"

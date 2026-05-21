@@ -1,0 +1,15 @@
+slug: lambda-echelon-green-field
+display_name: Lambda Echelon 4xH100 Green Field
+hardware_sku_slug: lambda-echelon-4xh100
+num_nodes: 1
+capex_per_node_usd: 180000.00
+salvage_pct: "0.100"
+depreciation_years: 4
+expected_utilization_pct: "0.700"
+power_usd_per_kwh: "0.1000"
+pue: "1.400"
+monthly_colo_usd: "1000.00"
+monthly_bandwidth_usd: "200.00"
+sysadmin_annual_burdened_usd: "200000.00"
+gpu_count_per_admin: 128
+notes: "PRD §7.6 reference case — expected per-GPU TCO ~$3.89/hr"

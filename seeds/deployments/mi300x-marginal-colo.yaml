@@ -1,0 +1,15 @@
+slug: mi300x-marginal-colo
+display_name: MI300X Marginal Colo (Capex Sunk)
+hardware_sku_slug: supermicro-8xmi300x
+num_nodes: 1
+capex_per_node_usd: "320000.00"
+salvage_pct: "0.100"
+depreciation_years: 4
+expected_utilization_pct: "0.700"
+power_usd_per_kwh: "0.0600"
+pue: "1.600"
+monthly_colo_usd: "1500.00"
+monthly_bandwidth_usd: "500.00"
+sysadmin_annual_burdened_usd: "250000.00"
+gpu_count_per_admin: 128
+notes: "Capex sunk scenario — low power cost, high-density colo"
