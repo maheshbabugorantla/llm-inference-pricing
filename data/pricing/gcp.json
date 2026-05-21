@@ -1,0 +1,393 @@
+{
+  "prices": [
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a100-sxm-40",
+      "hourly_usd": "2.933908",
+      "raw": {
+        "description": "Nvidia Tesla A100 GPU running in Americas",
+        "sku_id": "039F-D0DA-4055",
+        "usage_type": "OnDemand"
+      },
+      "region": "us-central1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-b200",
+      "hourly_usd": "11.1159",
+      "raw": {
+        "description": "Commitment v1: A4 Nvidia B200 (1 gpu slice) in Americas for 1 Year",
+        "sku_id": "1DBB-13D9-B0DE",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a100-sxm-80",
+      "hourly_usd": "3.48109",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla A100 80GB GPU running in Americas for 1 Year",
+        "sku_id": "204F-FA84-6E50",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-h100-sxm-80",
+      "hourly_usd": "4.299898566",
+      "raw": {
+        "description": "Commitment v1: Nvidia H100 80GB GPU running in Americas for 3 Years",
+        "sku_id": "2C3A-BAB7-8C82",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-v100",
+      "hourly_usd": "1.116",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla V100 GPU running in Americas for 3 Year",
+        "sku_id": "2F14-0443-229A",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-h100-sxm-80",
+      "hourly_usd": "6.79880857",
+      "raw": {
+        "description": "Commitment v1: Nvidia H100 80GB GPU running in Americas for 1 Year",
+        "sku_id": "302A-B1A1-06DD",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-v100",
+      "hourly_usd": "1.562",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla V100 GPU running in Americas for 1 Year",
+        "sku_id": "3BCB-E79F-65CE",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-p100",
+      "hourly_usd": "0.657",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla P100 GPU running in Americas for 3 Year",
+        "sku_id": "42BA-594D-D5CA",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-h200",
+      "hourly_usd": "9.31174",
+      "raw": {
+        "description": "H200 141GB GPU running in Americas",
+        "sku_id": "455B-5067-C961",
+        "usage_type": "OnDemand"
+      },
+      "region": "us-central1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-b200",
+      "hourly_usd": "7.0884",
+      "raw": {
+        "description": "Commitment v1: A4 Nvidia B200 (1 gpu slice) in Americas for 3 Year",
+        "sku_id": "50E4-2D4A-7538",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-p4",
+      "hourly_usd": "0.378",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla P4 GPU running in Americas for 1 Year",
+        "sku_id": "5191-1F80-11A2",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-h100-sxm-80",
+      "hourly_usd": "4.498983869",
+      "raw": {
+        "description": "Commitment v1: Nvidia H100 80GB Plus GPU running in Americas for 3 Years",
+        "sku_id": "5F45-2ADE-3091",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "0.252018107",
+      "raw": {
+        "description": "Commitment v1: Nvidia L4 GPU running in Americas for 3 Years",
+        "sku_id": "60B2-2A10-9A50",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-h100-sxm-80",
+      "hourly_usd": "7.113593407",
+      "raw": {
+        "description": "Commitment v1: Nvidia H100 80GB Plus GPU running in Americas for 1 Year",
+        "sku_id": "6CA6-FB4B-081C",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-h200",
+      "hourly_usd": "6.43139",
+      "raw": {
+        "description": "Commitment v1: H200 141GB GPU running in Americas for 1 Year",
+        "sku_id": "759E-59C1-661D",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-t4",
+      "hourly_usd": "0.22",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla T4 GPU running in Americas for 1 Year",
+        "sku_id": "75EB-68C0-259C",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-p100",
+      "hourly_usd": "1.46",
+      "raw": {
+        "description": "Nvidia Tesla P100 GPU running in Americas",
+        "sku_id": "7929-334B-6348",
+        "usage_type": "OnDemand"
+      },
+      "region": "us-central1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-h100-sxm-80",
+      "hourly_usd": "10.344275712",
+      "raw": {
+        "description": "Nvidia H100 80GB Plus GPU running in Americas",
+        "sku_id": "7CFD-81D6-E49C",
+        "usage_type": "OnDemand"
+      },
+      "region": "us-central1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a100-sxm-80",
+      "hourly_usd": "3.09659",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla A100 80GB GPU running in Americas for 3 Years",
+        "sku_id": "7F71-B589-3331",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-t4",
+      "hourly_usd": "0.35",
+      "raw": {
+        "description": "Nvidia Tesla T4 GPU running in Americas",
+        "sku_id": "88B8-C3ED-03F0",
+        "usage_type": "OnDemand"
+      },
+      "region": "us-central1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-p100",
+      "hourly_usd": "0.919",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla P100 GPU running in Americas for 1 Year",
+        "sku_id": "9599-1CA6-5843",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-p4",
+      "hourly_usd": "0.6",
+      "raw": {
+        "description": "Nvidia Tesla P4 GPU running in Americas",
+        "sku_id": "A152-C7DF-4872",
+        "usage_type": "OnDemand"
+      },
+      "region": "us-central1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-t4",
+      "hourly_usd": "0.16",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla T4 GPU running in Americas for 3 Year",
+        "sku_id": "A360-7A19-4436",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "0.560040239",
+      "raw": {
+        "description": "Nvidia L4 GPU running in Americas",
+        "sku_id": "A88A-5A60-E821",
+        "usage_type": "OnDemand"
+      },
+      "region": "us-central1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a100-sxm-40",
+      "hourly_usd": "1.0268678",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla A100 GPU running in Americas for 3 Year",
+        "sku_id": "AC87-9557-955D",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-h200",
+      "hourly_usd": "4.08301",
+      "raw": {
+        "description": "Commitment v1: H200 141GB GPU running in Americas for 3 Years",
+        "sku_id": "B321-0285-A739",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-p4",
+      "hourly_usd": "0.27",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla P4 GPU running in Americas for 3 Year",
+        "sku_id": "BBFC-761F-7CE5",
+        "usage_type": "Commit3Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-3yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "0.35282535",
+      "raw": {
+        "description": "Commitment v1: Nvidia L4 GPU running in Americas for 1 Year",
+        "sku_id": "BEFB-F03D-B770",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-h100-sxm-80",
+      "hourly_usd": "9.796550569",
+      "raw": {
+        "description": "Nvidia H100 80GB GPU running in Americas",
+        "sku_id": "D4E2-451A-15B9",
+        "usage_type": "OnDemand"
+      },
+      "region": "us-central1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-v100",
+      "hourly_usd": "2.48",
+      "raw": {
+        "description": "Nvidia Tesla V100 GPU running in Americas",
+        "sku_id": "DC0B-9926-40C5",
+        "usage_type": "OnDemand"
+      },
+      "region": "us-central1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a100-sxm-40",
+      "hourly_usd": "1.84836204",
+      "raw": {
+        "description": "Commitment v1: Nvidia Tesla A100 GPU running in Americas for 1 Year",
+        "sku_id": "E9B0-ED35-1FA7",
+        "usage_type": "Commit1Yr"
+      },
+      "region": "us-central1",
+      "tier": "cud-1yr"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a100-sxm-80",
+      "hourly_usd": "3.92808",
+      "raw": {
+        "description": "Nvidia Tesla A100 80GB GPU running in Americas",
+        "sku_id": "EDA0-3A70-3138",
+        "usage_type": "OnDemand"
+      },
+      "region": "us-central1",
+      "tier": "on_demand"
+    }
+  ],
+  "provider_slug": "gcp",
+  "schema_version": 1,
+  "scraped_at": "2026-05-21T07:36:42.645994Z",
+  "scraper_version": "2c79eee",
+  "source_url": "https://cloudbilling.googleapis.com/v1/services/6F81-5844-456A/skus"
+}

@@ -3,13 +3,27 @@
     {
       "available": true,
       "gpu_slug_hint": "RTX 4090",
-      "hourly_usd": "0.335556",
+      "hourly_usd": "0.268889",
       "raw": {
-        "count": 3,
+        "count": 5,
         "max": 0.5355555555555556,
-        "min": 0.2688888888888889,
-        "p50": 0.33555555555555555,
-        "p90": 0.4955555555555556
+        "min": 0.13555555555555554,
+        "p50": 0.2688888888888889,
+        "p90": 0.4555555555555556
+      },
+      "region": "",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "B200",
+      "hourly_usd": "4.040545",
+      "raw": {
+        "count": 1,
+        "max": 4.0405448717948715,
+        "min": 4.0405448717948715,
+        "p50": 4.0405448717948715,
+        "p90": 4.0405448717948715
       },
       "region": "",
       "tier": "on_demand"
@@ -19,39 +33,11 @@
       "gpu_slug_hint": "H100 SXM",
       "hourly_usd": "2.935556",
       "raw": {
-        "count": 6,
-        "max": 11.735555555555557,
+        "count": 3,
+        "max": 5.86888888888889,
         "min": 1.468888888888889,
         "p50": 2.9355555555555557,
-        "p90": 8.802222222222223
-      },
-      "region": "",
-      "tier": "on_demand"
-    },
-    {
-      "available": true,
-      "gpu_slug_hint": "B200",
-      "hourly_usd": "5.908333",
-      "raw": {
-        "count": 4,
-        "max": 31.50208333333333,
-        "min": 3.8013888888888894,
-        "p50": 5.908333333333331,
-        "p90": 24.414583333333336
-      },
-      "region": "",
-      "tier": "on_demand"
-    },
-    {
-      "available": true,
-      "gpu_slug_hint": "H200",
-      "hourly_usd": "1.936774",
-      "raw": {
-        "count": 1,
-        "max": 1.9367741935483869,
-        "min": 1.9367741935483869,
-        "p50": 1.9367741935483869,
-        "p90": 1.9367741935483869
+        "p90": 5.282222222222223
       },
       "region": "",
       "tier": "on_demand"
@@ -59,7 +45,7 @@
   ],
   "provider_slug": "vast",
   "schema_version": 1,
-  "scraped_at": "2026-05-18T22:56:30.889406Z",
-  "scraper_version": "1d7f5c7",
+  "scraped_at": "2026-05-21T07:36:44.562573Z",
+  "scraper_version": "2c79eee",
   "source_url": "https://console.vast.ai/api/v0/bundles/"
 }
