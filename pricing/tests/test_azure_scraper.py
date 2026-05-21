@@ -38,9 +38,7 @@ def test_azure_parse_reserved_1yr_tier(nd_series_items):
 
 def test_azure_parse_reserved_3yr_tier(nd_series_items):
     prices = parse_azure_prices(nd_series_items)
-    h100_3yr = next(
-        p for p in prices if p.gpu_slug_hint == "nvidia-h100-sxm-80" and p.tier == "reserved-3yr"
-    )
+    h100_3yr = next(p for p in prices if p.gpu_slug_hint == "nvidia-h100-sxm-80" and p.tier == "reserved-3yr")
     assert h100_3yr.hourly_usd == Decimal("60.45") / Decimal(8)
 
 
