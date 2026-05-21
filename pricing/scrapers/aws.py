@@ -1,18 +1,14 @@
 """AWS GPU pricing scraper.
 
 Pricing sources:
-  - Price List API: https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.json
+  - Price List bulk JSON: https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/us-east-1/index.json
+    (publicly accessible — no credentials required)
   - Capacity Block Offerings: EC2 describe_capacity_block_offerings API
-
-Auth: AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, AWS_DEFAULT_REGION
-Required IAM perms: pricing:GetProducts, ec2:DescribeCapacityBlockOfferings
+    (requires AWS credentials; gracefully skipped if absent)
 
 GPU-per-instance division: AWS prices per *instance*, not per GPU.
 For example, p5.48xlarge is 8x H100 — a $98/hr instance price becomes $12.25/hr per GPU.
 The per-GPU division is applied in parse_aws_prices().
-
-CI uses recorded fixtures — boto3 is imported lazily inside fetch_*() functions
-to avoid import-time failures when credentials are absent.
 """
 
 from __future__ import annotations
@@ -23,6 +19,9 @@ import logging
 from datetime import UTC
 from decimal import Decimal
 from typing import Any
+
+import httpx
+from tenacity import retry, stop_after_attempt, wait_exponential
 
 from pricing.scrapers.base import ParserDriftError, ScrapedPrice
 
@@ -194,31 +193,45 @@ def parse_aws_capacity_blocks(offerings: list[dict[str, Any]]) -> list[ScrapedPr
     return out
 
 
+_PRICING_URL = (
+    "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/us-east-1/index.json"
+)
+
+_ONDEMAND_FILTERS = {
+    "operatingSystem": "Linux",
+    "tenancy": "Shared",
+    "capacitystatus": "Used",
+}
+
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
 def fetch_aws_ondemand_skus() -> list[dict[str, Any]]:
-    """Fetch GPU instance prices from AWS Price List API (us-east-1 only, on-demand)."""
-    import boto3  # lazy import — credentials may not be present in CI
+    """Fetch GPU instance on-demand prices from the public AWS Price List bulk JSON.
 
-    client = boto3.client("pricing", region_name="us-east-1")
-    filters = [
-        {"Type": "TERM_MATCH", "Field": "operatingSystem", "Value": "Linux"},
-        {"Type": "TERM_MATCH", "Field": "tenancy", "Value": "Shared"},
-        {"Type": "TERM_MATCH", "Field": "capacitystatus", "Value": "Used"},
-        {"Type": "TERM_MATCH", "Field": "regionCode", "Value": _DEFAULT_REGION},
-    ]
+    No credentials required — the pricing endpoint is publicly accessible.
+    Returns a list of dicts with 'attributes' and 'terms' keys, matching the
+    format expected by parse_aws_prices().
+    """
+    response = httpx.get(_PRICING_URL, timeout=120.0)
+    response.raise_for_status()
+    data: dict[str, Any] = response.json()
 
-    paginator = client.get_paginator("get_products")
+    raw_products: dict[str, Any] = data.get("products", {})
+    ondemand_terms: dict[str, Any] = data.get("terms", {}).get("OnDemand", {})
+
     products: list[dict[str, Any]] = []
-    for page in paginator.paginate(ServiceCode="AmazonEC2", Filters=filters):
-        for item in page.get("PriceList", []):
-            product = json.loads(item) if isinstance(item, str) else item
-            attrs = product.get("product", {}).get("attributes", {})
-            if attrs.get("instanceType", "") in _INSTANCE_GPU_MAP:
-                products.append(
-                    {
-                        "attributes": attrs,
-                        "terms": product.get("terms", {}),
-                    }
-                )
+    for sku, product in raw_products.items():
+        attrs = product.get("attributes", {})
+        if attrs.get("instanceType", "") not in _INSTANCE_GPU_MAP:
+            continue
+        if any(attrs.get(k) != v for k, v in _ONDEMAND_FILTERS.items()):
+            continue
+        products.append(
+            {
+                "attributes": attrs,
+                "terms": {"OnDemand": ondemand_terms.get(sku, {})},
+            }
+        )
 
     return products
 
@@ -227,25 +240,36 @@ def fetch_aws_capacity_blocks(
     instance_type: str = "p5.48xlarge",
     num_instances: int = 1,
 ) -> list[dict[str, Any]]:
-    """Fetch capacity block offerings for a given instance type."""
+    """Fetch capacity block offerings via EC2 API (requires AWS credentials).
+
+    Returns an empty list and logs a warning if credentials are not available.
+    """
     from datetime import datetime, timedelta
 
-    import boto3  # lazy import
+    try:
+        import boto3
+        import botocore.exceptions
+    except ImportError:
+        return []
 
-    ec2 = boto3.client("ec2", region_name=_DEFAULT_REGION)
-    start = datetime.now(tz=UTC)
-    end = start + timedelta(days=60)
+    try:
+        ec2 = boto3.client("ec2", region_name=_DEFAULT_REGION)
+        start = datetime.now(tz=UTC)
+        end = start + timedelta(days=60)
 
-    paginator = ec2.get_paginator("describe_capacity_block_offerings")
-    offerings: list[dict[str, Any]] = []
-    for page in paginator.paginate(
-        InstanceType=instance_type,
-        InstanceCount=num_instances,
-        StartDateRange=start,
-        EndDateRange=end,
-    ):
-        offerings.extend(page.get("CapacityBlockOfferings", []))
-    return offerings
+        paginator = ec2.get_paginator("describe_capacity_block_offerings")
+        offerings: list[dict[str, Any]] = []
+        for page in paginator.paginate(
+            InstanceType=instance_type,
+            InstanceCount=num_instances,
+            StartDateRange=start,
+            EndDateRange=end,
+        ):
+            offerings.extend(page.get("CapacityBlockOfferings", []))
+        return offerings
+    except botocore.exceptions.NoCredentialsError:
+        logger.info("aws capacity blocks skipped: no credentials configured")
+        return []
 
 
 def scrape() -> list[ScrapedPrice]:

@@ -53,10 +53,6 @@ jobs:
           DB_USER: postgres
           DB_PASSWORD: postgres
           REDIS_URL: redis://localhost:6379/0
-          # AWS credentials (optional — scraper skipped if absent)
-          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          AWS_DEFAULT_REGION: us-east-1
         run: python manage.py dump_pricing --provider all
 
       - name: Commit updated artifacts
