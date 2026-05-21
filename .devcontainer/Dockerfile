@@ -100,6 +100,14 @@ RUN mkdir -p /home/$USERNAME/.claude \
 # ---- Claude Code CLI (global install) ---------------------------------------
 RUN npm install -g @anthropic-ai/claude-code
 
+# ---- iptables: use legacy backend inside containers -------------------------
+# Debian Bookworm defaults to iptables-nft (nf_tables frontend), which has
+# incomplete container support — setting OUTPUT DROP breaks Docker's embedded
+# DNS at 127.0.0.11 even after adding loopback and port-53 ACCEPT rules.
+# iptables-legacy (ip_tables kernel module) works correctly in containers.
+RUN update-alternatives --set iptables  /usr/sbin/iptables-legacy  && \
+    update-alternatives --set ip6tables /usr/sbin/ip6tables-legacy
+
 # ---- Firewall init script (executed by postCreateCommand) -------------------
 COPY init-firewall.sh /usr/local/bin/init-firewall.sh
 RUN chmod 0755 /usr/local/bin/init-firewall.sh
