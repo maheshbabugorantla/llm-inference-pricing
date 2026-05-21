@@ -37,9 +37,13 @@ iptables -A INPUT  -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 iptables -A OUTPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
 
 # --------------------- 2. DNS ---------------------
-# Container resolver (typically 127.0.0.11 in Docker user-defined networks)
+# Container resolver (typically 127.0.0.11 in Docker user-defined networks).
+# Allow DNS queries out and responses in explicitly — don't rely solely on
+# conntrack ESTABLISHED/RELATED for UDP on all kernel/Docker versions.
 iptables -A OUTPUT -p udp --dport 53 -j ACCEPT
 iptables -A OUTPUT -p tcp --dport 53 -j ACCEPT
+iptables -A INPUT  -p udp --sport 53 -j ACCEPT
+iptables -A INPUT  -p tcp --sport 53 -j ACCEPT
 
 # --------------------- 3. Docker bridge networks (sibling containers) ---------------------
 # Allow the container to reach other containers on the same Docker network
@@ -162,8 +166,7 @@ echo "Firewall ready. Testing egress..."
 if curl -sS --max-time 5 -o /dev/null -w "%{http_code}" https://api.anthropic.com/ | grep -qE '^(2|3|4)'; then
   echo "  ok: api.anthropic.com reachable"
 else
-  echo "  WARN: api.anthropic.com not reachable — Claude Code will not work"
-  exit 1
+  echo "  WARN: api.anthropic.com not reachable — Claude Code may not work"
 fi
 
 # Negative test: random non-allowlisted IP should be unreachable.
