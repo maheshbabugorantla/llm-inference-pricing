@@ -3,10 +3,11 @@ from __future__ import annotations
 import logging
 from typing import Any
 
+import httpx
 import sentry_sdk
 from celery import shared_task
 
-from pricing.scrapers import lambda_labs, nebius, runpod, vast
+from pricing.scrapers import aws, azure, lambda_labs, nebius, runpod, vast
 from pricing.scrapers.base import ParserDriftError
 from pricing.services.cost import refresh_cost_cells
 from pricing.services.scrape_runner import persist_prices
@@ -63,6 +64,42 @@ def scrape_nebius(self: Any) -> int:
     except Exception as exc:
         sentry_sdk.capture_exception(exc)
         logger.exception("nebius scrape failed")
+        raise self.retry(exc=exc) from exc
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=600)  # type: ignore[untyped-decorator]
+def scrape_aws(self: Any) -> int:
+    try:
+        return persist_prices(aws.scrape(), gpu_slug_resolver=aws.map_aws_gpu)
+    except ParserDriftError as exc:
+        sentry_sdk.capture_message(str(exc), level="error")
+        raise
+    except Exception as exc:
+        import botocore.exceptions
+
+        if isinstance(exc, botocore.exceptions.ClientError):
+            sentry_sdk.capture_exception(exc)
+            logger.exception("aws scrape failed (ClientError)")
+            raise self.retry(exc=exc) from exc
+        sentry_sdk.capture_exception(exc)
+        logger.exception("aws scrape failed")
+        raise self.retry(exc=exc) from exc
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=600)  # type: ignore[untyped-decorator]
+def scrape_azure(self: Any) -> int:
+    try:
+        return persist_prices(azure.scrape(), gpu_slug_resolver=azure.map_azure_gpu)
+    except ParserDriftError as exc:
+        sentry_sdk.capture_message(str(exc), level="error")
+        raise
+    except httpx.HTTPStatusError as exc:
+        sentry_sdk.capture_exception(exc)
+        logger.exception("azure scrape failed (HTTPStatusError)")
+        raise self.retry(exc=exc) from exc
+    except Exception as exc:
+        sentry_sdk.capture_exception(exc)
+        logger.exception("azure scrape failed")
         raise self.retry(exc=exc) from exc
 
 

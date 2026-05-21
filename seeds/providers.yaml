@@ -35,3 +35,19 @@
   pricing_url: https://cloud.google.com/compute/gpus-pricing
   has_api: true
   api_endpoint: https://cloudbilling.googleapis.com/v1/
+
+- slug: aws
+  display_name: AWS
+  provider_type: cloud
+  data_source_tier: realtime_api
+  pricing_url: https://aws.amazon.com/ec2/pricing/on-demand/
+  has_api: true
+  api_endpoint: https://pricing.us-east-1.amazonaws.com/
+
+- slug: azure
+  display_name: Microsoft Azure
+  provider_type: cloud
+  data_source_tier: realtime_api
+  pricing_url: https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/
+  has_api: true
+  api_endpoint: https://prices.azure.com/api/retail/prices
