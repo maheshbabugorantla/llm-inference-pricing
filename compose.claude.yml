@@ -45,6 +45,7 @@ services:
       - claude-config:/home/node/.claude
       - claude-cache:/home/node/.cache
       - claude-history:/commandhistory
+      - ~/.ssh:/home/node/.ssh:ro
 
     environment:
       - TZ=${TZ:-America/Chicago}
