@@ -63,7 +63,13 @@ GCP_GPU_PATTERNS: list[tuple[str, str]] = [
 ]
 
 
+_GCP_KNOWN_SLUGS: frozenset[str] = frozenset(slug for _, slug in GCP_GPU_PATTERNS)
+
+
 def map_gcp_gpu(description: str) -> str | None:
+    # gpu_slug_hint is stored as the resolved slug in artifacts — pass it through directly
+    if description in _GCP_KNOWN_SLUGS:
+        return description
     for pattern, slug in GCP_GPU_PATTERNS:
         if pattern in description:
             return slug
