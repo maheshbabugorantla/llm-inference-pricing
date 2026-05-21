@@ -52,6 +52,9 @@ services:
       - SHELL=/bin/zsh
       # Pass through API key if you use it; otherwise login via the CLI.
       - ANTHROPIC_API_KEY=${ANTHROPIC_API_KEY:-}
+      # uv 0.11+ requires UV_PROJECT_ENVIRONMENT (not VIRTUAL_ENV) to relocate
+      # the project venv away from .venv to avoid clobbering the host macOS venv.
+      - UV_PROJECT_ENVIRONMENT=/workspace/.venv-linux
 
     # Run the firewall on entry, then drop to a zsh shell.
     entrypoint: ["/bin/zsh", "-c"]

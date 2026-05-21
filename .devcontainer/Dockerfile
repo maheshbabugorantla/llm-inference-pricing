@@ -121,6 +121,9 @@ ENV CLAUDE_CONFIG_DIR=/home/$USERNAME/.claude
 
 # Inside the container use .venv-linux to avoid clobbering the host macOS .venv.
 # The host's .venv contains arm64 Mach-O binaries; this one contains ELF/Linux.
+# UV_PROJECT_ENVIRONMENT tells uv (0.11+) where to create the project virtualenv.
+# VIRTUAL_ENV activates it for non-uv tools (pip, python, pytest invoked directly).
+ENV UV_PROJECT_ENVIRONMENT=/workspace/.venv-linux
 ENV VIRTUAL_ENV=/workspace/.venv-linux
 ENV PATH="/workspace/.venv-linux/bin:$PATH"
 
@@ -129,6 +132,7 @@ RUN echo 'export HISTFILE=/commandhistory/.zsh_history' >> /home/$USERNAME/.zshr
  && echo 'export HISTSIZE=10000' >> /home/$USERNAME/.zshrc \
  && echo 'export SAVEHIST=10000' >> /home/$USERNAME/.zshrc \
  && echo 'setopt INC_APPEND_HISTORY SHARE_HISTORY' >> /home/$USERNAME/.zshrc \
+ && echo 'export UV_PROJECT_ENVIRONMENT=/workspace/.venv-linux' >> /home/$USERNAME/.zshrc \
  && echo 'export VIRTUAL_ENV=/workspace/.venv-linux' >> /home/$USERNAME/.zshrc \
  && echo 'export PATH="/workspace/.venv-linux/bin:$PATH"' >> /home/$USERNAME/.zshrc
 
