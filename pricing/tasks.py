@@ -6,6 +6,7 @@ from typing import Any
 from celery import shared_task
 
 from pricing.scrapers import lambda_labs, nebius, runpod, vast
+from pricing.services.cost import refresh_cost_cells
 from pricing.services.scrape_runner import persist_prices
 
 logger = logging.getLogger("pricing.tasks")
@@ -45,3 +46,8 @@ def scrape_nebius(self: Any) -> int:
     except Exception as exc:
         logger.exception("nebius scrape failed")
         raise self.retry(exc=exc) from exc
+
+
+@shared_task  # type: ignore[untyped-decorator]
+def refresh_current_cost_cells() -> None:
+    refresh_cost_cells()

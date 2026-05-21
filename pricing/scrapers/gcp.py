@@ -167,9 +167,9 @@ def fetch_gcp_skus() -> list[dict[str, Any]]:
     import google.auth  # lazy import — avoids import-time failure without GCP creds in CI
 
     credentials, _ = google.auth.default(scopes=["https://www.googleapis.com/auth/cloud-billing.readonly"])
-    credentials.refresh(_HttpxTransport())
+    credentials.refresh(_HttpxTransport())  # type: ignore[no-untyped-call]
 
-    token: str = credentials.token
+    token: str = credentials.token  # type: ignore[assignment]
     auth_headers = {"Authorization": f"Bearer {token}"}
 
     all_gpu_skus: list[dict[str, Any]] = []

@@ -105,4 +105,8 @@ CELERY_BEAT_SCHEDULE: dict[str, object] = {
         "task": "pricing.tasks.scrape_nebius",
         "schedule": crontab(minute=15, hour=6),
     },
+    "refresh-cost-cells": {
+        "task": "pricing.tasks.refresh_current_cost_cells",
+        "schedule": crontab(minute=10),
+    },
 }
