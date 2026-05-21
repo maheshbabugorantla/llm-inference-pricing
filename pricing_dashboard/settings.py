@@ -64,8 +64,8 @@ DATABASES = {
         "NAME": os.environ.get("DB_NAME", "pricing"),
         "USER": os.environ.get("DB_USER", "postgres"),
         "PASSWORD": os.environ.get("DB_PASSWORD", "postgres"),
-        "HOST": os.environ.get("DB_HOST", "localhost"),
-        "PORT": os.environ.get("DB_PORT", "5434"),
+        "HOST": os.environ.get("DB_HOST", "db"),
+        "PORT": os.environ.get("DB_PORT", "5432"),
     }
 }
 
@@ -86,7 +86,7 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://localhost:6379/0")
+CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
 CELERY_TASK_ALWAYS_EAGER = False
 
@@ -115,8 +115,8 @@ LOGGING = {
         },
     },
     "loggers": {
-        "pricing": {"handlers": ["console"], "level": "INFO", "propagate": False},
-        "catalog": {"handlers": ["console"], "level": "INFO", "propagate": False},
+        "pricing": {"handlers": ["console"], "level": "INFO", "propagate": True},
+        "catalog": {"handlers": ["console"], "level": "INFO", "propagate": True},
     },
 }
 
