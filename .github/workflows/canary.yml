@@ -1,0 +1,71 @@
+name: canary
+
+on:
+  schedule:
+    - cron: '0 12 * * 1'    # Mondays 12:00 UTC
+  workflow_dispatch:
+
+jobs:
+  canary:
+    runs-on: ubuntu-latest
+
+    services:
+      db:
+        image: timescale/timescaledb:latest-pg16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: pricing
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DB_NAME: pricing
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: localhost
+      DB_PORT: 5432
+      REDIS_URL: redis://localhost:6379/0
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - uses: astral-sh/setup-uv@v3
+
+      - name: Install dependencies
+        run: uv pip install --system -e ".[dev]"
+
+      - name: Run migrations
+        run: python manage.py migrate
+
+      - name: Seed catalog
+        run: python manage.py seed_catalog
+
+      - name: Seed providers
+        run: python manage.py seed_providers
+
+      - name: Run scraper fixture tests
+        run: pytest pricing/tests/test_scrape_pricing_command.py pricing/tests/test_runpod_parser.py pricing/tests/test_lambda_scraper.py pricing/tests/test_vast_scraper.py pricing/tests/test_nebius_scraper.py pricing/tests/test_gcp_scraper.py -q
+
+      - name: Smoke RunPod live API (network flakiness is non-fatal)
+        run: python manage.py scrape_pricing --provider runpod
+        continue-on-error: true
