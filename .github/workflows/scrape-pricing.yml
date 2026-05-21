@@ -29,7 +29,10 @@ jobs:
       - uses: astral-sh/setup-uv@v3
 
       - name: Install dependencies
-        run: uv pip install --system -e ".[dev]"
+        run: uv sync --group dev
+
+      - name: Add venv to PATH
+        run: echo "$GITHUB_WORKSPACE/.venv/bin" >> $GITHUB_PATH
 
       - name: Write GCP service account key
         env:
@@ -43,14 +46,17 @@ jobs:
       - name: Scrape all providers
         env:
           DJANGO_SETTINGS_MODULE: pricing_dashboard.settings
-          # Placeholder DB env vars so settings.py imports without a real DB.
-          # dump_pricing never queries the DB; these values are never used.
+          # Placeholder DB env vars — dump_pricing never queries the DB.
           DB_HOST: localhost
           DB_PORT: "5432"
           DB_NAME: pricing
           DB_USER: postgres
           DB_PASSWORD: postgres
           REDIS_URL: redis://localhost:6379/0
+          # AWS credentials (optional — scraper skipped if absent)
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: us-east-1
         run: python manage.py dump_pricing --provider all
 
       - name: Commit updated artifacts
