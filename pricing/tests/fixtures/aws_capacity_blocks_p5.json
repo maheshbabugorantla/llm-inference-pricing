@@ -1,0 +1,16 @@
+[
+  {
+    "InstanceType": "p5.48xlarge",
+    "InstanceCount": 2,
+    "CapacityBlockDurationHours": 336,
+    "UpfrontFee": "131712.00",
+    "AvailabilityZone": "us-east-1a"
+  },
+  {
+    "InstanceType": "p5.48xlarge",
+    "InstanceCount": 1,
+    "CapacityBlockDurationHours": 168,
+    "UpfrontFee": "32928.00",
+    "AvailabilityZone": "us-east-1b"
+  }
+]

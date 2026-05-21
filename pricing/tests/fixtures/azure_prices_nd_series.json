@@ -1,0 +1,47 @@
+[
+  {
+    "armSkuName": "Standard_ND96isr_H100_v5",
+    "armRegionName": "eastus",
+    "retailPrice": 98.32,
+    "meterName": "ND96isr H100 v5",
+    "serviceName": "Virtual Machines",
+    "reservationTerm": "",
+    "priceType": "Consumption"
+  },
+  {
+    "armSkuName": "Standard_ND96isr_H100_v5",
+    "armRegionName": "eastus",
+    "retailPrice": 72.11,
+    "meterName": "ND96isr H100 v5 1 Year Reserved",
+    "serviceName": "Virtual Machines",
+    "reservationTerm": "1 Year",
+    "priceType": "Consumption"
+  },
+  {
+    "armSkuName": "Standard_ND96isr_H100_v5",
+    "armRegionName": "eastus",
+    "retailPrice": 60.45,
+    "meterName": "ND96isr H100 v5 3 Year Reserved",
+    "serviceName": "Virtual Machines",
+    "reservationTerm": "3 Years",
+    "priceType": "Consumption"
+  },
+  {
+    "armSkuName": "Standard_ND96amsr_A100_v4",
+    "armRegionName": "eastus",
+    "retailPrice": 32.77,
+    "meterName": "ND96amsr A100 v4",
+    "serviceName": "Virtual Machines",
+    "reservationTerm": "",
+    "priceType": "Consumption"
+  },
+  {
+    "armSkuName": "Standard_NC4as_T4_v3",
+    "armRegionName": "eastus",
+    "retailPrice": 0.526,
+    "meterName": "NC4as T4 v3",
+    "serviceName": "Virtual Machines",
+    "reservationTerm": "",
+    "priceType": "Consumption"
+  }
+]
