@@ -17,10 +17,12 @@
 set -euo pipefail
 
 # --------------------- 0. Reset ---------------------
+# Flush only the filter table. Do NOT flush the nat table — Docker's embedded
+# DNS resolver at 127.0.0.11 is implemented via DNAT rules in the container's
+# network namespace (set up by dockerd). Flushing nat wipes those rules and
+# breaks all DNS lookups inside the container.
 iptables -F
 iptables -X
-iptables -t nat -F
-iptables -t nat -X
 ipset destroy allowed-domains 2>/dev/null || true
 
 # --------------------- 1. Default policies ---------------------
