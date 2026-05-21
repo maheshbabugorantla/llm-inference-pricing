@@ -162,7 +162,35 @@ done
 iptables -A OUTPUT -p tcp -m set --match-set allowed-domains dst --dport 443 -j ACCEPT
 iptables -A OUTPUT -p tcp -m set --match-set allowed-domains dst --dport 80  -j ACCEPT
 
-# --------------------- 5. Verification ---------------------
+# --------------------- 5. GitHub CDN ranges ---------------------
+# GitHub serves git pack files from Fastly CDN IPs that differ from what
+# DNS resolves for github.com/objects.githubusercontent.com. Fetch the
+# authoritative CIDR list from the GitHub meta API (api.github.com is
+# already in the allowlist above) and add all ranges to the ipset.
+echo "Fetching GitHub IP ranges from api.github.com/meta..."
+GITHUB_RANGES=$(curl -sS --max-time 10 https://api.github.com/meta 2>/dev/null \
+  | python3 -c "
+import json, sys
+d = json.load(sys.stdin)
+seen = set()
+for key in ('git', 'web', 'packages', 'actions', 'dependabot'):
+    for r in d.get(key, []):
+        if r not in seen:
+            seen.add(r)
+            print(r)
+" 2>/dev/null || true)
+
+if [[ -n "$GITHUB_RANGES" ]]; then
+  COUNT=0
+  while read -r cidr; do
+    [[ -n "$cidr" ]] && ipset add allowed-domains "$cidr" -exist 2>/dev/null && COUNT=$((COUNT+1))
+  done <<< "$GITHUB_RANGES"
+  echo "  ok: added $COUNT GitHub CIDR ranges"
+else
+  echo "  warn: could not fetch GitHub IP ranges (git clone may be slow)"
+fi
+
+# --------------------- 6. Verification ---------------------
 echo "Firewall ready. Testing egress..."
 
 if curl -sS --max-time 5 -o /dev/null -w "%{http_code}" https://api.anthropic.com/ | grep -qE '^(2|3|4)'; then
