@@ -669,7 +669,7 @@ dependencies = [
     { name = "tenacity" },
 ]
 
-[package.optional-dependencies]
+[package.dev-dependencies]
 dev = [
     { name = "django-stubs", extra = ["compatible-mypy"] },
     { name = "factory-boy" },
@@ -687,24 +687,27 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.12" },
     { name = "celery", extras = ["redis"], specifier = ">=5.4" },
     { name = "django", specifier = ">=5.0,<6.0" },
-    { name = "django-stubs", extras = ["compatible-mypy"], marker = "extra == 'dev'", specifier = ">=5.0" },
-    { name = "factory-boy", marker = "extra == 'dev'", specifier = ">=3.3" },
     { name = "google-auth", specifier = ">=2.30" },
     { name = "httpx", specifier = ">=0.27" },
-    { name = "mypy", marker = "extra == 'dev'", specifier = ">=1.10" },
-    { name = "pre-commit", marker = "extra == 'dev'", specifier = ">=3.7" },
     { name = "psycopg", extras = ["binary"], specifier = ">=3.2" },
     { name = "pydantic", specifier = ">=2.5" },
-    { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.0" },
-    { name = "pytest-cov", marker = "extra == 'dev'", specifier = ">=5.0" },
-    { name = "pytest-django", marker = "extra == 'dev'", specifier = ">=4.8" },
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "redis", specifier = ">=5.0" },
-    { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.5" },
     { name = "tenacity", specifier = ">=8.2" },
-    { name = "types-pyyaml", marker = "extra == 'dev'" },
 ]
-provides-extras = ["dev"]
+
+[package.metadata.requires-dev]
+dev = [
+    { name = "django-stubs", extras = ["compatible-mypy"], specifier = ">=5.0" },
+    { name = "factory-boy", specifier = ">=3.3" },
+    { name = "mypy", specifier = ">=1.10" },
+    { name = "pre-commit", specifier = ">=3.7" },
+    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest-cov", specifier = ">=5.0" },
+    { name = "pytest-django", specifier = ">=4.8" },
+    { name = "ruff", specifier = ">=0.5" },
+    { name = "types-pyyaml" },
+]
 
 [[package]]
 name = "mypy"
