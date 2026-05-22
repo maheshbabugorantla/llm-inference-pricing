@@ -1,0 +1,87 @@
+name: Copilot Review Gate
+
+# Runs on every PR push and whenever any review is submitted.
+# Fails if Copilot has not yet reviewed, or if it found HIGH/MEDIUM severity issues.
+# Add "Copilot review severity gate" as a required status check in branch protection.
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    branches: [main]
+  pull_request_review:
+    types: [submitted]
+
+permissions:
+  pull-requests: read
+
+concurrency:
+  group: copilot-gate-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  severity-gate:
+    name: Copilot review severity gate
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Request Copilot review (best-effort on first open)
+        # Requires Copilot code review to be enabled in repository settings.
+        # Silently skipped if already requested or feature not available.
+        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh pr edit ${{ github.event.pull_request.number }} \
+            --add-reviewer copilot-pull-request-reviewer \
+            --repo ${{ github.repository }}
+
+      - name: Evaluate Copilot review severity
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          BOT="copilot-pull-request-reviewer[bot]"
+
+          # ── 1. Check a Copilot review exists ──────────────────────────────
+          REVIEW_COUNT=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
+            --jq "[.[] | select(.user.login == \"${BOT}\")] | length")
+
+          if [ "${REVIEW_COUNT}" -eq 0 ]; then
+            echo "::error::No Copilot review found. Request one before merging."
+            exit 1
+          fi
+
+          echo "Copilot reviews found: ${REVIEW_COUNT}"
+
+          # ── 2. Count HIGH severity inline comments ─────────────────────────
+          HIGH=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
+            --jq "[.[] \
+              | select(.user.login == \"${BOT}\") \
+              | select(.body | test(\"\\\\[SEVERITY: HIGH\\\\]\"; \"i\")) \
+            ] | length")
+
+          # ── 3. Count MEDIUM severity inline comments ───────────────────────
+          MEDIUM=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
+            --jq "[.[] \
+              | select(.user.login == \"${BOT}\") \
+              | select(.body | test(\"\\\\[SEVERITY: MEDIUM\\\\]\"; \"i\")) \
+            ] | length")
+
+          # ── 4. Count LOW severity inline comments (informational) ──────────
+          LOW=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
+            --jq "[.[] \
+              | select(.user.login == \"${BOT}\") \
+              | select(.body | test(\"\\\\[SEVERITY: LOW\\\\]\"; \"i\")) \
+            ] | length")
+
+          echo "Severity counts — HIGH: ${HIGH}  MEDIUM: ${MEDIUM}  LOW: ${LOW}"
+
+          if [ "${HIGH}" -gt 0 ] || [ "${MEDIUM}" -gt 0 ]; then
+            echo "::error::Merge blocked: ${HIGH} HIGH and ${MEDIUM} MEDIUM severity issues must be resolved."
+            echo "::notice::${LOW} LOW severity issue(s) can be merged as-is."
+            exit 1
+          fi
+
+          echo "✅ Copilot review gate passed — ${LOW} LOW severity issue(s), no HIGH or MEDIUM."
