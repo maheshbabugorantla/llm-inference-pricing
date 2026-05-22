@@ -83,3 +83,20 @@ addopts = "-ra --strict-markers"
 markers = [
     "smoke: slow integration tests against real seeds and live DB (deselect with -m 'not smoke')",
 ]
+
+[tool.coverage.run]
+source = ["catalog", "pricing"]
+omit = [
+    "*/tests/*",
+    "*/migrations/*",
+    "pricing_dashboard/*",
+    "manage.py",
+]
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "raise NotImplementedError",
+    "@(abc\\.)?abstractmethod",
+]

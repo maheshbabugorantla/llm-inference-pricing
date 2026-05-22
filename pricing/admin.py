@@ -4,7 +4,7 @@ from typing import TYPE_CHECKING, Any
 
 from django.contrib import admin
 
-from pricing.models import PricingSnapshot, Provider
+from pricing.models import HardwareSKU, OnPremDeployment, PricingSnapshot, Provider
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
@@ -33,3 +33,33 @@ class PricingSnapshotAdmin(_ReadOnlyAdmin):
     list_display = ("scraped_at", "provider", "gpu", "tier", "hourly_usd", "available")
     list_filter = ("provider", "gpu", "tier", "available")
     search_fields = ("provider__slug", "gpu__slug")
+
+
+@admin.register(HardwareSKU)
+class HardwareSKUAdmin(_ReadOnlyAdmin):
+    list_display = (
+        "slug",
+        "vendor",
+        "display_name",
+        "gpu",
+        "num_gpus",
+        "host_tdp_watts",
+        "reference_msrp_usd",
+    )
+    search_fields = ("slug", "vendor", "display_name")
+    list_filter = ("vendor", "gpu")
+
+
+@admin.register(OnPremDeployment)
+class OnPremDeploymentAdmin(_ReadOnlyAdmin):
+    list_display = (
+        "slug",
+        "display_name",
+        "hardware_sku",
+        "capex_per_node_usd",
+        "expected_utilization_pct",
+        "power_usd_per_kwh",
+        "is_active",
+    )
+    search_fields = ("slug", "display_name")
+    list_filter = ("hardware_sku", "is_active")

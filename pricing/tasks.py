@@ -104,5 +104,12 @@ def scrape_azure(self: Any) -> int:
 
 
 @shared_task  # type: ignore[untyped-decorator]
+def regenerate_on_prem_snapshots_task() -> int:
+    from pricing.generators.on_prem import regenerate_on_prem_snapshots
+
+    return regenerate_on_prem_snapshots()
+
+
+@shared_task  # type: ignore[untyped-decorator]
 def refresh_current_cost_cells() -> None:
     refresh_cost_cells()

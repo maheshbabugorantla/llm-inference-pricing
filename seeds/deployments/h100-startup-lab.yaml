@@ -1,0 +1,15 @@
+slug: h100-startup-lab
+display_name: H100 Startup Lab
+hardware_sku_slug: lambda-echelon-4xh100
+num_nodes: 1
+capex_per_node_usd: "180000.00"
+salvage_pct: "0.100"
+depreciation_years: 3
+expected_utilization_pct: "0.500"
+power_usd_per_kwh: "0.1200"
+pue: "1.500"
+monthly_colo_usd: "500.00"
+monthly_bandwidth_usd: "100.00"
+sysadmin_annual_burdened_usd: "180000.00"
+gpu_count_per_admin: 64
+notes: "Small startup lab — lower utilization, shorter depreciation"
