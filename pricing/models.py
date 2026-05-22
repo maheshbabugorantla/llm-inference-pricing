@@ -3,7 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import ClassVar
 
-from django.db import models
+from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -127,4 +127,4 @@ def _regenerate_on_save(sender: type[OnPremDeployment], instance: OnPremDeployme
         return
     from pricing.generators.on_prem import regenerate_on_prem_snapshots
 
-    regenerate_on_prem_snapshots()
+    transaction.on_commit(regenerate_on_prem_snapshots)

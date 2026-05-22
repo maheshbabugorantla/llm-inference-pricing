@@ -111,7 +111,7 @@ def test_all_breakdown_values_are_decimal():
 def test_zero_utilization_raises_value_error():
     deployment = OnPremDeploymentFactory()
     deployment.expected_utilization_pct = Decimal("0")
-    with pytest.raises(ValueError, match="expected_utilization_pct"):
+    with pytest.raises(ValueError, match=r"expected_utilization_pct must be in \(0, 1\]"):
         compute_on_prem_cost(deployment)
 
 
@@ -136,4 +136,28 @@ def test_negative_capex_raises_value_error():
     deployment = OnPremDeploymentFactory()
     deployment.capex_per_node_usd = Decimal("-1.00")
     with pytest.raises(ValueError, match="capex_per_node_usd"):
+        compute_on_prem_cost(deployment)
+
+
+@pytest.mark.django_db
+def test_utilization_over_one_raises_value_error():
+    deployment = OnPremDeploymentFactory()
+    deployment.expected_utilization_pct = Decimal("1.001")
+    with pytest.raises(ValueError, match="expected_utilization_pct"):
+        compute_on_prem_cost(deployment)
+
+
+@pytest.mark.django_db
+def test_zero_num_gpus_raises_value_error():
+    deployment = OnPremDeploymentFactory()
+    deployment.hardware_sku.num_gpus = 0
+    with pytest.raises(ValueError, match="num_gpus"):
+        compute_on_prem_cost(deployment)
+
+
+@pytest.mark.django_db
+def test_zero_gpu_count_per_admin_raises_value_error():
+    deployment = OnPremDeploymentFactory()
+    deployment.gpu_count_per_admin = 0
+    with pytest.raises(ValueError, match="gpu_count_per_admin"):
         compute_on_prem_cost(deployment)
