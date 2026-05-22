@@ -86,7 +86,12 @@ def test_aws_parser_returns_decimals(p5_products):
         assert isinstance(p.hourly_usd, Decimal)
 
 
-def test_aws_unmapped_instance_type_is_logged_not_dropped_silently(caplog, p5_products):
+def test_unmapped_gpu_instance_type_is_skipped_and_logged(caplog, p5_products):
+    """An unknown GPU instance type (p99.huge) must be skipped — no snapshot row
+    created — and logged so operators can add it to the mapping table. Silently
+    dropping it without a log would hide a pricing gap from the oncall dashboard."""
+    import logging
+
     unknown = [
         {
             "attributes": {"instanceType": "p99.huge", "regionCode": "us-east-1"},
@@ -94,12 +99,14 @@ def test_aws_unmapped_instance_type_is_logged_not_dropped_silently(caplog, p5_pr
         },
         *p5_products,
     ]
-    import logging
-
     with caplog.at_level(logging.INFO, logger="pricing.scrapers.aws"):
         prices = parse_aws_prices(unknown)
-    assert any("p99.huge" in r.message for r in caplog.records)
-    assert len(prices) == len(parse_aws_prices(p5_products))
+
+    assert any("p99.huge" in r.message for r in caplog.records), "unknown instance must be logged"
+    assert all("p99.huge" not in p.gpu_slug_hint for p in prices), (
+        "unknown instance must not appear in results"
+    )
+    assert len(prices) == len(parse_aws_prices(p5_products)), "known instances must all be present"
 
 
 def test_aws_empty_capacity_blocks_returns_empty_list():
