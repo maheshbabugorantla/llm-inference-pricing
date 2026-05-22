@@ -161,3 +161,19 @@ def test_zero_gpu_count_per_admin_raises_value_error():
     deployment.gpu_count_per_admin = 0
     with pytest.raises(ValueError, match="gpu_count_per_admin"):
         compute_on_prem_cost(deployment)
+
+
+@pytest.mark.django_db
+def test_zero_depreciation_years_raises_value_error():
+    deployment = OnPremDeploymentFactory()
+    deployment.depreciation_years = 0
+    with pytest.raises(ValueError, match="depreciation_years"):
+        compute_on_prem_cost(deployment)
+
+
+@pytest.mark.django_db
+def test_negative_power_usd_per_kwh_raises_value_error():
+    deployment = OnPremDeploymentFactory()
+    deployment.power_usd_per_kwh = Decimal("-0.01")
+    with pytest.raises(ValueError, match="power_usd_per_kwh"):
+        compute_on_prem_cost(deployment)
