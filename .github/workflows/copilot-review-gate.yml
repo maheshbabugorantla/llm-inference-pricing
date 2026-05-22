@@ -24,10 +24,10 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Request Copilot review (best-effort on first open)
+      - name: Request Copilot review (best-effort on every PR push)
         # Requires Copilot code review to be enabled in repository settings.
         # Silently skipped if already requested or feature not available.
-        if: github.event_name == 'pull_request' && github.event.action == 'opened'
+        if: github.event_name == 'pull_request'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
