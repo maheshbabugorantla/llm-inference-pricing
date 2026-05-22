@@ -21,6 +21,19 @@ class CostBreakdown(TypedDict):
 
 def compute_on_prem_cost(deployment: OnPremDeployment) -> CostBreakdown:
     """Pure function. Assumes deployment.hardware_sku and hardware_sku.gpu are prefetched."""
+    if deployment.expected_utilization_pct <= 0:
+        raise ValueError("expected_utilization_pct must be > 0")
+    if deployment.depreciation_years <= 0:
+        raise ValueError("depreciation_years must be > 0")
+    if not (Decimal(0) <= deployment.salvage_pct < Decimal(1)):
+        raise ValueError("salvage_pct must be in [0, 1)")
+    if deployment.pue <= 0:
+        raise ValueError("pue must be > 0")
+    if deployment.capex_per_node_usd < 0:
+        raise ValueError("capex_per_node_usd must be >= 0")
+    if deployment.power_usd_per_kwh < 0:
+        raise ValueError("power_usd_per_kwh must be >= 0")
+
     sku = deployment.hardware_sku
     gpu = sku.gpu
 

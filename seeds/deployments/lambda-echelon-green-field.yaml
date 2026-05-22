@@ -2,7 +2,7 @@ slug: lambda-echelon-green-field
 display_name: Lambda Echelon 4xH100 Green Field
 hardware_sku_slug: lambda-echelon-4xh100
 num_nodes: 1
-capex_per_node_usd: 180000.00
+capex_per_node_usd: "180000.00"
 salvage_pct: "0.100"
 depreciation_years: 4
 expected_utilization_pct: "0.700"

@@ -1,10 +1,21 @@
 from __future__ import annotations
 
+import hashlib
+
 from django.db import transaction
 from django.utils import timezone
 
 from pricing.models import OnPremDeployment, PricingSnapshot, Provider
 from pricing.services.on_prem_cost import compute_on_prem_cost
+
+
+def _provider_slug(deployment_slug: str) -> str:
+    """Build a Provider slug from a deployment slug, truncating to 64 chars with hash to avoid collisions."""
+    full = f"on-prem-{deployment_slug}"
+    if len(full) <= 64:
+        return full
+    digest = hashlib.sha256(deployment_slug.encode()).hexdigest()[:8]
+    return f"{full[:55]}-{digest}"
 
 
 @transaction.atomic
@@ -15,7 +26,7 @@ def regenerate_on_prem_snapshots() -> int:
 
     for d in OnPremDeployment.objects.select_related("hardware_sku__gpu").filter(is_active=True):
         provider, _ = Provider.objects.update_or_create(
-            slug=f"on-prem-{d.slug}",
+            slug=_provider_slug(d.slug),
             defaults={
                 "display_name": d.display_name,
                 "provider_type": "on_prem",

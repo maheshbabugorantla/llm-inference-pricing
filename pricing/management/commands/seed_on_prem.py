@@ -5,9 +5,11 @@ from typing import Any
 
 import yaml
 from django.core.management.base import BaseCommand, CommandError
+from django.db.models.signals import post_save
 
 from catalog.models import GPU
-from pricing.models import HardwareSKU, OnPremDeployment
+from pricing.generators.on_prem import regenerate_on_prem_snapshots
+from pricing.models import HardwareSKU, OnPremDeployment, _regenerate_on_save
 from pricing.services.seed import HardwareSKUYAML, OnPremDeploymentYAML
 
 
@@ -58,41 +60,47 @@ class Command(BaseCommand):
         self.stdout.write(self.style.SUCCESS(f"HardwareSKU: {sku_created} created, {sku_updated} updated"))
 
         dep_created = dep_updated = 0
-        for yaml_file in sorted(deployments_dir.glob("*.yaml")):
-            raw = yaml.safe_load(yaml_file.read_text())
-            dep_data = OnPremDeploymentYAML.model_validate(raw)
-            try:
-                sku = HardwareSKU.objects.get(slug=dep_data.hardware_sku_slug)
-            except HardwareSKU.DoesNotExist as exc:
-                raise CommandError(
-                    f"{yaml_file.name}: HardwareSKU slug '{dep_data.hardware_sku_slug}' not found"
-                ) from exc
+        post_save.disconnect(_regenerate_on_save, sender=OnPremDeployment)
+        try:
+            for yaml_file in sorted(deployments_dir.glob("*.yaml")):
+                raw = yaml.safe_load(yaml_file.read_text())
+                dep_data = OnPremDeploymentYAML.model_validate(raw)
+                try:
+                    sku = HardwareSKU.objects.get(slug=dep_data.hardware_sku_slug)
+                except HardwareSKU.DoesNotExist as exc:
+                    raise CommandError(
+                        f"{yaml_file.name}: HardwareSKU slug '{dep_data.hardware_sku_slug}' not found"
+                    ) from exc
 
-            _, was_created = OnPremDeployment.objects.update_or_create(
-                slug=dep_data.slug,
-                defaults={
-                    "display_name": dep_data.display_name,
-                    "hardware_sku": sku,
-                    "num_nodes": dep_data.num_nodes,
-                    "capex_per_node_usd": dep_data.capex_per_node_usd,
-                    "salvage_pct": dep_data.salvage_pct,
-                    "depreciation_years": dep_data.depreciation_years,
-                    "expected_utilization_pct": dep_data.expected_utilization_pct,
-                    "power_usd_per_kwh": dep_data.power_usd_per_kwh,
-                    "pue": dep_data.pue,
-                    "monthly_colo_usd": dep_data.monthly_colo_usd,
-                    "monthly_bandwidth_usd": dep_data.monthly_bandwidth_usd,
-                    "sysadmin_annual_burdened_usd": dep_data.sysadmin_annual_burdened_usd,
-                    "gpu_count_per_admin": dep_data.gpu_count_per_admin,
-                    "is_active": dep_data.is_active,
-                    "notes": dep_data.notes,
-                },
-            )
-            if was_created:
-                dep_created += 1
-            else:
-                dep_updated += 1
+                _, was_created = OnPremDeployment.objects.update_or_create(
+                    slug=dep_data.slug,
+                    defaults={
+                        "display_name": dep_data.display_name,
+                        "hardware_sku": sku,
+                        "num_nodes": dep_data.num_nodes,
+                        "capex_per_node_usd": dep_data.capex_per_node_usd,
+                        "salvage_pct": dep_data.salvage_pct,
+                        "depreciation_years": dep_data.depreciation_years,
+                        "expected_utilization_pct": dep_data.expected_utilization_pct,
+                        "power_usd_per_kwh": dep_data.power_usd_per_kwh,
+                        "pue": dep_data.pue,
+                        "monthly_colo_usd": dep_data.monthly_colo_usd,
+                        "monthly_bandwidth_usd": dep_data.monthly_bandwidth_usd,
+                        "sysadmin_annual_burdened_usd": dep_data.sysadmin_annual_burdened_usd,
+                        "gpu_count_per_admin": dep_data.gpu_count_per_admin,
+                        "is_active": dep_data.is_active,
+                        "notes": dep_data.notes,
+                    },
+                )
+                if was_created:
+                    dep_created += 1
+                else:
+                    dep_updated += 1
+        finally:
+            post_save.connect(_regenerate_on_save, sender=OnPremDeployment)
 
         self.stdout.write(
             self.style.SUCCESS(f"OnPremDeployment: {dep_created} created, {dep_updated} updated")
         )
+        count = regenerate_on_prem_snapshots()
+        self.stdout.write(self.style.SUCCESS(f"Regenerated {count} on-prem snapshots"))

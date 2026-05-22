@@ -66,3 +66,13 @@ def test_post_save_signal_inactive_update_skipped():
     d.refresh_from_db()
     d.save()  # triggers signal with created=False, is_active=False
     assert PricingSnapshot.objects.count() == initial_count
+
+
+@pytest.mark.django_db(transaction=True)
+def test_generator_long_slug_provider_slug_fits_64_chars():
+    """Provider.slug max_length=64; OnPremDeployment.slug allows 128 — generator must truncate."""
+    long_slug = "x" * 100
+    OnPremDeploymentFactory(slug=long_slug)
+    regenerate_on_prem_snapshots()
+    provider = Provider.objects.get(provider_type="on_prem")
+    assert len(provider.slug) <= 64

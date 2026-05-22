@@ -11,8 +11,11 @@ from pricing.tests.factories import OnPremDeploymentFactory
 
 
 @pytest.mark.django_db
-def test_lambda_echelon_4xh100_green_field_per_gpu_hourly_tco_around_3_89():
-    """PRD §7.6 reference case: 4xH100, capex $180k, 4yr, 70% util, $0.10/kWh, PUE 1.4."""
+def test_lambda_echelon_4xh100_green_field_per_gpu_hourly_tco():
+    """PRD §7.6 reference case: 4xH100, capex $180k, 4yr, 70% util, $0.10/kWh, PUE 1.4.
+
+    Formula yields ~$3.45/hr per GPU with these inputs.
+    """
     deployment = OnPremDeploymentFactory(
         hardware_sku__num_gpus=4,
         hardware_sku__gpu__tdp_watts=700,
@@ -30,8 +33,7 @@ def test_lambda_echelon_4xh100_green_field_per_gpu_hourly_tco_around_3_89():
     )
     breakdown = compute_on_prem_cost(deployment)
     tco = breakdown["per_gpu_hourly_tco"]
-    # With these inputs the formula yields ~$3.45/hr; verify it's in the right ballpark
-    assert Decimal("2.50") < tco < Decimal("5.00"), f"Expected ~$3.45, got {tco}"
+    assert Decimal("3.00") < tco < Decimal("4.00"), f"Expected ~$3.45, got {tco}"
     # Verify capex dominates (>40% of TCO for a new box)
     assert breakdown["hourly_capex_per_node"] > breakdown["hourly_power_per_node"]
 
@@ -68,9 +70,9 @@ def test_mi300x_marginal_capex_sunk_low_power():
     )
     breakdown = compute_on_prem_cost(deployment)
     marginal = breakdown["per_gpu_hourly_marginal"]
-    # With $250k sysadmin / 128 GPUs per admin and 8 GPUs, ops dominate marginal
-    # Result is ~$1.92/hr per GPU; verify it's positive and less than TCO
-    assert marginal > Decimal("0"), f"Marginal must be positive, got {marginal}"
+    # With $250k sysadmin / 128 GPUs per admin and 8 GPUs, ops dominate marginal.
+    # Formula yields ~$1.92/hr per GPU.
+    assert Decimal("1.50") < marginal < Decimal("2.50"), f"Expected ~$1.92/hr, got {marginal}"
     assert marginal < breakdown["per_gpu_hourly_tco"], "Marginal must be less than TCO"
     # Power + facility (no ops, no capex) is definitely < marginal
     assert marginal > breakdown["hourly_power_per_node"] / Decimal(8)
@@ -103,3 +105,35 @@ def test_all_breakdown_values_are_decimal():
     breakdown = compute_on_prem_cost(deployment)
     for key, val in breakdown.items():
         assert isinstance(val, Decimal), f"{key} is {type(val)}, expected Decimal"
+
+
+@pytest.mark.django_db
+def test_zero_utilization_raises_value_error():
+    deployment = OnPremDeploymentFactory()
+    deployment.expected_utilization_pct = Decimal("0")
+    with pytest.raises(ValueError, match="expected_utilization_pct"):
+        compute_on_prem_cost(deployment)
+
+
+@pytest.mark.django_db
+def test_salvage_pct_of_one_raises_value_error():
+    deployment = OnPremDeploymentFactory()
+    deployment.salvage_pct = Decimal("1.0")
+    with pytest.raises(ValueError, match="salvage_pct"):
+        compute_on_prem_cost(deployment)
+
+
+@pytest.mark.django_db
+def test_zero_pue_raises_value_error():
+    deployment = OnPremDeploymentFactory()
+    deployment.pue = Decimal("0")
+    with pytest.raises(ValueError, match="pue"):
+        compute_on_prem_cost(deployment)
+
+
+@pytest.mark.django_db
+def test_negative_capex_raises_value_error():
+    deployment = OnPremDeploymentFactory()
+    deployment.capex_per_node_usd = Decimal("-1.00")
+    with pytest.raises(ValueError, match="capex_per_node_usd"):
+        compute_on_prem_cost(deployment)
