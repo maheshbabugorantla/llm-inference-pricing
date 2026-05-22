@@ -7,6 +7,7 @@ You are working on **llm-inference-pricing** — a Django backend that prices LL
 1. **`docs/PRD.md`** — the source of truth for *what* and *why*. Twelve ADRs, twelve entities, ten milestones. If anything in this spec disagrees with the PRD, the PRD wins; flag the disagreement and stop.
 2. **`spec/SHARED.md`** — domain language, invariants, code conventions. Read every session. If you find yourself struggling to name something, the term you need is probably already there.
 3. **`spec/INDEX.md`** — the milestone map and how to work this spec.
+4. **`spec/TESTING.md`** — required testing philosophy. Read before writing any test. Tests must simulate real business scenarios under ideal and non-ideal conditions, not just pass coverage metrics.
 
 ## Working rules
 

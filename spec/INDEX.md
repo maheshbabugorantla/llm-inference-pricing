@@ -23,7 +23,7 @@
 - [ ] **M05.5b** — Tier 1 hyperscaler scrapers (AWS, Azure) → `M05.5-hyperscaler-scrapers.md` *(deferred until after M06)*
 - [x] **M06** — `current_cost_cells` materialized view + cost service → `M06-current-cost-cells.md`
 - [x] **M07** — Ops hardening (continuous aggregate, retention, Sentry, canary CI) → `M07-ops-hardening.md`
-- [ ] **M08** — On-prem (`HardwareSKU`, `OnPremDeployment`, generator) → `M08-on-prem.md`
+- [x] **M08** — On-prem (`HardwareSKU`, `OnPremDeployment`, generator) → `M08-on-prem.md`
 - [ ] **M09** — Reserved cloud (`ReservedCapacityProduct`, `ReservedCloudDeployment`, generator) → `M09-reserved-cloud.md`
 - [ ] **M10** — *(Optional)* ComputePrices.com drift detection → `M10-drift-detection.md`
 
