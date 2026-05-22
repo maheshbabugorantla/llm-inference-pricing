@@ -1,20 +1,23 @@
 """seed_providers management command business-scenario tests.
 
 Design: prove the command handles the full lifecycle — initial seeding, idempotent
-re-runs, display_name updates, and loud rejection of invalid YAML — so operators
-can safely re-run seeds in production without fear of data corruption or silent
-failures that leave providers in a bad state.
+re-runs, display_name updates, loud rejection of invalid YAML, and that seeded
+providers immediately accept PricingSnapshot rows — so operators can safely re-run
+seeds in production without fear of data corruption or silent failures.
 """
 
 from __future__ import annotations
 
 import textwrap
+from decimal import Decimal
 
 import pytest
 from django.core.management import call_command
 from django.core.management.base import CommandError
+from django.utils import timezone
 
-from pricing.models import Provider
+from catalog.tests.factories import GPUFactory
+from pricing.models import PricingSnapshot, Provider
 
 
 @pytest.mark.django_db
@@ -92,3 +95,57 @@ def test_seed_providers_rejects_yaml_with_invalid_provider_type(tmp_path):
     with pytest.raises(CommandError, match="YAML schema validation failed"):
         call_command("seed_providers", "--seeds-file", str(seeds_file))
     assert not Provider.objects.filter(slug="bad-provider").exists()
+
+
+@pytest.mark.django_db
+def test_seed_providers_rejects_unknown_data_source_tier(tmp_path):
+    """An unrecognised data_source_tier (e.g. 'daily') must be rejected before
+    touching the DB — an unknown tier would break Celery Beat scheduling logic
+    that routes tasks based on this field."""
+    seeds_file = tmp_path / "providers.yaml"
+    seeds_file.write_text(
+        textwrap.dedent("""\
+        - slug: bad-tier-provider
+          display_name: "Bad Tier"
+          provider_type: cloud
+          data_source_tier: daily
+    """)
+    )
+    with pytest.raises(CommandError, match="YAML schema validation failed"):
+        call_command("seed_providers", "--seeds-file", str(seeds_file))
+    assert not Provider.objects.filter(slug="bad-tier-provider").exists()
+
+
+@pytest.mark.django_db
+def test_seeded_runpod_provider_immediately_accepts_pricing_snapshot():
+    """A Provider row seeded by seed_providers must be usable as the FK anchor
+    for PricingSnapshot rows immediately after seeding — this is the contract
+    that allows scrapers to run right after a fresh deployment."""
+    call_command("seed_providers")
+    provider = Provider.objects.get(slug="runpod")
+    gpu = GPUFactory(slug="nvidia-h100-sxm-80")
+
+    snap = PricingSnapshot.objects.create(
+        provider=provider,
+        gpu=gpu,
+        tier="community",
+        region="",
+        hourly_usd=Decimal("2.49"),
+        available=True,
+        scraped_at=timezone.now(),
+        raw_payload={},
+    )
+    assert snap.provider.slug == "runpod"
+    assert snap.gpu.slug == "nvidia-h100-sxm-80"
+
+
+@pytest.mark.django_db
+def test_all_seeded_providers_are_active_by_default():
+    """All providers seeded by seed_providers must have is_active=True so the
+    pipeline includes them in scraping runs immediately after deployment.
+    A provider seeded with is_active=False would silently skip scraping."""
+    call_command("seed_providers")
+    inactive = Provider.objects.filter(is_active=False)
+    assert not inactive.exists(), (
+        f"These seeded providers must be active: {list(inactive.values_list('slug', flat=True))}"
+    )

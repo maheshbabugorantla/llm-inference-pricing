@@ -1,8 +1,9 @@
 """BenchmarkPoint business-scenario tests.
 
 Design: prove that the BenchmarkPoint model correctly captures real inference
-benchmarks, enforces the uniqueness invariant (I6), and that FK traversal to
-GPU VRAM works end-to-end so the cost-cell pipeline can read hardware specs.
+benchmarks, enforces the uniqueness invariant (I6), FK traversal to GPU VRAM
+works end-to-end, and that context length + TP size govern which operating
+points can physically run — because these determine what goes in the cost grid.
 """
 
 from __future__ import annotations
@@ -108,3 +109,55 @@ def test_aggregate_decode_tps_must_be_positive():
             prefill_tps_aggregate=1000.0,
             decode_tps_aggregate=0.0,
         )
+
+
+@pytest.mark.django_db
+def test_qwen32b_fp16_tp1_does_not_fit_h100_at_128k_context_batch8():
+    """At 128k context with batch=8, KV cache alone exceeds ~275 GB — far beyond
+    the 80 GB H100's VRAM. The benchmark grid must not include this operating
+    point, or cost cells would be generated for runs that cannot physically execute.
+
+    fp16 weights: 32.5B x 2 bytes = 65 GB
+    KV cache: 2 x 64 layers x 8 heads x 128 dim x 2 bytes x 8 batch x 131072 ctx ~274 GB
+    Total per GPU >> 80 GB → must not fit.
+    """
+    fits, _, _ = compute_fit(
+        total_params_b=32.5,
+        num_layers=64,
+        num_kv_heads=8,
+        head_dim=128,
+        architecture="dense",
+        weight_bits=16,
+        kv_cache_bits=16,
+        tp_size=1,
+        batch_size=8,
+        context_length=131072,
+        gpu_vram_gb=80,
+    )
+    assert not fits, "Qwen-32B fp16 tp=1 must not fit on H100 80GB at ctx=128k batch=8"
+
+
+@pytest.mark.django_db
+def test_prefill_and_decode_tps_stored_as_independent_fields_for_workload_costing():
+    """Prefill TPS and decode TPS are independently costed — prefill cost drives
+    prompt-ingestion pricing while decode TPS drives output-token pricing. Both
+    fields must survive a full DB round-trip with their original values intact."""
+    point = BenchmarkPointFactory(
+        prefill_tps_aggregate=28400.0,
+        decode_tps_aggregate=920.0,
+    )
+    fetched = type(point).objects.get(pk=point.pk)
+    assert fetched.prefill_tps_aggregate == 28400.0
+    assert fetched.decode_tps_aggregate == 920.0
+    assert fetched.prefill_tps_aggregate != fetched.decode_tps_aggregate
+
+
+@pytest.mark.django_db
+def test_benchmark_ttft_ms_is_optional_for_throughput_only_workloads():
+    """TTFT is only measured in some benchmarks; many publish throughput-only
+    numbers without latency. A NULL ttft_ms must be accepted so we can ingest
+    the full benchmark dataset, not just the subset that measured latency."""
+    point = BenchmarkPointFactory(ttft_ms=None)
+    assert point.ttft_ms is None
+    fetched = type(point).objects.get(pk=point.pk)
+    assert fetched.ttft_ms is None

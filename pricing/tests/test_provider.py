@@ -85,3 +85,74 @@ def test_scraped_page_tier_marks_provider_for_html_scraping():
     p = ProviderFactory(data_source_tier="scraped_page")
     p.full_clean()
     assert Provider.objects.get(pk=p.pk).data_source_tier == "scraped_page"
+
+
+@pytest.mark.django_db
+def test_multiple_providers_price_same_gpu_all_snapshots_independently_queryable():
+    """RunPod and Lambda can both offer H100 pricing simultaneously. The cost-cell
+    pipeline queries all providers for a given GPU and needs each provider's
+    snapshot independently — a shared row or collisions would corrupt comparisons."""
+    runpod = ProviderFactory(slug="runpod", data_source_tier="realtime_api")
+    lambda_labs = ProviderFactory(slug="lambda", data_source_tier="scraped_page")
+    gpu = GPUFactory(slug="nvidia-h100-sxm-80")
+
+    now = timezone.now()
+    snap_runpod = PricingSnapshot.objects.create(
+        provider=runpod,
+        gpu=gpu,
+        tier="on_demand",
+        region="",
+        hourly_usd=Decimal("2.49"),
+        available=True,
+        scraped_at=now,
+        raw_payload={},
+    )
+    snap_lambda = PricingSnapshot.objects.create(
+        provider=lambda_labs,
+        gpu=gpu,
+        tier="on_demand",
+        region="",
+        hourly_usd=Decimal("2.99"),
+        available=True,
+        scraped_at=now,
+        raw_payload={},
+    )
+
+    h100_snaps = PricingSnapshot.objects.filter(gpu=gpu)
+    assert h100_snaps.count() == 2
+    assert h100_snaps.filter(provider=runpod).get().hourly_usd == Decimal("2.49")
+    assert h100_snaps.filter(provider=lambda_labs).get().hourly_usd == Decimal("2.99")
+    assert snap_runpod.pk != snap_lambda.pk
+
+
+@pytest.mark.django_db
+def test_deleting_provider_with_active_snapshots_is_blocked():
+    """Provider → PricingSnapshot FK is PROTECT so deleting a provider with live
+    snapshot rows fails loudly. Silent cascade-delete would destroy the historical
+    pricing record needed for cost trend analysis and audit."""
+    from django.db.models import ProtectedError
+
+    provider = ProviderFactory(slug="runpod")
+    gpu = GPUFactory(slug="nvidia-h100-sxm-80")
+    PricingSnapshot.objects.create(
+        provider=provider,
+        gpu=gpu,
+        tier="on_demand",
+        region="",
+        hourly_usd=Decimal("2.49"),
+        available=True,
+        scraped_at=timezone.now(),
+        raw_payload={},
+    )
+    with pytest.raises(ProtectedError):
+        provider.delete()
+
+
+@pytest.mark.django_db
+def test_scraped_page_provider_accepts_blank_api_endpoint():
+    """Lambda Labs and Vast.ai are scraped_page providers — they have no public API
+    endpoint. api_endpoint must accept blank so these providers can be seeded
+    without a placeholder URL that would mislead operators."""
+    p = ProviderFactory(slug="lambda", data_source_tier="scraped_page", api_endpoint="")
+    p.full_clean()
+    assert Provider.objects.get(pk=p.pk).api_endpoint == ""
