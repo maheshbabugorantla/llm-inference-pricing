@@ -5,6 +5,7 @@ from typing import Any
 
 import yaml
 from django.core.management.base import BaseCommand, CommandError
+from pydantic import ValidationError
 
 from pricing.models import Provider
 from pricing.services.seed import ProviderYAML
@@ -27,7 +28,10 @@ class Command(BaseCommand):
 
         created = updated = 0
         for entry in raw:
-            provider = ProviderYAML.model_validate(entry)
+            try:
+                provider = ProviderYAML.model_validate(entry)
+            except ValidationError as e:
+                raise CommandError(f"YAML schema validation failed: {e}") from e
             _, was_created = Provider.objects.update_or_create(
                 slug=provider.slug,
                 defaults={

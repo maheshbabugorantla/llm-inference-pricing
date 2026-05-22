@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
@@ -10,8 +11,8 @@ class ProviderYAML(BaseModel):
 
     slug: str
     display_name: str
-    provider_type: str
-    data_source_tier: str
+    provider_type: Literal["cloud", "on_prem"]
+    data_source_tier: Literal["realtime_api", "scraped_page", "manual_curation", "synthetic"]
     pricing_url: str = ""
     has_api: bool = False
     api_endpoint: str = ""
