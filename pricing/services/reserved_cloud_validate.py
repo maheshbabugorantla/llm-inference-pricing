@@ -46,21 +46,14 @@ def validate_payment_cadence(product: ReservedCapacityProduct) -> None:
 
     elif cadence == "no_upfront":
         if product.upfront_usd != 0 or product.capacity_block_total_usd != 0:
-            raise ValidationError(
-                "no_upfront requires upfront_usd=0 and capacity_block_total_usd=0"
-            )
+            raise ValidationError("no_upfront requires upfront_usd=0 and capacity_block_total_usd=0")
         if product.monthly_recurring_usd <= 0:
             raise ValidationError("no_upfront requires monthly_recurring_usd > 0")
 
     elif cadence == "capacity_block":
-        if (
-            product.upfront_usd != 0
-            or product.monthly_recurring_usd != 0
-            or product.per_active_hour_usd != 0
-        ):
+        if product.upfront_usd != 0 or product.monthly_recurring_usd != 0 or product.per_active_hour_usd != 0:
             raise ValidationError(
-                "capacity_block requires upfront_usd=0, monthly_recurring_usd=0, "
-                "and per_active_hour_usd=0"
+                "capacity_block requires upfront_usd=0, monthly_recurring_usd=0, and per_active_hour_usd=0"
             )
         if product.capacity_block_total_usd <= 0:
             raise ValidationError("capacity_block requires capacity_block_total_usd > 0")
