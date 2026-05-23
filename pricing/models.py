@@ -144,10 +144,30 @@ class ReservedCapacityProduct(models.Model):
     payment_cadence = models.CharField(max_length=16, choices=PAYMENT_CADENCE_CHOICES)
     term_months = models.PositiveSmallIntegerField()
 
-    upfront_usd = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
-    monthly_recurring_usd = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
-    per_active_hour_usd = models.DecimalField(max_digits=8, decimal_places=4, default=Decimal("0"))
-    capacity_block_total_usd = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
+    upfront_usd = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0"),
+        validators=[MinValueValidator(Decimal("0"))],
+    )
+    monthly_recurring_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        default=Decimal("0"),
+        validators=[MinValueValidator(Decimal("0"))],
+    )
+    per_active_hour_usd = models.DecimalField(
+        max_digits=8,
+        decimal_places=4,
+        default=Decimal("0"),
+        validators=[MinValueValidator(Decimal("0"))],
+    )
+    capacity_block_total_usd = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        default=Decimal("0"),
+        validators=[MinValueValidator(Decimal("0"))],
+    )
     block_duration_hours = models.PositiveSmallIntegerField(
         null=True,
         blank=True,
@@ -233,11 +253,27 @@ class ReservedCloudDeployment(models.Model):
         validators=[MinValueValidator(Decimal("0.001")), MaxValueValidator(Decimal("1.000"))],
     )
 
-    upfront_override_usd = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
-    monthly_recurring_override_usd = models.DecimalField(
-        max_digits=10, decimal_places=2, null=True, blank=True
+    upfront_override_usd = models.DecimalField(
+        max_digits=12,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0"))],
     )
-    per_hour_override_usd = models.DecimalField(max_digits=8, decimal_places=4, null=True, blank=True)
+    monthly_recurring_override_usd = models.DecimalField(
+        max_digits=10,
+        decimal_places=2,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0"))],
+    )
+    per_hour_override_usd = models.DecimalField(
+        max_digits=8,
+        decimal_places=4,
+        null=True,
+        blank=True,
+        validators=[MinValueValidator(Decimal("0"))],
+    )
 
     is_active = models.BooleanField(default=True)
     notes = models.TextField(blank=True)
@@ -249,6 +285,14 @@ class ReservedCloudDeployment(models.Model):
 
     def __str__(self) -> str:
         return self.display_name
+
+    def clean(self) -> None:
+        if self.product_id and self.cloud_provider_id:
+            if self.cloud_provider_id != self.product.cloud_provider_id:
+                raise ValidationError(
+                    "cloud_provider must match the product's cloud_provider to avoid "
+                    "misattributed pricing snapshots"
+                )
 
 
 @receiver(post_save, sender=OnPremDeployment)
