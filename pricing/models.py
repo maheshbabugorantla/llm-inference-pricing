@@ -139,10 +139,10 @@ class ReservedCapacityProduct(models.Model):
         limit_choices_to={"provider_type": "cloud"},
     )
     gpu = models.ForeignKey("catalog.GPU", on_delete=models.PROTECT)
-    gpus_per_node = models.PositiveSmallIntegerField()
+    gpus_per_node = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
 
     payment_cadence = models.CharField(max_length=16, choices=PAYMENT_CADENCE_CHOICES)
-    term_months = models.PositiveSmallIntegerField()
+    term_months = models.PositiveSmallIntegerField(validators=[MinValueValidator(1)])
 
     upfront_usd = models.DecimalField(
         max_digits=12,
@@ -197,45 +197,24 @@ class ReservedCapacityProduct(models.Model):
 
     class Meta:
         ordering = ("cloud_provider__slug", "term_months", "slug")
+        constraints: ClassVar = [
+            models.CheckConstraint(
+                condition=Q(gpus_per_node__gte=1),
+                name="reservedcapacityproduct_gpus_per_node_gte_1",
+            ),
+            models.CheckConstraint(
+                condition=Q(term_months__gte=1),
+                name="reservedcapacityproduct_term_months_gte_1",
+            ),
+        ]
 
     def __str__(self) -> str:
         return self.display_name
 
     def clean(self) -> None:
-        if self.payment_cadence == "all_upfront":
-            if (
-                self.monthly_recurring_usd != 0
-                or self.per_active_hour_usd != 0
-                or self.capacity_block_total_usd != 0
-            ):
-                raise ValidationError(
-                    "all_upfront requires monthly_recurring_usd=0, per_active_hour_usd=0, "
-                    "and capacity_block_total_usd=0"
-                )
-            if self.upfront_usd <= 0:
-                raise ValidationError("all_upfront requires upfront_usd > 0")
-        elif self.payment_cadence == "partial_upfront":
-            if self.capacity_block_total_usd != 0:
-                raise ValidationError("partial_upfront requires capacity_block_total_usd=0")
-            if self.upfront_usd <= 0:
-                raise ValidationError("partial_upfront requires upfront_usd > 0")
-            if self.monthly_recurring_usd <= 0:
-                raise ValidationError("partial_upfront requires monthly_recurring_usd > 0")
-        elif self.payment_cadence == "no_upfront":
-            if self.upfront_usd != 0 or self.capacity_block_total_usd != 0:
-                raise ValidationError("no_upfront requires upfront_usd=0 and capacity_block_total_usd=0")
-            if self.monthly_recurring_usd <= 0:
-                raise ValidationError("no_upfront requires monthly_recurring_usd > 0")
-        elif self.payment_cadence == "capacity_block":
-            if self.upfront_usd != 0 or self.monthly_recurring_usd != 0 or self.per_active_hour_usd != 0:
-                raise ValidationError(
-                    "capacity_block requires upfront_usd=0, monthly_recurring_usd=0, "
-                    "and per_active_hour_usd=0"
-                )
-            if self.capacity_block_total_usd <= 0:
-                raise ValidationError("capacity_block requires capacity_block_total_usd > 0")
-            if not self.block_duration_hours:
-                raise ValidationError("capacity_block requires block_duration_hours > 0")
+        from pricing.services.reserved_cloud_validate import validate_payment_cadence
+
+        validate_payment_cadence(self)
 
 
 class ReservedCloudDeployment(models.Model):
