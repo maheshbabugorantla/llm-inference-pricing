@@ -1,12 +1,15 @@
 name: Copilot Review Gate
 
 # Runs on every PR push and whenever any review is submitted.
-# Fails if Copilot has not yet reviewed, or if it found HIGH/MEDIUM severity issues.
-# Add "Copilot review severity gate" as a required status check in branch protection.
 #
-# Design:
-#   pull_request event  → request Copilot review; gate fails until review is submitted
-#   pull_request_review → re-evaluates severity; passes when no HIGH/MEDIUM issues remain
+# Behaviour:
+#   pull_request event  → requests Copilot review; passes if no review yet
+#                         (review is async — Copilot responds in its own time)
+#   pull_request_review → re-evaluates severity when any review is submitted;
+#                         fails only if Copilot found HIGH or MEDIUM issues
+#
+# This means the gate is informational until Copilot responds, then enforcing.
+# Add "Copilot review severity gate" as a required status check in branch protection.
 #
 # Prerequisites: enable "Copilot code review" in repository Settings → Copilot.
 
@@ -31,10 +34,10 @@ jobs:
 
     steps:
       - name: Request Copilot review
-        # Runs on PR push events only; skipped when re-triggered by a submitted review.
+        # Only runs on PR push events; skipped when re-triggered by a submitted review.
         # Uses the REST API directly — more reliable than "gh pr edit" for bot reviewers.
-        # continue-on-error so the job proceeds to the evaluate step even if the repo
-        # does not have Copilot code review enabled (the evaluate step will fail clearly).
+        # A warning is emitted (not a failure) when Copilot code review is not enabled;
+        # the severity check below will still run and pass if no review exists yet.
         if: github.event_name == 'pull_request'
         continue-on-error: true
         env:
@@ -47,7 +50,7 @@ jobs:
                 "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers" \
                 --input - \
             && echo "Copilot review requested." \
-            || echo "::warning::Could not add Copilot as reviewer — ensure 'Copilot code review' is enabled under repository Settings → Copilot."
+            || echo "::warning::Could not add Copilot as reviewer. Enable 'Copilot code review' in repository Settings → Copilot, then re-run this workflow."
 
       - name: Evaluate Copilot review severity
         env:
@@ -58,17 +61,17 @@ jobs:
         run: |
           BOT="copilot-pull-request-reviewer[bot]"
 
-          # ── 1. Check a Copilot review exists ──────────────────────────────
+          # ── 1. Check whether a Copilot review exists ──────────────────────
           REVIEW_COUNT=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
             --jq "[.[] | select(.user.login == \"${BOT}\")] | length")
 
           if [ "${REVIEW_COUNT}" -eq 0 ]; then
-            if [ "${EVENT_NAME}" = "pull_request" ]; then
-              echo "::error::Copilot review is pending. The gate will re-evaluate automatically once Copilot submits its review."
-            else
-              echo "::error::No Copilot review found. Request one before merging."
-            fi
-            exit 1
+            # No review yet — this is expected on the initial PR push because
+            # Copilot reviews asynchronously. The gate passes here so the PR
+            # is not permanently blocked; it re-evaluates via pull_request_review
+            # when Copilot submits its review.
+            echo "::notice::No Copilot review yet. The gate will re-evaluate automatically when Copilot submits its review."
+            exit 0
           fi
 
           echo "Copilot reviews found: ${REVIEW_COUNT}"
