@@ -65,7 +65,12 @@ class Command(BaseCommand):
         for yaml_file in sorted(dir_path.glob("*.yaml")):
             for raw in yaml.safe_load(yaml_file.read_text()) or []:
                 payload = ModelYAML(**raw)
-                quant = Quantization.objects.get(slug=payload.recommended_quant)
+                try:
+                    quant = Quantization.objects.get(slug=payload.recommended_quant)
+                except Quantization.DoesNotExist as exc:
+                    raise CommandError(
+                        f"Model {payload.slug!r} references unknown quant slug {payload.recommended_quant!r}"
+                    ) from exc
                 defaults = payload.model_dump(exclude={"slug", "recommended_quant"})
                 defaults["recommended_quant"] = quant
                 Model.objects.update_or_create(

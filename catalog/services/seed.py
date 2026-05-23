@@ -54,6 +54,13 @@ class GPUYAML(BaseModel):
             raise ValueError("vendor must be 'nvidia' or 'amd'")
         return v
 
+    @field_validator("tdp_watts")
+    @classmethod
+    def _tdp_positive(cls, v: int) -> int:
+        if v <= 0:
+            raise ValueError("tdp_watts must be > 0")
+        return v
+
 
 class ModelYAML(BaseModel):
     model_config = ConfigDict(extra="forbid")

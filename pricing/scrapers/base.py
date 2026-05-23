@@ -18,5 +18,5 @@ class ScrapedPrice(BaseModel):
     tier: str
     region: str
     hourly_usd: Annotated[Decimal, Field(strict=True)]
-    available: bool
+    available: bool = True
     raw: dict  # type: ignore[type-arg]
