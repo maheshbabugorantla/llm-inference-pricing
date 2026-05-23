@@ -57,12 +57,10 @@ def compute_reserved_cloud_cost(deployment: ReservedCloudDeployment) -> CostBrea
 
     upfront, monthly, per_hour = _effective_costs(deployment)
 
-    total_commitment = (
-        upfront
-        + monthly * Decimal(p.term_months)
-        + per_hour * useful_active_hours
-        + p.capacity_block_total_usd
-    )
+    if p.payment_cadence == "capacity_block":
+        total_commitment = p.capacity_block_total_usd
+    else:
+        total_commitment = upfront + monthly * Decimal(p.term_months) + per_hour * useful_active_hours
     node_committed = total_commitment / useful_active_hours
     node_marginal = per_hour
 

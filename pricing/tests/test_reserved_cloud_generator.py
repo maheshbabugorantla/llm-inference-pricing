@@ -168,3 +168,64 @@ def test_post_save_signal_regenerates_snapshots_on_deployment_create():
 
     # Signal fires on_commit → 2 snapshots created
     assert PricingSnapshot.objects.count() == 2
+
+
+@pytest.mark.django_db(transaction=True)
+def test_post_save_signal_retires_snapshots_on_deactivation():
+    """Setting is_active=False on an existing deployment marks its snapshot tiers available=False.
+
+    The signal fires _retire() via on_commit, which must set available=False on the two
+    reserved tiers for that deployment slug. The snapshots must still exist (not deleted),
+    so historical data is preserved, but they must no longer be visible in pricing queries.
+    """
+    deployment, _ = _make_scenario("sig2")
+    # Clear any snapshots from the creation signal, then generate a clean set
+    PricingSnapshot.objects.all().delete()
+    regenerate_reserved_cloud_snapshots()
+    tiers = [f"reserved-{deployment.slug}", f"reserved-marginal-{deployment.slug}"]
+    assert PricingSnapshot.objects.filter(tier__in=tiers, available=True).count() == 2
+
+    # Deactivate the deployment — signal should retire the snapshots via on_commit
+    deployment.is_active = False
+    deployment.save()
+
+    # Snapshots still exist but must now be available=False
+    assert PricingSnapshot.objects.filter(tier__in=tiers).count() == 2
+    assert PricingSnapshot.objects.filter(tier__in=tiers, available=False).count() == 2
+    assert PricingSnapshot.objects.filter(tier__in=tiers, available=True).count() == 0
+
+
+@pytest.mark.django_db(transaction=True)
+def test_post_save_signal_does_not_regenerate_when_created_inactive():
+    """Creating a deployment with is_active=False must NOT trigger snapshot generation.
+
+    An inactive deployment has no active cost tiers; emitting snapshots for it would
+    pollute cost cells and then immediately require cleanup.
+    """
+    gpu = GPUFactory(slug="nvidia-h100-sxm-80-inact", vram_gb=80, tdp_watts=700)
+    provider = ProviderFactory(slug="lambda-inact", provider_type="cloud")
+    product = ReservedCapacityProduct.objects.create(
+        slug="lambda-h100-1yr-inact",
+        display_name="Lambda Reserved H100 1-yr (inactive)",
+        cloud_provider=provider,
+        gpu=gpu,
+        gpus_per_node=8,
+        payment_cadence="all_upfront",
+        term_months=12,
+        upfront_usd=Decimal("500000.00"),
+        listing_observed_at="2025-01-15",
+    )
+    PricingSnapshot.objects.all().delete()
+
+    ReservedCloudDeployment.objects.create(
+        slug="lambda-inact-dep",
+        display_name="Lambda Inactive Deployment",
+        product=product,
+        cloud_provider=provider,
+        is_active=False,
+        expected_utilization_pct=Decimal("0.700"),
+    )
+
+    assert PricingSnapshot.objects.count() == 0, (
+        "Creating an inactive deployment must not emit any snapshot rows"
+    )
