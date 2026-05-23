@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime
 from decimal import Decimal
 from typing import Literal
 
@@ -54,7 +55,7 @@ class ReservedCapacityProductYAML(BaseModel):
     block_duration_hours: int | None = Field(None, ge=1)
     minimum_utilization_floor_pct: Decimal = Decimal("0.000")
     on_demand_reference_usd_per_hour: Decimal | None = None
-    listing_observed_at: str
+    listing_observed_at: datetime.date
     notes: str = ""
     is_active: bool = True
 
