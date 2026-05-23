@@ -284,7 +284,11 @@ def _regenerate_on_save(sender: type[OnPremDeployment], instance: OnPremDeployme
     transaction.on_commit(regenerate_on_prem_snapshots)
 
 
-@receiver(post_save, sender=ReservedCloudDeployment)
+@receiver(
+    post_save,
+    sender=ReservedCloudDeployment,
+    dispatch_uid="pricing.models._regenerate_reserved_on_save",
+)
 def _regenerate_reserved_on_save(
     sender: type[ReservedCloudDeployment],
     instance: ReservedCloudDeployment,

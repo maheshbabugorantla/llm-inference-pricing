@@ -120,7 +120,11 @@ class Command(BaseCommand):
                 prod_updated += 1
 
         dep_created = dep_updated = 0
-        post_save.disconnect(_regenerate_reserved_on_save, sender=ReservedCloudDeployment)
+        post_save.disconnect(
+            _regenerate_reserved_on_save,
+            sender=ReservedCloudDeployment,
+            dispatch_uid="pricing.models._regenerate_reserved_on_save",
+        )
         try:
             for yaml_file in sorted(deployments_dir.glob("*.yaml")):
                 raw = yaml.safe_load(yaml_file.read_text())
@@ -172,7 +176,11 @@ class Command(BaseCommand):
                 else:
                     dep_updated += 1
         finally:
-            post_save.connect(_regenerate_reserved_on_save, sender=ReservedCloudDeployment)
+            post_save.connect(
+                _regenerate_reserved_on_save,
+                sender=ReservedCloudDeployment,
+                dispatch_uid="pricing.models._regenerate_reserved_on_save",
+            )
 
         snap_count = regenerate_reserved_cloud_snapshots()
         return prod_created, prod_updated, dep_created, dep_updated, snap_count
