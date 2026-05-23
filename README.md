@@ -7,7 +7,7 @@ A Django backend that prices LLM coding-model inference across four deployment m
 | Deployment mode | What it prices |
 |---|---|
 | **Cloud on-demand** | RunPod, Lambda Labs, Vast.ai, Nebius, AWS, GCP, Azure — scraped daily |
-| **Reserved cloud** | Lambda Reserved, AWS RIs/Capacity Blocks, GCP CUDs, Azure RIs, CoreWeave, Crusoe, Nebius, OCI, RunPod — annual commitments |
+| **Reserved cloud** | Lambda Reserved, AWS RIs/Capacity Blocks, GCP CUDs, Azure RIs, CoreWeave, Crusoe, Nebius, OCI, RunPod — committed terms (6-month to 3-year, plus short-duration capacity blocks) |
 | **On-prem TCO** | Capex amortized + power × PUE + colo + ops |
 | **On-prem marginal** | Opex only, capex sunk |
 
@@ -28,7 +28,7 @@ Developer / CI
 On-prem & reserved-cloud generators (run on seed / deployment save)
   └─ seed_on_prem / seed_reserved
        └─ OnPremDeployment / ReservedCloudDeployment
-            └─ PricingSnapshot rows (synthetic, tier = "on_prem*" / "reserved*")
+            └─ PricingSnapshot rows (synthetic, tier = "tco"/"marginal" or "reserved-<slug>"/"reserved-marginal-<slug>")
                  └─ current_cost_cells (same view, same schema)
 ```
 
@@ -66,6 +66,7 @@ Starts TimescaleDB on port **5434** (mapped to avoid conflicts with any existing
 
 ```bash
 uv sync --group dev
+source .venv/bin/activate
 ```
 
 ### 3 — Bootstrap the database
@@ -73,7 +74,7 @@ uv sync --group dev
 ```bash
 python manage.py migrate
 python manage.py seed_catalog      # GPUs, Models, Quantizations, Benchmarks
-python manage.py seed_providers    # Provider rows (cloud + on-prem)
+python manage.py seed_providers    # Provider rows (cloud providers)
 python manage.py seed_on_prem      # HardwareSKUs + OnPremDeployments → snapshots
 python manage.py seed_reserved     # ReservedCapacityProducts + ReservedCloudDeployments → snapshots
 ```
@@ -150,7 +151,7 @@ Each `data/pricing/<slug>.json` is a Pydantic-validated `PricingArtifact`:
 
 | Provider | Slug | Source | Tiers |
 |---|---|---|---|
-| RunPod | `runpod` | GraphQL API | `on_demand`, `community`, `secure`, `reserved-1yr`, `reserved-3yr` |
+| RunPod | `runpod` | GraphQL API | `community`, `secure`, `community-spot`, `secure-spot`, `reserved-1mo`, `reserved-3mo`, `reserved-6mo`, `reserved-1yr` |
 | Lambda Labs | `lambda` | lambda.ai page | `on_demand` |
 | Vast.ai | `vast` | REST API | `on_demand` |
 | Nebius | `nebius` | nebius.com page | `on_demand`, `preemptible` |
