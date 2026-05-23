@@ -171,8 +171,10 @@ def test_no_upfront_cadence_with_high_per_hour_metered_cost():
 def test_floor_kicks_in_when_expected_utilization_below_minimum():
     """PRD §7.4 minimum_utilization_floor: Lambda Reserved has 70% floor.
 
-    If user sets 50% expected, billing is still at 70% (use-it-or-lose-it).
-    Committed rate at 50% vs 70% differ — floor must win.
+    If user sets 50% expected, billing is at 70% (use-it-or-lose-it) but the
+    operator only gets 50% of useful hours. Per PRD §7.4 the denominator for
+    node_hourly_committed is useful_hours = commit_hours * expected_util (not
+    billable_util), so the committed rate inflates when floor kicks in.
     """
     product = _product(
         term_months=12,
@@ -188,21 +190,27 @@ def test_floor_kicks_in_when_expected_utilization_below_minimum():
     result_low = compute_reserved_cloud_cost(deployment_low)
     result_floor = compute_reserved_cloud_cost(deployment_floor)
 
-    # At 50% expected but 70% floor, billable = 70% → same as deployment_floor
+    # billable_util snaps to floor
     assert result_low["billable_utilization_pct"] == Decimal("0.700")
-    assert result_low["per_gpu_hourly_committed"] == result_floor["per_gpu_hourly_committed"]
+    # useful_hours uses expected_util (0.50), so committed rate inflates vs floor deployment
+    term_hours = Decimal(12) * Decimal(730)
+    useful_low = term_hours * Decimal("0.500")
+    expected_per_gpu_low = Decimal("500000.00") / (useful_low * Decimal(8))
+    assert result_low["per_gpu_hourly_committed"] == expected_per_gpu_low.quantize(Decimal("0.0001"))
+    assert result_low["per_gpu_hourly_committed"] > result_floor["per_gpu_hourly_committed"], (
+        "Floor kicking in must inflate the committed rate: paying for 70% but only receiving 50%"
+    )
 
 
 def test_lambda_reserved_1yr_committed_rate_around_1_89_per_gpu_hour():
     """PRD Appendix A: Lambda Reserved H100 1-yr at ~$1.89/GPU-hr.
 
     Lambda list: $131,040 / year for one H100 node (8 GPUs), all-upfront.
-    70% utilization floor (use-it-or-lose-it):
-      term_hours = 12 * 730 = 8760; useful = 8760 * 0.70 = 6132
-      node_hourly = 131040 / 6132 ≈ $21.37/hr
-      per_gpu = 21.37 / 8 ≈ $2.67/hr
-    The PRD ~$1.89 is a different source — this test asserts the math formula is correct,
-    not the exact price (which varies by listing_observed_at).
+    70% utilization floor (use-it-or-lose-it), 50% expected utilization:
+      term_hours = 12 * 730 = 8760
+      useful_hours = 8760 * 0.50 = 4380  (PRD §7.4: denominator = expected_util, not floor)
+      node_hourly = 131040 / 4380 ≈ $29.92/hr
+      per_gpu = 29.92 / 8 ≈ $3.74/hr
     """
     product = _product(
         term_months=12,
@@ -214,7 +222,7 @@ def test_lambda_reserved_1yr_committed_rate_around_1_89_per_gpu_hour():
     result = compute_reserved_cloud_cost(deployment)
 
     term_hours = Decimal(12) * Decimal(730)
-    useful = term_hours * Decimal("0.700")
+    useful = term_hours * Decimal("0.500")  # expected_util, not floor
     expected_per_gpu = Decimal("131040.00") / (useful * Decimal(8))
 
     assert result["per_gpu_hourly_committed"] == expected_per_gpu.quantize(Decimal("0.0001"))
@@ -266,6 +274,59 @@ def test_per_hour_override_drives_reservation_marginal():
     # marginal = override per-hour / gpus_per_node
     expected_marginal = Decimal("4.0000") / Decimal(8)
     assert result["per_gpu_hourly_reservation_marginal"] == expected_marginal.quantize(Decimal("0.0001"))
+
+
+# ---------------------------------------------------------------------------
+# Capacity block: marginal rate must always be zero
+# ---------------------------------------------------------------------------
+
+
+def test_capacity_block_reservation_marginal_is_always_zero():
+    """PRD §7.4: capacity_block is fully prepaid — reservation marginal must be $0.
+
+    Even if per_hour_override_usd is set on the deployment (which is not blocked
+    by clean()), the marginal snapshot must be $0 to avoid misrepresenting the
+    cost structure of a fully-prepaid block.
+    """
+    product = _product(
+        payment_cadence="capacity_block",
+        block_duration_hours=336,
+        capacity_block_total_usd=Decimal("65856.00"),
+        minimum_utilization_floor_pct=Decimal("1.000"),
+    )
+    deployment = _deployment(
+        product,
+        expected_utilization_pct=Decimal("1.000"),
+        per_hour_override_usd=Decimal("5.0000"),  # override present — must be ignored for marginal
+    )
+    result = compute_reserved_cloud_cost(deployment)
+
+    assert result["node_hourly_reservation_marginal"] == Decimal("0.0000")
+    assert result["per_gpu_hourly_reservation_marginal"] == Decimal("0.0000")
+
+
+# ---------------------------------------------------------------------------
+# Floor zone: marginal is zero when expected_util < floor_pct
+# ---------------------------------------------------------------------------
+
+
+def test_reservation_marginal_is_zero_in_floor_zone():
+    """PRD §7.4: when expected_util < floor_pct, metered hours are 'free at the margin'
+    — the operator is already paying for the floor regardless, so the marginal rate is 0.
+    """
+    product = _product(
+        payment_cadence="no_upfront",
+        term_months=12,
+        gpus_per_node=8,
+        monthly_recurring_usd=Decimal("8000.00"),
+        per_active_hour_usd=Decimal("3.0000"),
+        minimum_utilization_floor_pct=Decimal("0.700"),
+    )
+    deployment = _deployment(product, expected_utilization_pct=Decimal("0.500"))
+    result = compute_reserved_cloud_cost(deployment)
+
+    assert result["node_hourly_reservation_marginal"] == Decimal("0.0000")
+    assert result["per_gpu_hourly_reservation_marginal"] == Decimal("0.0000")
 
 
 # ---------------------------------------------------------------------------
