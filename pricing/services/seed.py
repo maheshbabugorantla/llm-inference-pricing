@@ -51,6 +51,7 @@ class ReservedCapacityProductYAML(BaseModel):
     monthly_recurring_usd: Decimal = Decimal("0")
     per_active_hour_usd: Decimal = Decimal("0")
     capacity_block_total_usd: Decimal = Decimal("0")
+    block_duration_hours: int | None = None
     minimum_utilization_floor_pct: Decimal = Decimal("0.000")
     on_demand_reference_usd_per_hour: Decimal | None = None
     listing_observed_at: str

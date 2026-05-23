@@ -4,6 +4,7 @@ from decimal import Decimal
 from typing import ClassVar
 
 from django.core.exceptions import ValidationError
+from django.core.validators import MaxValueValidator, MinValueValidator
 from django.db import models, transaction
 from django.db.models import Q
 from django.db.models.signals import post_save
@@ -147,6 +148,12 @@ class ReservedCapacityProduct(models.Model):
     monthly_recurring_usd = models.DecimalField(max_digits=10, decimal_places=2, default=Decimal("0"))
     per_active_hour_usd = models.DecimalField(max_digits=8, decimal_places=4, default=Decimal("0"))
     capacity_block_total_usd = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0"))
+    block_duration_hours = models.PositiveSmallIntegerField(
+        null=True,
+        blank=True,
+        help_text="Actual block duration in hours for capacity_block cadence (e.g. 336 for 14d). "
+        "Ignored for other cadences.",
+    )
 
     minimum_utilization_floor_pct = models.DecimalField(
         max_digits=4,
@@ -175,25 +182,39 @@ class ReservedCapacityProduct(models.Model):
 
     def clean(self) -> None:
         if self.payment_cadence == "all_upfront":
-            if self.monthly_recurring_usd != 0 or self.per_active_hour_usd != 0:
+            if (
+                self.monthly_recurring_usd != 0
+                or self.per_active_hour_usd != 0
+                or self.capacity_block_total_usd != 0
+            ):
                 raise ValidationError(
-                    "all_upfront requires monthly_recurring_usd=0 and per_active_hour_usd=0"
+                    "all_upfront requires monthly_recurring_usd=0, per_active_hour_usd=0, "
+                    "and capacity_block_total_usd=0"
                 )
             if self.upfront_usd <= 0:
                 raise ValidationError("all_upfront requires upfront_usd > 0")
         elif self.payment_cadence == "partial_upfront":
+            if self.capacity_block_total_usd != 0:
+                raise ValidationError("partial_upfront requires capacity_block_total_usd=0")
             if self.upfront_usd <= 0:
                 raise ValidationError("partial_upfront requires upfront_usd > 0")
             if self.monthly_recurring_usd <= 0:
                 raise ValidationError("partial_upfront requires monthly_recurring_usd > 0")
         elif self.payment_cadence == "no_upfront":
-            if self.upfront_usd != 0:
-                raise ValidationError("no_upfront requires upfront_usd=0")
+            if self.upfront_usd != 0 or self.capacity_block_total_usd != 0:
+                raise ValidationError("no_upfront requires upfront_usd=0 and capacity_block_total_usd=0")
             if self.monthly_recurring_usd <= 0:
                 raise ValidationError("no_upfront requires monthly_recurring_usd > 0")
         elif self.payment_cadence == "capacity_block":
+            if self.upfront_usd != 0 or self.monthly_recurring_usd != 0 or self.per_active_hour_usd != 0:
+                raise ValidationError(
+                    "capacity_block requires upfront_usd=0, monthly_recurring_usd=0, "
+                    "and per_active_hour_usd=0"
+                )
             if self.capacity_block_total_usd <= 0:
                 raise ValidationError("capacity_block requires capacity_block_total_usd > 0")
+            if not self.block_duration_hours:
+                raise ValidationError("capacity_block requires block_duration_hours > 0")
 
 
 class ReservedCloudDeployment(models.Model):
@@ -208,6 +229,7 @@ class ReservedCloudDeployment(models.Model):
         max_digits=4,
         decimal_places=3,
         default=Decimal("0.700"),
+        validators=[MinValueValidator(Decimal("0.001")), MaxValueValidator(Decimal("1.000"))],
     )
 
     upfront_override_usd = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)

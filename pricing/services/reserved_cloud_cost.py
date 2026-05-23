@@ -47,7 +47,10 @@ def compute_reserved_cloud_cost(deployment: ReservedCloudDeployment) -> CostBrea
         deployment.expected_utilization_pct,
         p.minimum_utilization_floor_pct,
     )
-    term_hours = Decimal(p.term_months) * Decimal(730)
+    if p.payment_cadence == "capacity_block" and p.block_duration_hours:
+        term_hours = Decimal(p.block_duration_hours)
+    else:
+        term_hours = Decimal(p.term_months) * Decimal(730)
     useful_active_hours = term_hours * billable_util
     if useful_active_hours <= 0:
         raise ValueError("useful_active_hours must be positive")

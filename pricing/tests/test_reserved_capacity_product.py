@@ -59,6 +59,7 @@ def test_capacity_block_reserved_capacity_product_saves_cleanly():
         monthly_recurring_usd=Decimal("0"),
         per_active_hour_usd=Decimal("0"),
         capacity_block_total_usd=Decimal("131712.00"),
+        block_duration_hours=336,
         minimum_utilization_floor_pct=Decimal("1.000"),
         listing_observed_at="2025-01-15",
     )

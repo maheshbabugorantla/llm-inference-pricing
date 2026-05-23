@@ -24,6 +24,8 @@ def _product(**kwargs):
     p.monthly_recurring_usd = kwargs.get("monthly_recurring_usd", Decimal("0"))
     p.per_active_hour_usd = kwargs.get("per_active_hour_usd", Decimal("0"))
     p.capacity_block_total_usd = kwargs.get("capacity_block_total_usd", Decimal("0"))
+    p.payment_cadence = kwargs.get("payment_cadence", "all_upfront")
+    p.block_duration_hours = kwargs.get("block_duration_hours", None)
     return p
 
 
@@ -96,12 +98,14 @@ def test_aws_capacity_block_p5_14_day_committed_rate():
     """PRD Appendix A: AWS p5.48xlarge 14-day capacity block.
 
     $131,712 total for 2 instances x 336 hours = $196/instance-hr, 8 GPUs.
-    Capacity block: floor=1.0, so billable_util=1.0.
-    per_gpu_hourly = 131712 / (2 * 336 * 8) = $24.50/hr
+    Capacity block: floor=1.0, block_duration_hours=336.
+    per_gpu_hourly = 131712 / (336 * 8) = $49.00/hr
     """
     product = _product(
         term_months=1,
         gpus_per_node=8,
+        payment_cadence="capacity_block",
+        block_duration_hours=336,
         upfront_usd=Decimal("0"),
         monthly_recurring_usd=Decimal("0"),
         per_active_hour_usd=Decimal("0"),
@@ -114,10 +118,9 @@ def test_aws_capacity_block_p5_14_day_committed_rate():
     )
     result = compute_reserved_cloud_cost(deployment)
 
-    # term_hours = 1 * 730; useful = 730 * 1.0 = 730
-    # total = 131712 / 730 per-node, / 8 per-gpu
-    term_hours = Decimal(1) * Decimal(730)
-    expected_per_gpu = Decimal("131712.00") / (term_hours * Decimal(8))
+    # block_duration = 336h; billable_util = 1.0; useful = 336
+    # node_committed = 131712 / 336; per_gpu = / 8
+    expected_per_gpu = Decimal("131712.00") / (Decimal(336) * Decimal(8))
     assert result["per_gpu_hourly_committed"] == expected_per_gpu.quantize(Decimal("0.0001"))
 
 

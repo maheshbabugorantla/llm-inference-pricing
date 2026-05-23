@@ -6,7 +6,8 @@ gpus_per_node: 8
 payment_cadence: capacity_block
 term_months: 1
 capacity_block_total_usd: "131712.00"
+block_duration_hours: 336
 minimum_utilization_floor_pct: "1.000"
 on_demand_reference_usd_per_hour: "98.3232"
 listing_observed_at: "2025-01-15"
-notes: "AWS Capacity Block for ML, p5.48xlarge, 336-hour block at list price."
+notes: "AWS Capacity Block for ML, p5.48xlarge, 336-hour (14d) block at list price."
