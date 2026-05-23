@@ -1,0 +1,8 @@
+[
+  {"provider": "CoreWeave",     "gpu": "NVIDIA H100 SXM5 80GB", "region": "us-east1",     "hourly_usd": "2.39"},
+  {"provider": "Crusoe Energy", "gpu": "NVIDIA H100 SXM5 80GB", "region": "us-east1",     "hourly_usd": "2.49"},
+  {"provider": "Lambda Labs",   "gpu": "NVIDIA H100 SXM5 80GB", "region": "us-south-1",   "hourly_usd": "2.49"},
+  {"provider": "RunPod",        "gpu": "NVIDIA H100 SXM5 80GB", "region": "",              "hourly_usd": "2.69"},
+  {"provider": "Oracle Cloud",  "gpu": "NVIDIA H100 SXM5 80GB", "region": "us-ashburn-1", "hourly_usd": "3.20"},
+  {"provider": "HyperCloud AI", "gpu": "NVIDIA H100 SXM5 80GB", "region": "us-west-2",    "hourly_usd": "2.75"}
+]
