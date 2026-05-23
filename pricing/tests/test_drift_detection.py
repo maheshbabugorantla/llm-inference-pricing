@@ -20,7 +20,7 @@ from pricing.models import PricingDriftAlert, ReservedCapacityProduct
 from pricing.services.drift_detection import check_tier3_drift
 from pricing.tests.factories import ProviderFactory
 
-_PATCH_TARGET = "pricing.services.drift_detection.fetch_computeprices_table"
+_PATCH_TARGET = "pricing.services.drift_detection.fetch_computeprices_gpu_prices"
 
 
 def _make_tier3_product(

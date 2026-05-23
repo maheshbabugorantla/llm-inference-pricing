@@ -1,11 +1,10 @@
 """Drift detection service for Tier 3 (manually curated) provider pricing.
 
-Fetches current GPU prices from ComputePrices.com and creates PricingDriftAlert
-records when observed prices diverge from curated YAML values.
+Fetches current GPU prices from the ComputePrices.com REST API and creates
+PricingDriftAlert records when observed prices diverge from curated YAML values.
 
-NOTE: fetch_computeprices_table raises NotImplementedError until TOS is verified.
-In tests, patch 'pricing.services.drift_detection.fetch_computeprices_table' at the
-network boundary.
+In tests, patch 'pricing.services.drift_detection.fetch_computeprices_gpu_prices'
+at the network boundary.
 
 Curated rate approximation: for all_upfront products, divides upfront_usd by 720
 (30-day month x 24h) as a rough hourly equivalent. This understates the effective
@@ -22,7 +21,7 @@ from decimal import Decimal, InvalidOperation
 from django.db import transaction
 
 from pricing.models import PricingDriftAlert, ReservedCapacityProduct
-from pricing.scrapers.computeprices import fetch_computeprices_table
+from pricing.scrapers.computeprices import fetch_computeprices_gpu_prices
 
 logger = logging.getLogger("pricing.services.drift_detection")
 
@@ -81,7 +80,7 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
     )
 
     for product in tier3_products:
-        observed_rows = fetch_computeprices_table(product.gpu.slug)
+        observed_rows = fetch_computeprices_gpu_prices(product.gpu.slug)
         # fetch_computeprices_table returns rows already normalized by
         # parse_computeprices_table — r["provider"] is already our slug
         matching = [r for r in observed_rows if r["provider"] == product.cloud_provider.slug]
