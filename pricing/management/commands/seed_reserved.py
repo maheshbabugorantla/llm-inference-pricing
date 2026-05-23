@@ -46,7 +46,9 @@ class Command(BaseCommand):
         products_dir: Path = options["products_dir"]  # type: ignore[assignment]
         deployments_dir: Path = options["deployments_dir"]  # type: ignore[assignment]
 
-        prod_created, prod_updated, dep_created, dep_updated = self._seed(products_dir, deployments_dir)
+        prod_created, prod_updated, dep_created, dep_updated, snap_count = self._seed(
+            products_dir, deployments_dir
+        )
 
         self.stdout.write(
             self.style.SUCCESS(f"ReservedCapacityProduct: {prod_created} created, {prod_updated} updated")
@@ -54,14 +56,13 @@ class Command(BaseCommand):
         self.stdout.write(
             self.style.SUCCESS(f"ReservedCloudDeployment: {dep_created} created, {dep_updated} updated")
         )
-        count = regenerate_reserved_cloud_snapshots()
-        self.stdout.write(self.style.SUCCESS(f"Regenerated {count} reserved-cloud snapshots"))
+        self.stdout.write(self.style.SUCCESS(f"Regenerated {snap_count} reserved-cloud snapshots"))
 
     @transaction.atomic
-    def _seed(self, products_dir: Path, deployments_dir: Path) -> tuple[int, int, int, int]:
-        """Seed products and deployments inside a single transaction.
+    def _seed(self, products_dir: Path, deployments_dir: Path) -> tuple[int, int, int, int, int]:
+        """Seed products, deployments, and snapshots inside a single transaction.
 
-        All-or-nothing: a YAML or validation error after partial writes rolls back
+        All-or-nothing: a YAML, validation, or snapshot generation error rolls back
         every earlier row so the database is never left in a partially seeded state.
         """
         prod_created = prod_updated = 0
@@ -173,4 +174,5 @@ class Command(BaseCommand):
         finally:
             post_save.connect(_regenerate_reserved_on_save, sender=ReservedCloudDeployment)
 
-        return prod_created, prod_updated, dep_created, dep_updated
+        snap_count = regenerate_reserved_cloud_snapshots()
+        return prod_created, prod_updated, dep_created, dep_updated, snap_count
