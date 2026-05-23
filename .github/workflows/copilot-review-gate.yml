@@ -3,6 +3,12 @@ name: Copilot Review Gate
 # Runs on every PR push and whenever any review is submitted.
 # Fails if Copilot has not yet reviewed, or if it found HIGH/MEDIUM severity issues.
 # Add "Copilot review severity gate" as a required status check in branch protection.
+#
+# Design:
+#   pull_request event  → request Copilot review; gate fails until review is submitted
+#   pull_request_review → re-evaluates severity; passes when no HIGH/MEDIUM issues remain
+#
+# Prerequisites: enable "Copilot code review" in repository Settings → Copilot.
 
 on:
   pull_request:
@@ -12,7 +18,7 @@ on:
     types: [submitted]
 
 permissions:
-  pull-requests: read
+  pull-requests: write  # write is required to add a reviewer via the API
 
 concurrency:
   group: copilot-gate-${{ github.event.pull_request.number }}
@@ -24,23 +30,31 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Request Copilot review (best-effort on every PR push)
-        # Requires Copilot code review to be enabled in repository settings.
-        # Silently skipped if already requested or feature not available.
+      - name: Request Copilot review
+        # Runs on PR push events only; skipped when re-triggered by a submitted review.
+        # Uses the REST API directly — more reliable than "gh pr edit" for bot reviewers.
+        # continue-on-error so the job proceeds to the evaluate step even if the repo
+        # does not have Copilot code review enabled (the evaluate step will fail clearly).
         if: github.event_name == 'pull_request'
         continue-on-error: true
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh pr edit ${{ github.event.pull_request.number }} \
-            --add-reviewer copilot-pull-request-reviewer \
-            --repo ${{ github.repository }}
+          echo '{"reviewers":["copilot-pull-request-reviewer"]}' \
+            | gh api \
+                --method POST \
+                -H "Accept: application/vnd.github+json" \
+                "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers" \
+                --input - \
+            && echo "Copilot review requested." \
+            || echo "::warning::Could not add Copilot as reviewer — ensure 'Copilot code review' is enabled under repository Settings → Copilot."
 
       - name: Evaluate Copilot review severity
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           BOT="copilot-pull-request-reviewer[bot]"
 
@@ -49,7 +63,11 @@ jobs:
             --jq "[.[] | select(.user.login == \"${BOT}\")] | length")
 
           if [ "${REVIEW_COUNT}" -eq 0 ]; then
-            echo "::error::No Copilot review found. Request one before merging."
+            if [ "${EVENT_NAME}" = "pull_request" ]; then
+              echo "::error::Copilot review is pending. The gate will re-evaluate automatically once Copilot submits its review."
+            else
+              echo "::error::No Copilot review found. Request one before merging."
+            fi
             exit 1
           fi
 
@@ -69,7 +87,7 @@ jobs:
               | select(.body | test(\"\\\\[SEVERITY: MEDIUM\\\\]\"; \"i\")) \
             ] | length")
 
-          # ── 4. Count LOW severity inline comments (informational) ──────────
+          # ── 4. Count LOW severity inline comments (informational only) ─────
           LOW=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
             --jq "[.[] \
               | select(.user.login == \"${BOT}\") \
