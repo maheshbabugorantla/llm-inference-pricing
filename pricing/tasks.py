@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 
 import httpx
@@ -10,6 +11,7 @@ from celery import shared_task
 from pricing.scrapers import aws, azure, lambda_labs, nebius, runpod, vast
 from pricing.scrapers.base import ParserDriftError
 from pricing.services.cost import refresh_cost_cells
+from pricing.services.drift_detection import check_tier3_drift
 from pricing.services.scrape_runner import persist_prices
 
 logger = logging.getLogger("pricing.tasks")
@@ -120,3 +122,16 @@ def regenerate_reserved_cloud_snapshots_task() -> int:
 @shared_task  # type: ignore[untyped-decorator]
 def refresh_current_cost_cells() -> None:
     refresh_cost_cells()
+
+
+@shared_task  # type: ignore[untyped-decorator]
+def computeprices_sanity_check() -> int:
+    """Weekly drift check against ComputePrices.com for Tier 3 providers.
+
+    Disabled by default — set ENABLE_COMPUTEPRICES_DRIFT_CHECK=1 to activate
+    after TOS verification (see pricing/scrapers/computeprices.py).
+    """
+    if not os.environ.get("ENABLE_COMPUTEPRICES_DRIFT_CHECK"):
+        logger.info("computeprices drift check is disabled (set ENABLE_COMPUTEPRICES_DRIFT_CHECK to enable)")
+        return 0
+    return len(check_tier3_drift())

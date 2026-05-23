@@ -159,4 +159,8 @@ CELERY_BEAT_SCHEDULE: dict[str, object] = {
         "task": "pricing.tasks.refresh_current_cost_cells",
         "schedule": crontab(minute=10),
     },
+    "computeprices-sanity-check": {
+        "task": "pricing.tasks.computeprices_sanity_check",
+        "schedule": crontab(minute=0, hour=8, day_of_week=1),  # Mondays 08:00
+    },
 }

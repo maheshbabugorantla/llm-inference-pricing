@@ -17,6 +17,7 @@ from catalog.tests.factories import GPUFactory
 from pricing.models import PricingSnapshot, Provider
 from pricing.scrapers.base import ParserDriftError, ScrapedPrice
 from pricing.tasks import (
+    computeprices_sanity_check,
     refresh_current_cost_cells,
     regenerate_on_prem_snapshots_task,
     scrape_aws,
@@ -573,3 +574,37 @@ def test_refresh_cost_cells_task_produces_queryable_cost_cells():
         row_count = c.fetchone()[0]
 
     assert row_count > 0
+
+
+# ---------------------------------------------------------------------------
+# M10.T04 — computeprices_sanity_check task
+# ---------------------------------------------------------------------------
+
+
+def test_computeprices_sanity_check_returns_zero_and_skips_drift_when_env_var_unset(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When ENABLE_COMPUTEPRICES_DRIFT_CHECK is not set, the task must return 0 immediately
+    without calling check_tier3_drift — so no DB writes or network calls occur."""
+    monkeypatch.delenv("ENABLE_COMPUTEPRICES_DRIFT_CHECK", raising=False)
+
+    with patch("pricing.tasks.check_tier3_drift") as mock_drift:
+        result = computeprices_sanity_check.apply().get()
+
+    assert result == 0
+    mock_drift.assert_not_called()
+
+
+@pytest.mark.django_db
+def test_computeprices_sanity_check_delegates_to_drift_service_when_enabled(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When ENABLE_COMPUTEPRICES_DRIFT_CHECK=1, the task calls check_tier3_drift
+    and returns the count of alerts created."""
+    monkeypatch.setenv("ENABLE_COMPUTEPRICES_DRIFT_CHECK", "1")
+
+    with patch("pricing.tasks.check_tier3_drift", return_value=["alert1", "alert2"]) as mock_drift:
+        result = computeprices_sanity_check.apply().get()
+
+    assert result == 2
+    mock_drift.assert_called_once()
