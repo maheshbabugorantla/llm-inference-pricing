@@ -159,6 +159,7 @@ class ReservedCapacityProduct(models.Model):
         max_digits=4,
         decimal_places=3,
         default=Decimal("0.000"),
+        validators=[MinValueValidator(Decimal("0.000")), MaxValueValidator(Decimal("1.000"))],
     )
     on_demand_reference_usd_per_hour = models.DecimalField(
         max_digits=8,
