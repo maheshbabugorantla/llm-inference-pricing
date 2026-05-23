@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import pytest
-from django.core.exceptions import ObjectDoesNotExist
 from django.core.management import call_command
 from django.core.management.base import CommandError
 
@@ -143,6 +142,6 @@ def test_seed_catalog_rejects_model_referencing_unknown_quant_slug(tmp_seeds_dir
     (tmp_seeds_dir / "models" / "qwen.yaml").write_text(
         MINIMAL_MODELS_YAML.replace("recommended_quant: fp8-e4m3", "recommended_quant: nonexistent-quant")
     )
-    with pytest.raises(ObjectDoesNotExist):
+    with pytest.raises(CommandError, match="nonexistent-quant"):
         call_command("seed_catalog", "--seeds-dir", str(tmp_seeds_dir))
     assert Model.objects.count() == 0
