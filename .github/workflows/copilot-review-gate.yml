@@ -57,49 +57,37 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           REPO: ${{ github.repository }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-          EVENT_NAME: ${{ github.event_name }}
         run: |
-          # GitHub uses two different logins for the same bot across endpoints:
-          #   reviews API  → "copilot-pull-request-reviewer[bot]"
-          #   comments API → "Copilot"
+          # reviews API uses "copilot-pull-request-reviewer[bot]" as user.login
           REVIEW_BOT="copilot-pull-request-reviewer[bot]"
-          COMMENT_BOT="Copilot"
 
-          # ── 1. Check whether a Copilot review exists ──────────────────────
-          REVIEW_COUNT=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
-            --jq "[.[] | select(.user.login == \"${REVIEW_BOT}\")] | length")
+          # ── 1. Find the most recent Copilot review ────────────────────────
+          # Evaluating only the latest review means fixed issues from earlier
+          # reviews don't permanently block the gate once Copilot re-reviews.
+          LATEST_REVIEW_ID=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews" \
+            --jq "[.[] | select(.user.login == \"${REVIEW_BOT}\")] \
+                  | sort_by(.submitted_at) | last | .id")
 
-          if [ "${REVIEW_COUNT}" -eq 0 ]; then
-            # No review yet — this is expected on the initial PR push because
-            # Copilot reviews asynchronously. The gate passes here so the PR
-            # is not permanently blocked; it re-evaluates via pull_request_review
-            # when Copilot submits its review.
+          if [ -z "${LATEST_REVIEW_ID}" ] || [ "${LATEST_REVIEW_ID}" = "null" ]; then
             echo "::notice::No Copilot review yet. The gate will re-evaluate automatically when Copilot submits its review."
             exit 0
           fi
 
-          echo "Copilot reviews found: ${REVIEW_COUNT}"
+          echo "Latest Copilot review ID: ${LATEST_REVIEW_ID}"
 
-          # ── 2. Count HIGH severity inline comments ─────────────────────────
-          HIGH=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
-            --jq "[.[] \
-              | select(.user.login == \"${COMMENT_BOT}\") \
-              | select(.body | test(\"\\\\[SEVERITY: HIGH\\\\]\"; \"i\")) \
-            ] | length")
+          # ── 2. Count severity from the latest review only ─────────────────
+          # Uses the review-specific endpoint — no user.login filter needed
+          # since the scope is already restricted to one review.
+          HIGH=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews/${LATEST_REVIEW_ID}/comments" \
+            --jq "[.[] | select(.body | test(\"\\\\[SEVERITY: HIGH\\\\]\"; \"i\"))] | length")
 
-          # ── 3. Count MEDIUM severity inline comments ───────────────────────
-          MEDIUM=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
-            --jq "[.[] \
-              | select(.user.login == \"${COMMENT_BOT}\") \
-              | select(.body | test(\"\\\\[SEVERITY: MEDIUM\\\\]\"; \"i\")) \
-            ] | length")
+          # ── 3. Count MEDIUM severity ───────────────────────────────────────
+          MEDIUM=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews/${LATEST_REVIEW_ID}/comments" \
+            --jq "[.[] | select(.body | test(\"\\\\[SEVERITY: MEDIUM\\\\]\"; \"i\"))] | length")
 
-          # ── 4. Count LOW severity inline comments (informational only) ─────
-          LOW=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/comments" \
-            --jq "[.[] \
-              | select(.user.login == \"${COMMENT_BOT}\") \
-              | select(.body | test(\"\\\\[SEVERITY: LOW\\\\]\"; \"i\")) \
-            ] | length")
+          # ── 4. Count LOW severity (informational only) ─────────────────────
+          LOW=$(gh api "repos/${REPO}/pulls/${PR_NUMBER}/reviews/${LATEST_REVIEW_ID}/comments" \
+            --jq "[.[] | select(.body | test(\"\\\\[SEVERITY: LOW\\\\]\"; \"i\"))] | length")
 
           echo "Severity counts — HIGH: ${HIGH}  MEDIUM: ${MEDIUM}  LOW: ${LOW}"
 
