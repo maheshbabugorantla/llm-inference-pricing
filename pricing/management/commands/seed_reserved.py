@@ -7,6 +7,7 @@ import pydantic
 import yaml
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from django.db.models.signals import post_save
 
 from catalog.models import GPU
@@ -42,6 +43,24 @@ class Command(BaseCommand):
         products_dir: Path = options["products_dir"]  # type: ignore[assignment]
         deployments_dir: Path = options["deployments_dir"]  # type: ignore[assignment]
 
+        prod_created, prod_updated, dep_created, dep_updated = self._seed(products_dir, deployments_dir)
+
+        self.stdout.write(
+            self.style.SUCCESS(f"ReservedCapacityProduct: {prod_created} created, {prod_updated} updated")
+        )
+        self.stdout.write(
+            self.style.SUCCESS(f"ReservedCloudDeployment: {dep_created} created, {dep_updated} updated")
+        )
+        count = regenerate_reserved_cloud_snapshots()
+        self.stdout.write(self.style.SUCCESS(f"Regenerated {count} reserved-cloud snapshots"))
+
+    @transaction.atomic
+    def _seed(self, products_dir: Path, deployments_dir: Path) -> tuple[int, int, int, int]:
+        """Seed products and deployments inside a single transaction.
+
+        All-or-nothing: a YAML or validation error after partial writes rolls back
+        every earlier row so the database is never left in a partially seeded state.
+        """
         prod_created = prod_updated = 0
         for yaml_file in sorted(products_dir.glob("*.yaml")):
             raw = yaml.safe_load(yaml_file.read_text())
@@ -95,10 +114,6 @@ class Command(BaseCommand):
                 prod_created += 1
             else:
                 prod_updated += 1
-
-        self.stdout.write(
-            self.style.SUCCESS(f"ReservedCapacityProduct: {prod_created} created, {prod_updated} updated")
-        )
 
         dep_created = dep_updated = 0
         post_save.disconnect(_regenerate_reserved_on_save, sender=ReservedCloudDeployment)
@@ -155,8 +170,4 @@ class Command(BaseCommand):
         finally:
             post_save.connect(_regenerate_reserved_on_save, sender=ReservedCloudDeployment)
 
-        self.stdout.write(
-            self.style.SUCCESS(f"ReservedCloudDeployment: {dep_created} created, {dep_updated} updated")
-        )
-        count = regenerate_reserved_cloud_snapshots()
-        self.stdout.write(self.style.SUCCESS(f"Regenerated {count} reserved-cloud snapshots"))
+        return prod_created, prod_updated, dep_created, dep_updated
