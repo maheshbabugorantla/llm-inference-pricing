@@ -3,7 +3,7 @@ from __future__ import annotations
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProviderYAML(BaseModel):
@@ -51,7 +51,7 @@ class ReservedCapacityProductYAML(BaseModel):
     monthly_recurring_usd: Decimal = Decimal("0")
     per_active_hour_usd: Decimal = Decimal("0")
     capacity_block_total_usd: Decimal = Decimal("0")
-    block_duration_hours: int | None = None
+    block_duration_hours: int | None = Field(None, ge=1)
     minimum_utilization_floor_pct: Decimal = Decimal("0.000")
     on_demand_reference_usd_per_hour: Decimal | None = None
     listing_observed_at: str

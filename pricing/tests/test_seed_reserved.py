@@ -183,3 +183,33 @@ def test_seed_reserved_rejects_deployment_with_unknown_product_slug(tmp_path, se
     (deployments_dir / "d.yaml").write_text(yaml.dump(bad_dep))
     with pytest.raises(CommandError, match="nonexistent-product-slug"):
         call_command("seed_reserved", products_dir=products_dir, deployments_dir=deployments_dir)
+
+
+@pytest.mark.django_db
+def test_seed_reserved_rejects_deployment_with_mismatched_cloud_provider(tmp_path, seed_gpu, cloud_provider):
+    """A deployment whose cloud_provider differs from its product's cloud_provider must fail with
+    CommandError and roll back the whole transaction — the product written earlier must not persist.
+
+    This exercises the full_clean() guard in ReservedCloudDeployment.clean() via the seed command's
+    _save_with_validation() helper, and confirms the @transaction.atomic rollback on failure.
+    """
+    from pricing.tests.factories import ProviderFactory
+
+    other_provider = ProviderFactory(slug="other-cloud-seed", provider_type="cloud")
+
+    products_dir = tmp_path / "products"
+    products_dir.mkdir()
+    deployments_dir = tmp_path / "deployments"
+    deployments_dir.mkdir()
+
+    (products_dir / "p.yaml").write_text(yaml.dump(_product_yaml(seed_gpu.slug, cloud_provider.slug)))
+    # Deployment deliberately uses other_provider, which differs from the product's cloud_provider
+    bad_dep = _deployment_yaml("lambda-h100-1yr-seed", other_provider.slug)
+    (deployments_dir / "d.yaml").write_text(yaml.dump(bad_dep))
+
+    with pytest.raises(CommandError, match="cloud_provider must match"):
+        call_command("seed_reserved", products_dir=products_dir, deployments_dir=deployments_dir)
+
+    # Transaction must have rolled back: the product seeded before the bad deployment must be gone
+    assert ReservedCapacityProduct.objects.filter(slug="lambda-h100-1yr-seed").count() == 0
+    assert ReservedCloudDeployment.objects.count() == 0

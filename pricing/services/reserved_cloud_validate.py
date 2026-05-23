@@ -7,12 +7,15 @@ or the seed command.
 
 from __future__ import annotations
 
+from decimal import Decimal
 from typing import TYPE_CHECKING
 
 from django.core.exceptions import ValidationError
 
 if TYPE_CHECKING:
     from pricing.models import ReservedCapacityProduct
+
+_ZERO = Decimal("0")
 
 
 def validate_payment_cadence(product: ReservedCapacityProduct) -> None:
@@ -25,37 +28,43 @@ def validate_payment_cadence(product: ReservedCapacityProduct) -> None:
 
     if cadence == "all_upfront":
         if (
-            product.monthly_recurring_usd != 0
-            or product.per_active_hour_usd != 0
-            or product.capacity_block_total_usd != 0
+            product.monthly_recurring_usd != _ZERO
+            or product.per_active_hour_usd != _ZERO
+            or product.capacity_block_total_usd != _ZERO
         ):
             raise ValidationError(
                 "all_upfront requires monthly_recurring_usd=0, per_active_hour_usd=0, "
                 "and capacity_block_total_usd=0"
             )
-        if product.upfront_usd <= 0:
+        if product.upfront_usd <= _ZERO:
             raise ValidationError("all_upfront requires upfront_usd > 0")
 
     elif cadence == "partial_upfront":
-        if product.capacity_block_total_usd != 0:
-            raise ValidationError("partial_upfront requires capacity_block_total_usd=0")
-        if product.upfront_usd <= 0:
+        if product.capacity_block_total_usd != _ZERO or product.per_active_hour_usd != _ZERO:
+            raise ValidationError(
+                "partial_upfront requires capacity_block_total_usd=0 and per_active_hour_usd=0"
+            )
+        if product.upfront_usd <= _ZERO:
             raise ValidationError("partial_upfront requires upfront_usd > 0")
-        if product.monthly_recurring_usd <= 0:
+        if product.monthly_recurring_usd <= _ZERO:
             raise ValidationError("partial_upfront requires monthly_recurring_usd > 0")
 
     elif cadence == "no_upfront":
-        if product.upfront_usd != 0 or product.capacity_block_total_usd != 0:
+        if product.upfront_usd != _ZERO or product.capacity_block_total_usd != _ZERO:
             raise ValidationError("no_upfront requires upfront_usd=0 and capacity_block_total_usd=0")
-        if product.monthly_recurring_usd <= 0:
+        if product.monthly_recurring_usd <= _ZERO:
             raise ValidationError("no_upfront requires monthly_recurring_usd > 0")
 
     elif cadence == "capacity_block":
-        if product.upfront_usd != 0 or product.monthly_recurring_usd != 0 or product.per_active_hour_usd != 0:
+        if (
+            product.upfront_usd != _ZERO
+            or product.monthly_recurring_usd != _ZERO
+            or product.per_active_hour_usd != _ZERO
+        ):
             raise ValidationError(
                 "capacity_block requires upfront_usd=0, monthly_recurring_usd=0, and per_active_hour_usd=0"
             )
-        if product.capacity_block_total_usd <= 0:
+        if product.capacity_block_total_usd <= _ZERO:
             raise ValidationError("capacity_block requires capacity_block_total_usd > 0")
         if not product.block_duration_hours:
             raise ValidationError("capacity_block requires block_duration_hours > 0")

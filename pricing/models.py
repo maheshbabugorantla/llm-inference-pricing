@@ -171,6 +171,7 @@ class ReservedCapacityProduct(models.Model):
     block_duration_hours = models.PositiveSmallIntegerField(
         null=True,
         blank=True,
+        validators=[MinValueValidator(1)],
         help_text="Actual block duration in hours for capacity_block cadence (e.g. 336 for 14d). "
         "Ignored for other cadences.",
     )

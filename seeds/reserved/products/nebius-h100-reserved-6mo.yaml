@@ -7,6 +7,6 @@ payment_cadence: no_upfront
 term_months: 6
 monthly_recurring_usd: "45600.00"
 minimum_utilization_floor_pct: "0.000"
-on_demand_reference_usd_per_hour: "7.60"
+on_demand_reference_usd_per_hour: "60.80"
 listing_observed_at: "2025-01-15"
 notes: "Nebius H100 SXM 80GB 6-month reserved commitment. Price per 8-GPU node."
