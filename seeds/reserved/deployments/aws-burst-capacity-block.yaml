@@ -1,0 +1,8 @@
+slug: aws-burst-capacity-block
+display_name: AWS p5.48xlarge 14-day Capacity Block Burst Scenario
+product_slug: aws-p5-capacity-block-14d
+cloud_provider_slug: aws
+region: us-east-1
+num_nodes: 2
+expected_utilization_pct: "1.000"
+notes: "14-day burst for large training run. 2 nodes × 8 H100 SXM = 16 GPUs. Capacity block floor = 100%."

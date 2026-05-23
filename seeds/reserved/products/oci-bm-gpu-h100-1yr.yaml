@@ -1,0 +1,12 @@
+slug: oci-bm-gpu-h100-1yr
+display_name: OCI BM.GPU.H100.8 1-yr All Upfront
+cloud_provider_slug: oci
+gpu_slug: nvidia-h100-sxm-80
+gpus_per_node: 8
+payment_cadence: all_upfront
+term_months: 12
+upfront_usd: "367920.00"
+minimum_utilization_floor_pct: "0.000"
+on_demand_reference_usd_per_hour: "51.10"
+listing_observed_at: "2025-01-15"
+notes: "Oracle BM.GPU.H100.8, 1-yr committed use. Manually curated from OCI pricing page."

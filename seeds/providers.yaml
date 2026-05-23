@@ -51,3 +51,24 @@
   pricing_url: https://azure.microsoft.com/en-us/pricing/details/virtual-machines/linux/
   has_api: true
   api_endpoint: https://prices.azure.com/api/retail/prices
+
+- slug: coreweave
+  display_name: CoreWeave
+  provider_type: cloud
+  data_source_tier: manual_curation
+  pricing_url: https://www.coreweave.com/gpu-cloud-pricing
+  has_api: false
+
+- slug: crusoe
+  display_name: Crusoe Energy
+  provider_type: cloud
+  data_source_tier: manual_curation
+  pricing_url: https://crusoe.ai/cloud/
+  has_api: false
+
+- slug: oci
+  display_name: Oracle Cloud Infrastructure
+  provider_type: cloud
+  data_source_tier: manual_curation
+  pricing_url: https://www.oracle.com/cloud/compute/gpu/
+  has_api: false
