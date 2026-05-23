@@ -1,10 +1,13 @@
-"""Tests for the ComputePrices.com scraper stub (M10.T02).
+"""Tests for the ComputePrices.com API client (M10.T02 — rewritten for REST API).
 
 Business scenario: the drift detection pipeline needs to compare curated
-Tier 3 provider prices against an external aggregator. These tests prove
-that the parser normalises aggregator rows into the format the drift service
-expects, rejects structurally broken pages with ParserDriftError, and that
-the HTTP fetch is deliberately disabled until TOS is verified.
+Tier 3 provider prices against the ComputePrices.com JSON API. These tests
+prove that the client correctly maps GPU/provider slugs, parses API responses
+into the format the drift service expects, rejects malformed responses with
+ParserDriftError, and sends the optional API key header when configured.
+
+All tests that would make real HTTP calls use unittest.mock to patch httpx.get.
+No real network calls are made.
 """
 
 from __future__ import annotations
@@ -12,170 +15,263 @@ from __future__ import annotations
 import json
 from decimal import Decimal
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from pricing.scrapers.base import ParserDriftError
 from pricing.scrapers.computeprices import (
-    fetch_computeprices_table,
-    map_computeprices_provider,
-    parse_computeprices_table,
+    GPU_SLUG_MAP,
+    fetch_computeprices_gpu_prices,
+    map_provider_slug,
+    parse_computeprices_response,
 )
 
 FIXTURE = Path(__file__).parent / "fixtures" / "computeprices_h100_sxm.json"
 
+_FETCH_TARGET = "pricing.scrapers.computeprices.httpx.get"
+
 
 # ---------------------------------------------------------------------------
-# map_computeprices_provider
+# map_provider_slug — ComputePrices slug → our slug
 # ---------------------------------------------------------------------------
 
 
-def test_map_computeprices_provider_returns_slug_for_known_provider() -> None:
-    """CoreWeave is a Tier 3 manual-curation provider; the drift service must map it."""
-    assert map_computeprices_provider("CoreWeave") == "coreweave"
+def test_map_provider_slug_passes_through_matching_slugs() -> None:
+    """Slugs that already match our internal slugs must be returned unchanged."""
+    assert map_provider_slug("coreweave") == "coreweave"
+    assert map_provider_slug("runpod") == "runpod"
+    assert map_provider_slug("lambda") == "lambda"
+    assert map_provider_slug("crusoe") == "crusoe"
+    assert map_provider_slug("aws") == "aws"
+    assert map_provider_slug("azure") == "azure"
+    assert map_provider_slug("vast") == "vast"
+    assert map_provider_slug("nebius") == "nebius"
 
 
-def test_map_computeprices_provider_returns_none_for_unknown_provider() -> None:
-    """An aggregator listing a cloud we don't track must be silently skipped, not error."""
-    assert map_computeprices_provider("HyperCloud AI") is None
+def test_map_provider_slug_remaps_oracle_to_oci() -> None:
+    """ComputePrices uses 'oracle'; our slug is 'oci' — must be remapped."""
+    assert map_provider_slug("oracle") == "oci"
+
+
+def test_map_provider_slug_remaps_google_to_gcp() -> None:
+    """ComputePrices uses 'google'; our slug is 'gcp' — must be remapped."""
+    assert map_provider_slug("google") == "gcp"
+
+
+def test_map_provider_slug_returns_unknown_slug_unchanged() -> None:
+    """Providers we don't track are returned as-is (filtered later by drift service)."""
+    assert map_provider_slug("hypercloud-ai") == "hypercloud-ai"
+
+
+# ---------------------------------------------------------------------------
+# GPU_SLUG_MAP — our slugs → ComputePrices slugs
+# ---------------------------------------------------------------------------
 
 
 @pytest.mark.parametrize(
-    "display_name,expected_slug",
+    ("our_slug", "their_slug"),
     [
-        ("RunPod", "runpod"),
-        ("Lambda Labs", "lambda"),
-        ("Vast.ai", "vast"),
-        ("Nebius", "nebius"),
-        ("Google Cloud", "gcp"),
-        ("AWS", "aws"),
-        ("Microsoft Azure", "azure"),
-        ("CoreWeave", "coreweave"),
-        ("Crusoe Energy", "crusoe"),
-        ("Oracle Cloud", "oci"),
+        ("nvidia-h100-sxm-80", "h100"),
+        ("nvidia-h100-pcie-80", "h100pcie"),
+        ("nvidia-h200", "h200"),
+        ("nvidia-a100-sxm-80", "a100sxm"),
+        ("nvidia-l40s", "l40s"),
+        ("nvidia-l4", "l4"),
+        ("nvidia-rtx-4090", "rtx4090"),
+        ("nvidia-b200", "b200"),
+        ("nvidia-t4", "t4"),
+        ("nvidia-v100", "v100"),
+        ("amd-mi300x", "mi300x"),
+        ("amd-mi250x", "mi250x"),
     ],
 )
-def test_provider_map_covers_all_seeded_providers(display_name: str, expected_slug: str) -> None:
-    """Every provider slug in seeds/providers.yaml must be reachable via PROVIDER_MAP.
-
-    Note: this list is a hardcoded copy of providers.yaml slugs. If a new provider
-    is added to seeds/providers.yaml and PROVIDER_MAP, add it here too.
-    """
-    assert map_computeprices_provider(display_name) == expected_slug
+def test_gpu_slug_map_covers_seeded_gpus(our_slug: str, their_slug: str) -> None:
+    """Every GPU slug in seeds/gpus.yaml that ComputePrices tracks must be in GPU_SLUG_MAP."""
+    assert GPU_SLUG_MAP.get(our_slug) == their_slug
 
 
 # ---------------------------------------------------------------------------
-# fetch_computeprices_table — stub behaviour
+# parse_computeprices_response — happy path via fixture
 # ---------------------------------------------------------------------------
 
 
-def test_fetch_computeprices_table_raises_not_implemented_until_tos_verified() -> None:
-    """The HTTP fetch must be disabled by default — running it in production before
-    TOS review would be a compliance violation."""
-    with pytest.raises(NotImplementedError, match="TOS not verified"):
-        fetch_computeprices_table("nvidia-h100-sxm-80")
-
-
-# ---------------------------------------------------------------------------
-# parse_computeprices_table — happy path via fixture
-# ---------------------------------------------------------------------------
-
-
-def test_parse_computeprices_table_returns_rows_for_h100_from_known_providers() -> None:
+def test_parse_computeprices_response_returns_rows_for_known_providers() -> None:
     """Fixture contains CoreWeave, Crusoe, Lambda, RunPod, Oracle — all mapped providers.
-    The parser must return one normalised row per mapped provider row."""
-    rows_data = json.loads(FIXTURE.read_text())
-    result = parse_computeprices_table(rows_data)
+    The parser must return one normalised row per item."""
+    data = json.loads(FIXTURE.read_text())
+    result = parse_computeprices_response(data)
     provider_slugs = {r["provider"] for r in result}
     assert "coreweave" in provider_slugs
     assert "crusoe" in provider_slugs
     assert "lambda" in provider_slugs
     assert "runpod" in provider_slugs
-    assert "oci" in provider_slugs
+    assert "oci" in provider_slugs  # oracle → oci
 
 
-def test_parse_computeprices_table_drops_unmapped_provider() -> None:
-    """HyperCloud AI is in the fixture but not in PROVIDER_MAP — must be silently dropped."""
-    rows_data = json.loads(FIXTURE.read_text())
-    result = parse_computeprices_table(rows_data)
-    provider_slugs = {r["provider"] for r in result}
-    assert "HyperCloud AI" not in provider_slugs
+def test_parse_computeprices_response_applies_provider_slug_remap() -> None:
+    """Oracle Cloud's provider_slug 'oracle' must be remapped to 'oci'."""
+    data = json.loads(FIXTURE.read_text())
+    result = parse_computeprices_response(data)
+    slugs = {r["provider"] for r in result}
+    assert "oracle" not in slugs
+    assert "oci" in slugs
 
 
-def test_parse_computeprices_table_hourly_usd_is_parseable_as_decimal() -> None:
-    """Every hourly_usd value returned must be a string that Decimal() accepts without error.
-    This is the invariant the drift service relies on when computing drift_pct."""
-    rows_data = json.loads(FIXTURE.read_text())
-    result = parse_computeprices_table(rows_data)
+def test_parse_computeprices_response_includes_unmapped_provider_slugs() -> None:
+    """Unknown provider slugs like 'hypercloud-ai' are returned as-is.
+    Filtering to known providers is the drift service's responsibility."""
+    data = json.loads(FIXTURE.read_text())
+    result = parse_computeprices_response(data)
+    slugs = {r["provider"] for r in result}
+    assert "hypercloud-ai" in slugs
+
+
+def test_parse_computeprices_response_hourly_usd_uses_price_per_hour_usd() -> None:
+    """hourly_usd in the output must be price_per_hour_usd (per-GPU) so it aligns
+    with per_active_hour_usd semantics in ReservedCapacityProduct."""
+    data = json.loads(FIXTURE.read_text())
+    result = parse_computeprices_response(data)
+    cw = next(r for r in result if r["provider"] == "coreweave")
+    assert Decimal(cw["hourly_usd"]) == Decimal("2.39")
+
+
+def test_parse_computeprices_response_hourly_usd_parseable_as_decimal() -> None:
+    """Every hourly_usd value returned must be Decimal()-parseable without error."""
+    data = json.loads(FIXTURE.read_text())
+    result = parse_computeprices_response(data)
     assert len(result) > 0
     for row in result:
         parsed = Decimal(row["hourly_usd"])
         assert parsed > Decimal("0")
 
 
-def test_parse_computeprices_table_preserves_gpu_field_when_present() -> None:
+def test_parse_computeprices_response_preserves_gpu_field() -> None:
     """Optional 'gpu' field must be forwarded so the drift service can log the exact SKU."""
-    rows_data = json.loads(FIXTURE.read_text())
-    result = parse_computeprices_table(rows_data)
+    data = json.loads(FIXTURE.read_text())
+    result = parse_computeprices_response(data)
     for row in result:
         assert "gpu" in row
 
 
-def test_parse_computeprices_table_omits_region_when_empty_string() -> None:
-    """Blank region values must be omitted — forwarding an empty string produces
-    misleading drift logs ('region: ''') as if a real region were specified."""
-    rows_data = [{"provider": "RunPod", "hourly_usd": "2.69", "gpu": "H100", "region": ""}]
-    result = parse_computeprices_table(rows_data)
-    assert len(result) == 1
-    assert "region" not in result[0]
-
-
-def test_parse_computeprices_table_preserves_region_when_non_empty() -> None:
-    """Non-empty region strings must be forwarded intact."""
-    rows_data = [{"provider": "CoreWeave", "hourly_usd": "2.39", "gpu": "H100", "region": "us-east1"}]
-    result = parse_computeprices_table(rows_data)
-    assert result[0]["region"] == "us-east1"
-
-
-# ---------------------------------------------------------------------------
-# parse_computeprices_table — failure / drift modes
-# ---------------------------------------------------------------------------
-
-
-def test_parse_computeprices_table_raises_drift_error_when_rows_are_empty() -> None:
-    """An empty row list means the page structure changed — must raise ParserDriftError,
-    not silently return an empty list (which would suppress all drift alerts)."""
-    with pytest.raises(ParserDriftError):
-        parse_computeprices_table([])
-
-
-def test_parse_computeprices_table_raises_drift_error_when_provider_key_missing() -> None:
-    """If a row lacks 'provider' the page structure has drifted — fail loudly."""
-    rows_data = [{"hourly_usd": "2.39", "gpu": "H100 SXM"}]
-    with pytest.raises(ParserDriftError, match="missing required keys"):
-        parse_computeprices_table(rows_data)
-
-
-def test_parse_computeprices_table_raises_drift_error_when_hourly_usd_key_missing() -> None:
-    """If a row lacks 'hourly_usd' the page structure has drifted — fail loudly."""
-    rows_data = [{"provider": "CoreWeave", "gpu": "H100 SXM"}]
-    with pytest.raises(ParserDriftError, match="missing required keys"):
-        parse_computeprices_table(rows_data)
-
-
-def test_parse_computeprices_table_handles_all_unmapped_providers_by_returning_empty_list() -> None:
-    """All unmapped providers yields empty list — valid (no Tier 3 match), not a drift error."""
-    rows_data = [
-        {"provider": "HyperCloud AI", "hourly_usd": "2.50", "gpu": "H100"},
-        {"provider": "MegaGPU Co", "hourly_usd": "2.75", "gpu": "H100"},
+def test_parse_computeprices_response_skips_null_price() -> None:
+    """Items with price_per_hour_usd=null must be skipped — no price to compare."""
+    data = [
+        {
+            "provider_slug": "runpod",
+            "gpu": "H100 SXM",
+            "price_per_hour_usd": None,
+            "total_hourly_usd": None,
+        }
     ]
-    result = parse_computeprices_table(rows_data)
+    result = parse_computeprices_response(data)
     assert result == []
 
 
-def test_parse_computeprices_table_raises_drift_error_when_hourly_usd_is_non_numeric() -> None:
-    """Non-numeric hourly_usd (e.g. 'N/A', '$2.39') must raise ParserDriftError at the
-    parser boundary, not propagate an InvalidOperation into the drift service."""
-    rows_data = [{"provider": "CoreWeave", "hourly_usd": "N/A", "gpu": "H100"}]
-    with pytest.raises(ParserDriftError, match="non-numeric hourly_usd"):
-        parse_computeprices_table(rows_data)
+# ---------------------------------------------------------------------------
+# parse_computeprices_response — failure / drift modes
+# ---------------------------------------------------------------------------
+
+
+def test_parse_computeprices_response_raises_drift_error_when_data_is_empty() -> None:
+    """Empty data list means the API returned no listings — raise ParserDriftError
+    so the drift service doesn't silently skip all alerts."""
+    with pytest.raises(ParserDriftError):
+        parse_computeprices_response([])
+
+
+def test_parse_computeprices_response_raises_drift_error_when_provider_slug_missing() -> None:
+    """If an item lacks 'provider_slug' the API schema has changed — fail loudly."""
+    data = [{"gpu": "H100 SXM", "price_per_hour_usd": 2.39}]
+    with pytest.raises(ParserDriftError, match="missing required fields"):
+        parse_computeprices_response(data)
+
+
+def test_parse_computeprices_response_raises_drift_error_when_price_is_non_numeric() -> None:
+    """Non-numeric price_per_hour_usd must raise ParserDriftError at the parser boundary."""
+    data = [{"provider_slug": "coreweave", "price_per_hour_usd": "N/A", "gpu": "H100"}]
+    with pytest.raises(ParserDriftError, match="non-numeric"):
+        parse_computeprices_response(data)
+
+
+# ---------------------------------------------------------------------------
+# fetch_computeprices_gpu_prices — HTTP call and auth
+# ---------------------------------------------------------------------------
+
+
+def _make_api_response(items: list[dict]) -> MagicMock:
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {"data": items, "meta": {"count": len(items)}}
+    mock_resp.raise_for_status.return_value = None
+    return mock_resp
+
+
+def test_fetch_computeprices_gpu_prices_calls_correct_endpoint(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """The client must call /api/v1/gpu-prices with gpu=h100 and pricing_type=on_demand
+    when given our slug nvidia-h100-sxm-80."""
+    monkeypatch.delenv("COMPUTEPRICES_API_KEY", raising=False)
+    mock_item = {
+        "provider_slug": "coreweave",
+        "gpu": "H100 SXM",
+        "price_per_hour_usd": 2.39,
+        "total_hourly_usd": 19.12,
+    }
+    with patch(_FETCH_TARGET, return_value=_make_api_response([mock_item])) as mock_get:
+        result = fetch_computeprices_gpu_prices("nvidia-h100-sxm-80")
+
+    call_kwargs = mock_get.call_args
+    assert "gpu-prices" in call_kwargs.args[0]
+    assert call_kwargs.kwargs["params"]["gpu"] == "h100"
+    assert call_kwargs.kwargs["params"]["pricing_type"] == "on_demand"
+    assert len(result) == 1
+    assert result[0]["provider"] == "coreweave"
+
+
+def test_fetch_computeprices_gpu_prices_sends_auth_header_when_api_key_set(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """When COMPUTEPRICES_API_KEY is set, the request must include an Authorization
+    header so we use the free tier (5,000 req/hr) instead of the public tier (60/hr)."""
+    monkeypatch.setenv("COMPUTEPRICES_API_KEY", "cp_live_testkey123")
+    mock_item = {
+        "provider_slug": "coreweave",
+        "gpu": "H100 SXM",
+        "price_per_hour_usd": 2.39,
+        "total_hourly_usd": 19.12,
+    }
+    with patch(_FETCH_TARGET, return_value=_make_api_response([mock_item])) as mock_get:
+        fetch_computeprices_gpu_prices("nvidia-h100-sxm-80")
+
+    headers = mock_get.call_args.kwargs["headers"]
+    assert headers.get("Authorization") == "Bearer cp_live_testkey123"
+
+
+def test_fetch_computeprices_gpu_prices_omits_auth_header_when_no_api_key(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """Without COMPUTEPRICES_API_KEY, no Authorization header should be sent."""
+    monkeypatch.delenv("COMPUTEPRICES_API_KEY", raising=False)
+    mock_item = {
+        "provider_slug": "coreweave",
+        "price_per_hour_usd": 2.39,
+        "total_hourly_usd": 19.12,
+    }
+    with patch(_FETCH_TARGET, return_value=_make_api_response([mock_item])) as mock_get:
+        fetch_computeprices_gpu_prices("nvidia-h100-sxm-80")
+
+    headers = mock_get.call_args.kwargs["headers"]
+    assert "Authorization" not in headers
+
+
+def test_fetch_computeprices_gpu_prices_returns_empty_list_for_unmapped_gpu(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """GPUs not in GPU_SLUG_MAP return [] immediately — no HTTP call made."""
+    monkeypatch.delenv("COMPUTEPRICES_API_KEY", raising=False)
+    with patch(_FETCH_TARGET) as mock_get:
+        result = fetch_computeprices_gpu_prices("nvidia-p100")
+
+    assert result == []
+    mock_get.assert_not_called()
