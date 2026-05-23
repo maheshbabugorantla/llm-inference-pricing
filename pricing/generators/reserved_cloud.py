@@ -19,7 +19,7 @@ def regenerate_reserved_cloud_snapshots() -> int:
 
     for d in ReservedCloudDeployment.objects.select_related(
         "product__gpu",
-        "cloud_provider",
+        "product__cloud_provider",
     ).filter(is_active=True):
         breakdown = compute_reserved_cloud_cost(d)
         for tier_suffix, per_gpu in [
@@ -27,7 +27,7 @@ def regenerate_reserved_cloud_snapshots() -> int:
             ("reserved-marginal", breakdown["per_gpu_hourly_reservation_marginal"]),
         ]:
             PricingSnapshot.objects.create(
-                provider=d.cloud_provider,
+                provider=d.product.cloud_provider,
                 gpu=d.product.gpu,
                 tier=f"{tier_suffix}-{d.slug}",
                 region=d.region,
