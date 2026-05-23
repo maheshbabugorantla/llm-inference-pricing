@@ -1,17 +1,17 @@
 name: Copilot Review Gate
 
-# Runs on every PR push and whenever any review is submitted.
+# Evaluates Copilot code review severity on every PR push and review submission.
 #
 # Behaviour:
-#   pull_request event  → requests Copilot review; passes if no review yet
-#                         (review is async — Copilot responds in its own time)
-#   pull_request_review → re-evaluates severity when any review is submitted;
-#                         fails only if Copilot found HIGH or MEDIUM issues
+#   pull_request event  → passes immediately if no Copilot review exists yet
+#                         (Copilot submits its review asynchronously)
+#   pull_request_review → re-evaluates severity; fails on HIGH or MEDIUM issues
 #
-# This means the gate is informational until Copilot responds, then enforcing.
+# Copilot reviews are triggered automatically by the repository setting:
+#   Settings → Copilot → Code review → "Automatically review pull requests"
+# No API call is needed from this workflow — GitHub handles the trigger.
+#
 # Add "Copilot review severity gate" as a required status check in branch protection.
-#
-# Prerequisites: enable "Copilot code review" in repository Settings → Copilot.
 
 on:
   pull_request:
@@ -21,7 +21,7 @@ on:
     types: [submitted]
 
 permissions:
-  pull-requests: write  # write is required to add a reviewer via the API
+  pull-requests: read
 
 concurrency:
   group: copilot-gate-${{ github.event.pull_request.number }}
@@ -33,25 +33,6 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Request Copilot review
-        # Only runs on PR push events; skipped when re-triggered by a submitted review.
-        # Uses the REST API directly — more reliable than "gh pr edit" for bot reviewers.
-        # A warning is emitted (not a failure) when Copilot code review is not enabled;
-        # the severity check below will still run and pass if no review exists yet.
-        if: github.event_name == 'pull_request'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: |
-          echo '{"reviewers":["copilot-pull-request-reviewer"]}' \
-            | gh api \
-                --method POST \
-                -H "Accept: application/vnd.github+json" \
-                "repos/${{ github.repository }}/pulls/${{ github.event.pull_request.number }}/requested_reviewers" \
-                --input - \
-            && echo "Copilot review requested." \
-            || echo "::warning::Could not add Copilot as reviewer. Enable 'Copilot code review' in repository Settings → Copilot, then re-run this workflow."
-
       - name: Evaluate Copilot review severity
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
