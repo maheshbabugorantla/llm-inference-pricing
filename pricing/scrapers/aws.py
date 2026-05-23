@@ -240,6 +240,16 @@ def fetch_aws_ondemand_skus() -> list[dict[str, Any]]:
 # separately because describe_capacity_block_offerings requires CapacityDurationHours.
 _CAPACITY_BLOCK_DURATIONS_HOURS = [24, 48, 72, 168, 336]  # 1d, 2d, 3d, 7d, 14d
 
+# ClientError codes that mean "no offerings for this duration/type/region" — expected, skip silently.
+# All other ClientErrors (auth, quota, network) are re-raised so the caller sees the real failure.
+_CAPACITY_BLOCK_SKIP_CODES = frozenset(
+    {
+        "UnsupportedOperation",
+        "InvalidParameterValue",
+        "InvalidParameterCombination",
+    }
+)
+
 
 def fetch_aws_capacity_blocks(
     instance_type: str = "p5.48xlarge",
@@ -276,8 +286,12 @@ def fetch_aws_capacity_blocks(
                 ):
                     offerings.extend(page.get("CapacityBlockOfferings", []))
             except botocore.exceptions.ClientError as exc:
-                logger.debug("aws capacity block duration=%dh error: %s", duration_hours, exc)
-                continue
+                error_code = exc.response.get("Error", {}).get("Code", "")
+                if error_code in _CAPACITY_BLOCK_SKIP_CODES:
+                    logger.debug("aws capacity block duration=%dh: %s (skipping)", duration_hours, error_code)
+                    continue
+                logger.warning("aws capacity block duration=%dh unexpected error: %s", duration_hours, exc)
+                raise
         return offerings
     except botocore.exceptions.NoCredentialsError:
         logger.info("aws capacity blocks skipped: no credentials configured")
