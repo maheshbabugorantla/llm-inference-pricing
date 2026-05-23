@@ -1,5 +1,5 @@
 slug: azure-nd-h100-ri-1yr-partial
-display_name: Azure NDm A100 v4 1-yr RI Partial Upfront (H100 SXM)
+display_name: Azure NDv5 H100 1-yr RI Partial Upfront (H100 SXM)
 cloud_provider_slug: azure
 gpu_slug: nvidia-h100-sxm-80
 gpus_per_node: 8
@@ -10,4 +10,4 @@ monthly_recurring_usd: "23800.00"
 minimum_utilization_floor_pct: "0.000"
 on_demand_reference_usd_per_hour: "98.32"
 listing_observed_at: "2025-01-15"
-notes: "Azure NDm A100 v4 1-yr partial-upfront RI. H100 SXM 80GB, 8 GPUs/node."
+notes: "Azure NDv5 H100 1-yr partial-upfront RI (Standard_ND96isr_H100_v5). H100 SXM 80GB, 8 GPUs/node."
