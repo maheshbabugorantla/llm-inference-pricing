@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import pytest
 
-from pricing.scrapers.runpod import _TIER_FIELDS, RUNPOD_GPU_MAP, map_runpod_gpu
+from pricing.scrapers.runpod import RUNPOD_GPU_MAP, TIER_FIELDS, map_runpod_gpu
 
 
 def test_h100_sxm_hint_resolves_to_canonical_nvidia_h100_sxm_80_slug():
@@ -78,7 +78,7 @@ def test_all_mapped_slugs_use_nvidia_or_amd_vendor_prefix(hint, slug):
 
 
 def test_runpod_tier_fields_map_to_expected_cost_cell_tier_names():
-    """The _TIER_FIELDS dict translates RunPod API field names to the tier taxonomy
+    """The TIER_FIELDS dict translates RunPod API field names to the tier taxonomy
     used throughout the pipeline. These exact tier strings appear in PricingSnapshot
     rows and must match what the cost-cell query filters on."""
     expected_tiers = {
@@ -91,7 +91,7 @@ def test_runpod_tier_fields_map_to_expected_cost_cell_tier_names():
         "reserved-6mo",
         "reserved-1yr",
     }
-    actual_tiers = set(_TIER_FIELDS.values())
+    actual_tiers = set(TIER_FIELDS.values())
     assert actual_tiers == expected_tiers, (
         f"Tier taxonomy mismatch.\nExpected: {expected_tiers}\nActual: {actual_tiers}"
     )

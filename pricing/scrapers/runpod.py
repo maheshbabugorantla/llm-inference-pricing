@@ -25,7 +25,7 @@ RUNPOD_GPU_MAP: dict[str, str] = {
     "MI300X": "amd-mi300x",
 }
 
-_TIER_FIELDS: dict[str, str] = {
+TIER_FIELDS: dict[str, str] = {
     "communityPrice": "community",
     "securePrice": "secure",
     "communitySpotPrice": "community-spot",
@@ -49,7 +49,7 @@ def parse_runpod_response(payload: dict[str, Any]) -> list[ScrapedPrice]:
         if gpu_slug is None:
             logger.info("runpod scraper skipping unmapped gpu: %s", display)
             continue
-        for field, tier in _TIER_FIELDS.items():
+        for field, tier in TIER_FIELDS.items():
             raw_price = gpu.get(field)
             if raw_price is None:
                 continue
