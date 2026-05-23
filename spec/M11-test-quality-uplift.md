@@ -94,7 +94,7 @@ Nine files are below the bar defined in `spec/TESTING.md`. Work them in priority
 
 **Required scenarios:**
 - `test_h100_sxm_80gb_slug_is_referenceable_from_pricing_snapshot` — create GPU, create
-  PricingSnapshot pointing at it, assert `snapshot.gpu.slug == "h100-sxm"`
+  PricingSnapshot pointing at it, assert `snapshot.gpu.slug == "nvidia-h100-sxm-80"`
 - `test_gpu_with_zero_vram_raises_validation_error` — `vram_gb=0` → ValidationError or
   IntegrityError (whichever the model enforces)
 - `test_gpu_tdp_watts_required_for_on_prem_cost_math` — GPU without `tdp_watts` set raises

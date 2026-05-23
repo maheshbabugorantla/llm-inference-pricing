@@ -103,7 +103,7 @@ def test_unmapped_gpu_instance_type_is_skipped_and_logged(caplog, p5_products):
         prices = parse_aws_prices(unknown)
 
     assert any("p99.huge" in r.message for r in caplog.records), "unknown instance must be logged"
-    assert all("p99.huge" not in p.gpu_slug_hint for p in prices), (
+    assert all(p.raw.get("instance_type") != "p99.huge" for p in prices), (
         "unknown instance must not appear in results"
     )
     assert len(prices) == len(parse_aws_prices(p5_products)), "known instances must all be present"
