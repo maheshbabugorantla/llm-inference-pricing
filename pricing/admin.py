@@ -1,10 +1,19 @@
 from __future__ import annotations
 
+import datetime
 from typing import TYPE_CHECKING, Any
 
 from django.contrib import admin
+from django.utils import timezone
 
-from pricing.models import HardwareSKU, OnPremDeployment, PricingSnapshot, Provider
+from pricing.models import (
+    HardwareSKU,
+    OnPremDeployment,
+    PricingSnapshot,
+    Provider,
+    ReservedCapacityProduct,
+    ReservedCloudDeployment,
+)
 
 if TYPE_CHECKING:
     from django.http import HttpRequest
@@ -48,6 +57,53 @@ class HardwareSKUAdmin(_ReadOnlyAdmin):
     )
     search_fields = ("slug", "vendor", "display_name")
     list_filter = ("vendor", "gpu")
+
+
+class _StaleListingFilter(admin.SimpleListFilter):
+    """Highlights ReservedCapacityProduct rows whose listing_observed_at is > 90 days ago."""
+
+    title = "listing staleness"
+    parameter_name = "stale"
+
+    def lookups(self, request: HttpRequest, model_admin: Any) -> list[tuple[str, str]]:
+        return [("stale", "Stale (> 90 days)"), ("fresh", "Fresh (≤ 90 days)")]
+
+    def queryset(self, request: HttpRequest, queryset: Any) -> Any:
+        threshold = (timezone.now() - datetime.timedelta(days=90)).date()
+        if self.value() == "stale":
+            return queryset.filter(listing_observed_at__lt=threshold)
+        if self.value() == "fresh":
+            return queryset.filter(listing_observed_at__gte=threshold)
+        return queryset
+
+
+@admin.register(ReservedCapacityProduct)
+class ReservedCapacityProductAdmin(_ReadOnlyAdmin):
+    list_display = (
+        "slug",
+        "display_name",
+        "cloud_provider",
+        "payment_cadence",
+        "term_months",
+        "listing_observed_at",
+        "is_active",
+    )
+    search_fields = ("slug", "display_name")
+    list_filter = ("cloud_provider", "payment_cadence", "is_active", _StaleListingFilter)
+
+
+@admin.register(ReservedCloudDeployment)
+class ReservedCloudDeploymentAdmin(_ReadOnlyAdmin):
+    list_display = (
+        "slug",
+        "display_name",
+        "product",
+        "cloud_provider",
+        "expected_utilization_pct",
+        "is_active",
+    )
+    search_fields = ("slug", "display_name")
+    list_filter = ("cloud_provider", "is_active")
 
 
 @admin.register(OnPremDeployment)

@@ -236,6 +236,21 @@ def fetch_aws_ondemand_skus() -> list[dict[str, Any]]:
     return products
 
 
+# AWS capacity blocks are sold in discrete durations. Querying each duration
+# separately because describe_capacity_block_offerings requires CapacityDurationHours.
+_CAPACITY_BLOCK_DURATIONS_HOURS = [24, 48, 72, 168, 336]  # 1d, 2d, 3d, 7d, 14d
+
+# ClientError codes that mean "no offerings for this duration/type/region" — expected, skip silently.
+# All other ClientErrors (auth, quota, network) are re-raised so the caller sees the real failure.
+_CAPACITY_BLOCK_SKIP_CODES = frozenset(
+    {
+        "UnsupportedOperation",
+        "InvalidParameterValue",
+        "InvalidParameterCombination",
+    }
+)
+
+
 def fetch_aws_capacity_blocks(
     instance_type: str = "p5.48xlarge",
     num_instances: int = 1,
@@ -243,6 +258,7 @@ def fetch_aws_capacity_blocks(
     """Fetch capacity block offerings via EC2 API (requires AWS credentials).
 
     Returns an empty list and logs a warning if credentials are not available.
+    Iterates over common block durations because CapacityDurationHours is required.
     """
     from datetime import datetime, timedelta
 
@@ -257,15 +273,25 @@ def fetch_aws_capacity_blocks(
         start = datetime.now(tz=UTC)
         end = start + timedelta(days=60)
 
-        paginator = ec2.get_paginator("describe_capacity_block_offerings")
         offerings: list[dict[str, Any]] = []
-        for page in paginator.paginate(
-            InstanceType=instance_type,
-            InstanceCount=num_instances,
-            StartDateRange=start,
-            EndDateRange=end,
-        ):
-            offerings.extend(page.get("CapacityBlockOfferings", []))
+        for duration_hours in _CAPACITY_BLOCK_DURATIONS_HOURS:
+            paginator = ec2.get_paginator("describe_capacity_block_offerings")
+            try:
+                for page in paginator.paginate(
+                    InstanceType=instance_type,
+                    CapacityDurationHours=duration_hours,
+                    InstanceCount=num_instances,
+                    StartDateRange=start,
+                    EndDateRange=end,
+                ):
+                    offerings.extend(page.get("CapacityBlockOfferings", []))
+            except botocore.exceptions.ClientError as exc:
+                error_code = exc.response.get("Error", {}).get("Code", "")
+                if error_code in _CAPACITY_BLOCK_SKIP_CODES:
+                    logger.debug("aws capacity block duration=%dh: %s (skipping)", duration_hours, error_code)
+                    continue
+                logger.warning("aws capacity block duration=%dh unexpected error: %s", duration_hours, exc)
+                raise
         return offerings
     except botocore.exceptions.NoCredentialsError:
         logger.info("aws capacity blocks skipped: no credentials configured")

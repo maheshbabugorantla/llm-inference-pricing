@@ -151,6 +151,10 @@ CELERY_BEAT_SCHEDULE: dict[str, object] = {
         "task": "pricing.tasks.regenerate_on_prem_snapshots_task",
         "schedule": crontab(minute=5),
     },
+    "regenerate-reserved-cloud": {
+        "task": "pricing.tasks.regenerate_reserved_cloud_snapshots_task",
+        "schedule": crontab(minute=6),
+    },
     "refresh-cost-cells": {
         "task": "pricing.tasks.refresh_current_cost_cells",
         "schedule": crontab(minute=10),

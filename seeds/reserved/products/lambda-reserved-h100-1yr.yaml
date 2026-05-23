@@ -1,0 +1,12 @@
+slug: lambda-reserved-h100-1yr
+display_name: Lambda Reserved H100 SXM 1-yr All Upfront
+cloud_provider_slug: lambda
+gpu_slug: nvidia-h100-sxm-80
+gpus_per_node: 8
+payment_cadence: all_upfront
+term_months: 12
+upfront_usd: "131040.00"
+minimum_utilization_floor_pct: "0.700"
+on_demand_reference_usd_per_hour: "25.92"
+listing_observed_at: "2025-01-15"
+notes: "Lambda Reserved 1-yr H100 SXM cluster. 70% utilization floor (use-it-or-lose-it). On-demand ~$3.24/GPU-hr."

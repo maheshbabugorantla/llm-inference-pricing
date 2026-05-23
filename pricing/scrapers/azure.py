@@ -130,11 +130,13 @@ def parse_azure_prices(items: list[dict[str, Any]]) -> list[ScrapedPrice]:
     return out
 
 
-@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
-def fetch_azure_prices() -> list[dict[str, Any]]:
-    """Fetch GPU VM prices from Azure Retail Prices API (paginated)."""
-    gpu_skus = "|".join(f"armSkuName eq '{s}'" for s in _SKU_GPU_MAP)
-    filter_query = f"({_FILTER}) and ({gpu_skus})"
+_SKU_CHUNK_SIZE = 5  # OData `or` chains get long; keep each request URL manageable
+
+
+def _fetch_azure_sku_chunk(skus: list[str]) -> list[dict[str, Any]]:
+    """Fetch Azure prices for one chunk of SKUs (paginated). Uses OData `or` (not `|`)."""
+    sku_filter = " or ".join(f"armSkuName eq '{s}'" for s in skus)
+    filter_query = f"({_FILTER}) and ({sku_filter})"
     params: dict[str, str] = {"api-version": "2023-01-01-preview", "$filter": filter_query}
 
     all_items: list[dict[str, Any]] = []
@@ -150,6 +152,21 @@ def fetch_azure_prices() -> list[dict[str, Any]]:
         all_items.extend(data.get("Items", []))
         url = data.get("NextPageLink")
 
+    return all_items
+
+
+@retry(stop=stop_after_attempt(3), wait=wait_exponential(multiplier=1, min=2, max=10))
+def fetch_azure_prices() -> list[dict[str, Any]]:
+    """Fetch GPU VM prices from Azure Retail Prices API.
+
+    Splits SKU list into chunks of _SKU_CHUNK_SIZE and uses OData `or` (not `|`)
+    so each request stays within Azure's filter length limits.
+    """
+    sku_list = list(_SKU_GPU_MAP.keys())
+    all_items: list[dict[str, Any]] = []
+    for i in range(0, len(sku_list), _SKU_CHUNK_SIZE):
+        chunk = sku_list[i : i + _SKU_CHUNK_SIZE]
+        all_items.extend(_fetch_azure_sku_chunk(chunk))
     return all_items
 
 

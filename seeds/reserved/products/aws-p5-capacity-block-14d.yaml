@@ -1,0 +1,13 @@
+slug: aws-p5-capacity-block-14d
+display_name: AWS p5.48xlarge 14-day Capacity Block (H100 SXM)
+cloud_provider_slug: aws
+gpu_slug: nvidia-h100-sxm-80
+gpus_per_node: 8
+payment_cadence: capacity_block
+term_months: 1
+capacity_block_total_usd: "65856.00"
+block_duration_hours: 336
+minimum_utilization_floor_pct: "1.000"
+on_demand_reference_usd_per_hour: "98.3232"
+listing_observed_at: "2025-01-15"
+notes: "AWS Capacity Block for ML, p5.48xlarge, 336-hour (14d) per-node block. Source: AWS fixture InstanceCount=2, UpfrontFee=131712 → 65856/node."

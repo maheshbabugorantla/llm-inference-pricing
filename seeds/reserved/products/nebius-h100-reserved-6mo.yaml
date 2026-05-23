@@ -1,0 +1,12 @@
+slug: nebius-h100-reserved-6mo
+display_name: Nebius H100 SXM Reserved 6-month No Upfront
+cloud_provider_slug: nebius
+gpu_slug: nvidia-h100-sxm-80
+gpus_per_node: 8
+payment_cadence: no_upfront
+term_months: 6
+monthly_recurring_usd: "45600.00"
+minimum_utilization_floor_pct: "0.000"
+on_demand_reference_usd_per_hour: "60.80"
+listing_observed_at: "2025-01-15"
+notes: "Nebius H100 SXM 80GB 6-month reserved commitment. Price per 8-GPU node."

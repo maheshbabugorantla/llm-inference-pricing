@@ -1,0 +1,12 @@
+slug: runpod-h100-reserved-1yr
+display_name: RunPod H100 SXM Reserved 1-yr All Upfront
+cloud_provider_slug: runpod
+gpu_slug: nvidia-h100-sxm-80
+gpus_per_node: 8
+payment_cadence: all_upfront
+term_months: 12
+upfront_usd: "109824.00"
+minimum_utilization_floor_pct: "0.000"
+on_demand_reference_usd_per_hour: "22.40"
+listing_observed_at: "2025-01-15"
+notes: "RunPod H100 SXM 80GB secure cluster, 1-yr reserved all-upfront. ~$2.24/GPU-hr at 70% util (~$1.57/GPU-hr at 100% util)."

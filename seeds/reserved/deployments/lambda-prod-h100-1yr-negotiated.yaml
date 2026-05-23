@@ -1,0 +1,9 @@
+slug: lambda-prod-h100-1yr-negotiated
+display_name: Lambda Production H100 1-yr (Negotiated Rate)
+product_slug: lambda-reserved-h100-1yr
+cloud_provider_slug: lambda
+region: ""
+num_nodes: 1
+expected_utilization_pct: "0.800"
+upfront_override_usd: "118000.00"
+notes: "Negotiated $118k vs $131k list for 1-yr H100 SXM cluster. 80% expected utilization. Override reflects actual signed contract."

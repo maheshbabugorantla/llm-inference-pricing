@@ -1,0 +1,12 @@
+slug: aws-p4d-3yr-all-upfront
+display_name: AWS p4d.24xlarge 3-yr Reserved Instance All Upfront (A100 40GB)
+cloud_provider_slug: aws
+gpu_slug: nvidia-a100-sxm-40
+gpus_per_node: 8
+payment_cadence: all_upfront
+term_months: 36
+upfront_usd: "483552.00"
+minimum_utilization_floor_pct: "0.000"
+on_demand_reference_usd_per_hour: "32.7726"
+listing_observed_at: "2025-01-15"
+notes: "AWS p4d.24xlarge 3-yr all-upfront RI. On-demand reference $32.77/hr (8× A100 40GB)."

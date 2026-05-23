@@ -1,0 +1,12 @@
+slug: gcp-a3-cud-1yr
+display_name: GCP A3 CUD 1-yr No Upfront (H100 SXM)
+cloud_provider_slug: gcp
+gpu_slug: nvidia-h100-sxm-80
+gpus_per_node: 8
+payment_cadence: no_upfront
+term_months: 12
+monthly_recurring_usd: "55368.00"
+minimum_utilization_floor_pct: "0.000"
+on_demand_reference_usd_per_hour: "98.3232"
+listing_observed_at: "2025-01-15"
+notes: "GCP A3 High (8× H100 SXM) 1-yr CUD, no-upfront. ~$55k/month committed discount."

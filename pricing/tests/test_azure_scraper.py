@@ -8,7 +8,12 @@ from pathlib import Path
 
 import pytest
 
-from pricing.scrapers.azure import map_azure_gpu, parse_azure_prices
+from pricing.scrapers.azure import (
+    _SKU_CHUNK_SIZE,
+    _fetch_azure_sku_chunk,
+    map_azure_gpu,
+    parse_azure_prices,
+)
 from pricing.scrapers.base import ParserDriftError
 
 FIXTURES = Path(__file__).parent / "fixtures"
@@ -89,3 +94,39 @@ def test_azure_map_gpu_known_sku():
 
 def test_azure_map_gpu_unknown_sku_returns_none():
     assert map_azure_gpu("Standard_D4s_v3") is None
+
+
+def test_azure_fetch_uses_odata_or_not_pipe_in_filter():
+    """Azure Retail Prices API requires OData `or` for logical OR — not `|` (bitwise OR).
+
+    Sending `|` in the OData $filter returns HTTP 400; the CI scrape was failing because
+    the filter used the wrong operator. This test proves _fetch_azure_sku_chunk constructs
+    a valid OData filter string before any network call goes out.
+    """
+    from unittest.mock import MagicMock, patch
+
+    captured_filter: list[str] = []
+
+    def fake_get(url: str, **kwargs: object) -> MagicMock:
+        params = kwargs.get("params", {})
+        if isinstance(params, dict):
+            captured_filter.append(params.get("$filter", ""))
+        mock_resp = MagicMock()
+        mock_resp.raise_for_status.return_value = None
+        mock_resp.json.return_value = {"Items": [], "NextPageLink": None}
+        return mock_resp
+
+    test_skus = ["Standard_ND96isr_H100_v5", "Standard_ND96amsr_A100_v4"]
+    with patch("pricing.scrapers.azure.httpx.get", side_effect=fake_get):
+        _fetch_azure_sku_chunk(test_skus)
+
+    assert captured_filter, "No request was made"
+    filter_str = captured_filter[0]
+    assert " or " in filter_str, f"Expected OData 'or', got: {filter_str!r}"
+    assert "|" not in filter_str, f"Pipe '|' must not appear in OData filter: {filter_str!r}"
+
+
+def test_azure_sku_chunk_size_keeps_url_manageable():
+    """Each chunk must be small enough to avoid Azure filter-length issues.
+    _SKU_CHUNK_SIZE > 8 would create filters that have historically returned 400."""
+    assert _SKU_CHUNK_SIZE <= 8, f"_SKU_CHUNK_SIZE={_SKU_CHUNK_SIZE} risks Azure URL length errors"

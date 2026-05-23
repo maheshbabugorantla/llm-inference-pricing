@@ -5,10 +5,14 @@ from __future__ import annotations
 import json
 from decimal import Decimal
 from pathlib import Path
+from unittest.mock import MagicMock, patch
 
 import pytest
 
 from pricing.scrapers.aws import (
+    _CAPACITY_BLOCK_DURATIONS_HOURS,
+    _CAPACITY_BLOCK_SKIP_CODES,
+    fetch_aws_capacity_blocks,
     parse_aws_capacity_blocks,
     parse_aws_prices,
 )
@@ -163,3 +167,86 @@ def test_all_aws_on_demand_parsed_prices_have_correct_provider_and_tier(p5_produ
     for price in prices:
         assert price.provider_slug == "aws", f"Expected provider 'aws', got {price.provider_slug!r}"
         assert price.tier == "on_demand", f"Expected tier 'on_demand', got {price.tier!r}"
+
+
+def _mock_ec2_client(paginator: MagicMock) -> MagicMock:
+    ec2 = MagicMock()
+    ec2.get_paginator.return_value = paginator
+    return ec2
+
+
+def test_fetch_aws_capacity_blocks_passes_duration_to_every_paginator_call():
+    """Each describe_capacity_block_offerings call must include CapacityDurationHours.
+
+    Omitting it causes ParamValidationError at runtime. This test records every
+    paginator.paginate() call and verifies the required param is always present.
+    """
+    captured_calls: list[dict] = []
+
+    def fake_paginate(**kwargs: object) -> list:
+        captured_calls.append(dict(kwargs))
+        return []
+
+    mock_paginator = MagicMock()
+    mock_paginator.paginate.side_effect = fake_paginate
+
+    with patch("boto3.client", return_value=_mock_ec2_client(mock_paginator)):
+        fetch_aws_capacity_blocks()
+
+    assert len(captured_calls) == len(_CAPACITY_BLOCK_DURATIONS_HOURS), (
+        "Expected one paginator call per duration"
+    )
+    for call_kwargs in captured_calls:
+        assert "CapacityDurationHours" in call_kwargs, (
+            f"CapacityDurationHours missing from paginator call: {call_kwargs}"
+        )
+    assert {c["CapacityDurationHours"] for c in captured_calls} == set(_CAPACITY_BLOCK_DURATIONS_HOURS)
+
+
+def test_fetch_aws_capacity_blocks_skips_expected_client_errors_per_duration():
+    """UnsupportedOperation and similar 'no offerings' codes must be skipped per-duration.
+
+    Auth/quota errors (not in _CAPACITY_BLOCK_SKIP_CODES) must be re-raised so
+    callers see the real failure rather than silently getting an empty list.
+    """
+    import botocore.exceptions
+
+    call_count = 0
+
+    def fake_paginate(**kwargs: object) -> list:
+        nonlocal call_count
+        call_count += 1
+        raise botocore.exceptions.ClientError(
+            {"Error": {"Code": "UnsupportedOperation", "Message": "not available"}},
+            "DescribeCapacityBlockOfferings",
+        )
+
+    mock_paginator = MagicMock()
+    mock_paginator.paginate.side_effect = fake_paginate
+
+    with patch("boto3.client", return_value=_mock_ec2_client(mock_paginator)):
+        result = fetch_aws_capacity_blocks()
+
+    assert result == [], "Expected empty list when all durations return UnsupportedOperation"
+    assert call_count == len(_CAPACITY_BLOCK_DURATIONS_HOURS)
+
+
+def test_fetch_aws_capacity_blocks_reraises_unexpected_client_errors():
+    """Non-skip ClientErrors (e.g. AuthFailure) must propagate, not be swallowed."""
+    import botocore.exceptions
+
+    def fake_paginate(**kwargs: object) -> list:
+        raise botocore.exceptions.ClientError(
+            {"Error": {"Code": "AuthFailure", "Message": "credentials invalid"}},
+            "DescribeCapacityBlockOfferings",
+        )
+
+    mock_paginator = MagicMock()
+    mock_paginator.paginate.side_effect = fake_paginate
+
+    with patch("boto3.client", return_value=_mock_ec2_client(mock_paginator)):
+        with pytest.raises(botocore.exceptions.ClientError) as exc_info:
+            fetch_aws_capacity_blocks()
+
+    assert exc_info.value.response["Error"]["Code"] == "AuthFailure"
+    assert "AuthFailure" not in _CAPACITY_BLOCK_SKIP_CODES

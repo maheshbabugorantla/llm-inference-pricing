@@ -1,0 +1,12 @@
+slug: coreweave-h100-reserved-1yr
+display_name: CoreWeave H100 SXM Reserved 1-yr
+cloud_provider_slug: coreweave
+gpu_slug: nvidia-h100-sxm-80
+gpus_per_node: 8
+payment_cadence: all_upfront
+term_months: 12
+upfront_usd: "209952.00"
+minimum_utilization_floor_pct: "0.000"
+on_demand_reference_usd_per_hour: "29.96"
+listing_observed_at: "2025-01-15"
+notes: "CoreWeave H100 SXM 80GB reserved 1-yr all-upfront. Manually curated from public pricing page."

@@ -111,5 +111,12 @@ def regenerate_on_prem_snapshots_task() -> int:
 
 
 @shared_task  # type: ignore[untyped-decorator]
+def regenerate_reserved_cloud_snapshots_task() -> int:
+    from pricing.generators.reserved_cloud import regenerate_reserved_cloud_snapshots
+
+    return regenerate_reserved_cloud_snapshots()
+
+
+@shared_task  # type: ignore[untyped-decorator]
 def refresh_current_cost_cells() -> None:
     refresh_cost_cells()

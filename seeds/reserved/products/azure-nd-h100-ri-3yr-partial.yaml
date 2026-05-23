@@ -1,0 +1,13 @@
+slug: azure-nd-h100-ri-3yr-partial
+display_name: Azure NDv5 H100 3-yr RI Partial Upfront (H100 SXM)
+cloud_provider_slug: azure
+gpu_slug: nvidia-h100-sxm-80
+gpus_per_node: 8
+payment_cadence: partial_upfront
+term_months: 36
+upfront_usd: "475200.00"
+monthly_recurring_usd: "13200.00"
+minimum_utilization_floor_pct: "0.000"
+on_demand_reference_usd_per_hour: "98.32"
+listing_observed_at: "2025-01-15"
+notes: "Azure NDv5 H100 3-yr RI partial-upfront (Standard_ND96isr_H100_v5). Deeper discount vs 1-yr."

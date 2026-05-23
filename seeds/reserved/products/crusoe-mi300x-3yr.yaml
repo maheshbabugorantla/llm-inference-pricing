@@ -1,0 +1,12 @@
+slug: crusoe-mi300x-3yr
+display_name: Crusoe MI300X Reserved 3-yr All Upfront
+cloud_provider_slug: crusoe
+gpu_slug: amd-mi300x
+gpus_per_node: 8
+payment_cadence: all_upfront
+term_months: 36
+upfront_usd: "3326400.00"
+minimum_utilization_floor_pct: "0.000"
+on_demand_reference_usd_per_hour: "51.20"
+listing_observed_at: "2025-01-15"
+notes: "Crusoe MI300X (192 GB HBM3e) 3-yr reserved all-upfront. Manually curated."

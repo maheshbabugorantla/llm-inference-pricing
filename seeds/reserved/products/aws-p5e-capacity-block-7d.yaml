@@ -1,0 +1,13 @@
+slug: aws-p5e-capacity-block-7d
+display_name: AWS p5e.48xlarge 7-day Capacity Block (H100 SXM)
+cloud_provider_slug: aws
+gpu_slug: nvidia-h100-sxm-80
+gpus_per_node: 8
+payment_cadence: capacity_block
+term_months: 1
+capacity_block_total_usd: "68096.00"
+block_duration_hours: 168
+minimum_utilization_floor_pct: "1.000"
+on_demand_reference_usd_per_hour: "110.00"
+listing_observed_at: "2025-01-15"
+notes: "AWS Capacity Block p5e.48xlarge (newer H100 instance), 168-hour (7d) block."

@@ -1,9 +1,10 @@
 from __future__ import annotations
 
+import datetime
 from decimal import Decimal
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProviderYAML(BaseModel):
@@ -34,6 +35,45 @@ class HardwareSKUYAML(BaseModel):
     network_gbps: int
     host_tdp_watts: int
     reference_msrp_usd: Decimal | None = None
+    notes: str = ""
+
+
+class ReservedCapacityProductYAML(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    slug: str
+    display_name: str
+    cloud_provider_slug: str
+    gpu_slug: str
+    gpus_per_node: int = Field(..., ge=1)
+    payment_cadence: Literal["all_upfront", "partial_upfront", "no_upfront", "capacity_block"]
+    term_months: int = Field(..., ge=1)
+    upfront_usd: Decimal = Decimal("0")
+    monthly_recurring_usd: Decimal = Decimal("0")
+    per_active_hour_usd: Decimal = Decimal("0")
+    capacity_block_total_usd: Decimal = Decimal("0")
+    block_duration_hours: int | None = Field(None, ge=1)
+    minimum_utilization_floor_pct: Decimal = Decimal("0.000")
+    on_demand_reference_usd_per_hour: Decimal | None = None
+    listing_observed_at: datetime.date
+    notes: str = ""
+    is_active: bool = True
+
+
+class ReservedCloudDeploymentYAML(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    slug: str
+    display_name: str
+    product_slug: str
+    cloud_provider_slug: str
+    region: str = ""
+    num_nodes: int = 1
+    expected_utilization_pct: Decimal = Decimal("0.700")
+    upfront_override_usd: Decimal | None = None
+    monthly_recurring_override_usd: Decimal | None = None
+    per_hour_override_usd: Decimal | None = None
+    is_active: bool = True
     notes: str = ""
 
 
