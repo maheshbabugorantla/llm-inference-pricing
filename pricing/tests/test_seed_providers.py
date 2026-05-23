@@ -22,7 +22,7 @@ from pricing.models import PricingSnapshot, Provider
 
 @pytest.mark.django_db
 def test_seed_providers_creates_all_known_cloud_providers():
-    """All six cloud providers used by scrapers must be seeded so scraper tasks
+    """All seven cloud providers used by scrapers must be seeded so scraper tasks
     can look them up by slug without creating orphaned PricingSnapshot rows."""
     call_command("seed_providers")
     slugs = set(Provider.objects.values_list("slug", flat=True))

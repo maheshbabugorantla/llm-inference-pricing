@@ -5,6 +5,7 @@ from typing import Any
 
 import yaml
 from django.core.management.base import BaseCommand, CommandError
+from django.db import transaction
 from pydantic import ValidationError
 
 from pricing.models import Provider
@@ -26,27 +27,29 @@ class Command(BaseCommand):
             self.stdout.write("seeds/providers.yaml is empty — nothing to do.")
             return
 
+        try:
+            validated = [ProviderYAML.model_validate(entry) for entry in raw]
+        except ValidationError as e:
+            raise CommandError(f"YAML schema validation failed: {e}") from e
+
         created = updated = 0
-        for entry in raw:
-            try:
-                provider = ProviderYAML.model_validate(entry)
-            except ValidationError as e:
-                raise CommandError(f"YAML schema validation failed: {e}") from e
-            _, was_created = Provider.objects.update_or_create(
-                slug=provider.slug,
-                defaults={
-                    "display_name": provider.display_name,
-                    "provider_type": provider.provider_type,
-                    "data_source_tier": provider.data_source_tier,
-                    "pricing_url": provider.pricing_url,
-                    "has_api": provider.has_api,
-                    "api_endpoint": provider.api_endpoint,
-                    "is_active": provider.is_active,
-                },
-            )
-            if was_created:
-                created += 1
-            else:
-                updated += 1
+        with transaction.atomic():
+            for provider in validated:
+                _, was_created = Provider.objects.update_or_create(
+                    slug=provider.slug,
+                    defaults={
+                        "display_name": provider.display_name,
+                        "provider_type": provider.provider_type,
+                        "data_source_tier": provider.data_source_tier,
+                        "pricing_url": provider.pricing_url,
+                        "has_api": provider.has_api,
+                        "api_endpoint": provider.api_endpoint,
+                        "is_active": provider.is_active,
+                    },
+                )
+                if was_created:
+                    created += 1
+                else:
+                    updated += 1
 
         self.stdout.write(self.style.SUCCESS(f"seed_providers: {created} created, {updated} updated"))
