@@ -7,7 +7,7 @@ import pydantic
 import yaml
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.core.management.base import BaseCommand, CommandError
-from django.db import transaction
+from django.db import IntegrityError, transaction
 from django.db.models.signals import post_save
 
 from catalog.models import GPU
@@ -22,12 +22,15 @@ from pricing.services.seed import ReservedCapacityProductYAML, ReservedCloudDepl
 
 
 def _save_with_validation(obj: Any, yaml_name: str) -> None:
-    """Call full_clean() then save(), converting ValidationError to CommandError."""
+    """Call full_clean() then save(), converting validation/integrity errors to CommandError."""
     try:
         obj.full_clean()
     except DjangoValidationError as exc:
         raise CommandError(f"{yaml_name}: model validation failed: {exc}") from exc
-    obj.save()
+    try:
+        obj.save()
+    except IntegrityError as exc:
+        raise CommandError(f"{yaml_name}: database integrity error: {exc}") from exc
 
 
 class Command(BaseCommand):
