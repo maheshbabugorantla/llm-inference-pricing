@@ -13,14 +13,22 @@ def regenerate_reserved_cloud_snapshots() -> int:
 
     Tiers: 'reserved-{slug}' (committed rate) and 'reserved-marginal-{slug}'.
     The existing cloud Provider is reused per ADR-010 — no synthetic provider created.
+    Stale snapshots for active deployments are retired (available=False) before new
+    rows are created, preventing duplicate available rows on repeated calls.
     """
     now = timezone.now()
     written = 0
 
-    for d in ReservedCloudDeployment.objects.select_related(
+    active_qs = ReservedCloudDeployment.objects.filter(is_active=True, product__is_active=True)
+    active_slugs = list(active_qs.values_list("slug", flat=True))
+    stale_tiers = [f"reserved-{s}" for s in active_slugs] + [f"reserved-marginal-{s}" for s in active_slugs]
+    if stale_tiers:
+        PricingSnapshot.objects.filter(tier__in=stale_tiers).update(available=False)
+
+    for d in active_qs.select_related(
         "product__gpu",
         "product__cloud_provider",
-    ).filter(is_active=True, product__is_active=True):
+    ):
         breakdown = compute_reserved_cloud_cost(d)
         for tier_suffix, per_gpu in [
             ("reserved", breakdown["per_gpu_hourly_committed"]),
