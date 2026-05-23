@@ -45,9 +45,9 @@ class ReservedCapacityProductYAML(BaseModel):
     display_name: str
     cloud_provider_slug: str
     gpu_slug: str
-    gpus_per_node: int
+    gpus_per_node: int = Field(..., ge=1)
     payment_cadence: Literal["all_upfront", "partial_upfront", "no_upfront", "capacity_block"]
-    term_months: int
+    term_months: int = Field(..., ge=1)
     upfront_usd: Decimal = Decimal("0")
     monthly_recurring_usd: Decimal = Decimal("0")
     per_active_hour_usd: Decimal = Decimal("0")
