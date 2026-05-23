@@ -3,9 +3,9 @@ name: Copilot Review Gate
 # Evaluates Copilot code review severity on every PR push and review submission.
 #
 # Behaviour:
-#   pull_request event  → passes immediately if no Copilot review exists yet
-#                         (Copilot submits its review asynchronously)
-#   pull_request_review → re-evaluates severity; fails on HIGH or MEDIUM issues
+#   pull_request event  → fails if no Copilot review exists yet (merge blocked
+#                         until Copilot responds); Copilot submits asynchronously
+#   pull_request_review → re-evaluates; passes only if no HIGH or MEDIUM issues
 #
 # Copilot reviews are triggered automatically by the repository setting:
 #   Settings → Copilot → Code review → "Automatically review pull requests"
@@ -50,8 +50,8 @@ jobs:
                   | sort_by(.submitted_at) | last | .id")
 
           if [ -z "${LATEST_REVIEW_ID}" ] || [ "${LATEST_REVIEW_ID}" = "null" ]; then
-            echo "::notice::No Copilot review yet. The gate will re-evaluate automatically when Copilot submits its review."
-            exit 0
+            echo "::error::No Copilot review submitted yet — merge is blocked until Copilot reviews this PR."
+            exit 1
           fi
 
           echo "Latest Copilot review ID: ${LATEST_REVIEW_ID}"
