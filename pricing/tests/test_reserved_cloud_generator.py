@@ -196,6 +196,24 @@ def test_post_save_signal_retires_snapshots_on_deactivation():
 
 
 @pytest.mark.django_db(transaction=True)
+def test_generator_skips_deployments_with_inactive_product():
+    """Generator must skip deployments whose product has is_active=False.
+
+    The queryset filter product__is_active=True ensures that retiring a product
+    also silently excludes all its deployments from snapshot generation.
+    """
+    deployment, _ = _make_scenario("h")
+    deployment.product.is_active = False
+    deployment.product.save()
+    PricingSnapshot.objects.all().delete()
+
+    written = regenerate_reserved_cloud_snapshots()
+
+    assert written == 0
+    assert PricingSnapshot.objects.count() == 0
+
+
+@pytest.mark.django_db(transaction=True)
 def test_post_save_signal_does_not_regenerate_when_created_inactive():
     """Creating a deployment with is_active=False must NOT trigger snapshot generation.
 
