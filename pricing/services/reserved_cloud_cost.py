@@ -46,7 +46,9 @@ def compute_reserved_cloud_cost(deployment: ReservedCloudDeployment) -> CostBrea
     expected_util = deployment.expected_utilization_pct
     billable_util = max(expected_util, p.minimum_utilization_floor_pct)
 
-    if p.payment_cadence == "capacity_block" and p.block_duration_hours is not None:
+    if p.payment_cadence == "capacity_block":
+        if not p.block_duration_hours:
+            raise ValueError(f"capacity_block product '{p.slug}' has no block_duration_hours set")
         term_hours = Decimal(p.block_duration_hours)
     else:
         term_hours = Decimal(p.term_months) * Decimal(730)

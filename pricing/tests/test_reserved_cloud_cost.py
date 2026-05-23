@@ -343,3 +343,16 @@ def test_zero_useful_active_hours_raises_value_error():
     deployment = _deployment(product, expected_utilization_pct=Decimal("0.000"))
     with pytest.raises(ValueError, match="useful_active_hours must be positive"):
         compute_reserved_cloud_cost(deployment)
+
+
+def test_capacity_block_missing_block_duration_hours_raises_value_error():
+    """capacity_block products without block_duration_hours must raise, not silently use term_months * 730."""
+    product = _product(
+        payment_cadence="capacity_block",
+        block_duration_hours=None,
+        capacity_block_total_usd=Decimal("65856.00"),
+        minimum_utilization_floor_pct=Decimal("1.000"),
+    )
+    deployment = _deployment(product, expected_utilization_pct=Decimal("1.000"))
+    with pytest.raises(ValueError, match="block_duration_hours"):
+        compute_reserved_cloud_cost(deployment)
