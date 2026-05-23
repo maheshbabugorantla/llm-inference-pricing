@@ -20,7 +20,7 @@ def regenerate_reserved_cloud_snapshots() -> int:
     for d in ReservedCloudDeployment.objects.select_related(
         "product__gpu",
         "product__cloud_provider",
-    ).filter(is_active=True):
+    ).filter(is_active=True, product__is_active=True):
         breakdown = compute_reserved_cloud_cost(d)
         for tier_suffix, per_gpu in [
             ("reserved", breakdown["per_gpu_hourly_committed"]),

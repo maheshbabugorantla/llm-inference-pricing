@@ -290,6 +290,14 @@ def _regenerate_reserved_on_save(
     **kwargs: object,
 ) -> None:
     if not kwargs.get("created", False) and not instance.is_active:
+        slug = instance.slug
+
+        def _retire() -> None:
+            PricingSnapshot.objects.filter(tier__in=[f"reserved-{slug}", f"reserved-marginal-{slug}"]).update(
+                available=False
+            )
+
+        transaction.on_commit(_retire)
         return
     from pricing.generators.reserved_cloud import regenerate_reserved_cloud_snapshots
 

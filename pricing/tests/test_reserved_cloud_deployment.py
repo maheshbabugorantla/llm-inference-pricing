@@ -5,6 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 import pytest
+from django.core.exceptions import ValidationError
 from django.db import IntegrityError
 
 from catalog.tests.factories import GPUFactory
@@ -37,12 +38,11 @@ def _make_product(slug_suffix: str = "") -> ReservedCapacityProduct:
 def test_reserved_cloud_deployment_saves_with_required_fields():
     """A deployment linked to a ReservedCapacityProduct saves cleanly with defaults."""
     product = _make_product("a")
-    provider = ProviderFactory(slug="lambda-dep-a", provider_type="cloud")
     dep = ReservedCloudDeployment.objects.create(
         slug="lambda-prod-h100-1yr-a",
         display_name="Lambda Production H100 1-yr",
         product=product,
-        cloud_provider=provider,
+        cloud_provider=product.cloud_provider,
         num_nodes=2,
         expected_utilization_pct=Decimal("0.700"),
     )
@@ -54,12 +54,11 @@ def test_reserved_cloud_deployment_saves_with_required_fields():
 def test_reserved_cloud_deployment_overrides_are_nullable():
     """Override fields (upfront, monthly, per_hour) are optional — None by default."""
     product = _make_product("b")
-    provider = ProviderFactory(slug="lambda-dep-b", provider_type="cloud")
     dep = ReservedCloudDeployment.objects.create(
         slug="lambda-prod-h100-1yr-b",
         display_name="Lambda Production H100 1-yr",
         product=product,
-        cloud_provider=provider,
+        cloud_provider=product.cloud_provider,
     )
     assert dep.upfront_override_usd is None
     assert dep.monthly_recurring_override_usd is None
@@ -70,12 +69,11 @@ def test_reserved_cloud_deployment_overrides_are_nullable():
 def test_reserved_cloud_deployment_with_negotiated_override_saves_cleanly():
     """A deployment with all three override fields set is valid (negotiated deal scenario)."""
     product = _make_product("c")
-    provider = ProviderFactory(slug="lambda-dep-c", provider_type="cloud")
     dep = ReservedCloudDeployment.objects.create(
         slug="lambda-prod-h100-1yr-override-c",
         display_name="Lambda Production H100 1-yr (negotiated)",
         product=product,
-        cloud_provider=provider,
+        cloud_provider=product.cloud_provider,
         expected_utilization_pct=Decimal("0.800"),
         upfront_override_usd=Decimal("450000.00"),
         monthly_recurring_override_usd=Decimal("0"),
@@ -90,12 +88,11 @@ def test_reserved_cloud_deployment_fk_to_product_is_protected():
     from django.db import transaction as db_tx
 
     product = _make_product("d")
-    provider = ProviderFactory(slug="lambda-dep-d", provider_type="cloud")
     ReservedCloudDeployment.objects.create(
         slug="lambda-prod-h100-1yr-d",
         display_name="Lambda Production H100 1-yr",
         product=product,
-        cloud_provider=provider,
+        cloud_provider=product.cloud_provider,
     )
     from django.db.models import ProtectedError
 
@@ -108,12 +105,11 @@ def test_reserved_cloud_deployment_fk_to_product_is_protected():
 def test_reserved_cloud_deployment_str_returns_display_name():
     """__str__ must return display_name per SHARED.md convention."""
     product = _make_product("e")
-    provider = ProviderFactory(slug="lambda-dep-e", provider_type="cloud")
     dep = ReservedCloudDeployment.objects.create(
         slug="lambda-prod-h100-1yr-e",
         display_name="Lambda Production H100 1-yr",
         product=product,
-        cloud_provider=provider,
+        cloud_provider=product.cloud_provider,
     )
     assert str(dep) == "Lambda Production H100 1-yr"
 
@@ -122,17 +118,35 @@ def test_reserved_cloud_deployment_str_returns_display_name():
 def test_duplicate_deployment_slug_raises_integrity_error():
     """Two ReservedCloudDeployment rows with the same slug must be rejected."""
     product = _make_product("f")
-    provider = ProviderFactory(slug="lambda-dep-f", provider_type="cloud")
     ReservedCloudDeployment.objects.create(
         slug="lambda-prod-h100-1yr-dup",
         display_name="Lambda Production H100 1-yr",
         product=product,
-        cloud_provider=provider,
+        cloud_provider=product.cloud_provider,
     )
     with pytest.raises(IntegrityError):
         ReservedCloudDeployment.objects.create(
             slug="lambda-prod-h100-1yr-dup",
             display_name="Lambda Production H100 1-yr Dup",
             product=product,
-            cloud_provider=provider,
+            cloud_provider=product.cloud_provider,
         )
+
+
+@pytest.mark.django_db
+def test_mismatched_cloud_provider_fails_full_clean():
+    """full_clean() must reject a deployment whose cloud_provider differs from product.cloud_provider.
+
+    Django does not call clean() on objects.create()/save(), so this invariant is enforced
+    only when full_clean() is called (e.g. via the seed command or admin).
+    """
+    product = _make_product("g")
+    other_provider = ProviderFactory(slug="other-cloud-g", provider_type="cloud")
+    dep = ReservedCloudDeployment(
+        slug="lambda-prod-h100-mismatch-g",
+        display_name="Lambda Production H100 1-yr (mismatch)",
+        product=product,
+        cloud_provider=other_provider,
+    )
+    with pytest.raises(ValidationError, match="cloud_provider must match"):
+        dep.full_clean()
