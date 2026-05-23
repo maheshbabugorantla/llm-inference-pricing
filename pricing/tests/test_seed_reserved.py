@@ -152,7 +152,7 @@ def test_seed_reserved_rejects_product_with_invalid_payment_cadence(tmp_path, se
     deployments_dir.mkdir()
     bad = _product_yaml(seed_gpu.slug, cloud_provider.slug, payment_cadence="invalid")
     (products_dir / "bad.yaml").write_text(yaml.dump(bad))
-    with pytest.raises((CommandError, Exception)):
+    with pytest.raises(CommandError):
         call_command("seed_reserved", products_dir=products_dir, deployments_dir=deployments_dir)
     assert ReservedCapacityProduct.objects.count() == 0
 
