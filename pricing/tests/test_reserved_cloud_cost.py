@@ -97,9 +97,9 @@ def test_reservation_marginal_equals_per_active_hour_for_all_upfront():
 def test_aws_capacity_block_p5_14_day_committed_rate():
     """PRD Appendix A: AWS p5.48xlarge 14-day capacity block.
 
-    $131,712 total for 2 instances x 336 hours = $196/instance-hr, 8 GPUs.
+    AWS fixture: InstanceCount=2, UpfrontFee=$131,712 → $65,856 per node.
     Capacity block: floor=1.0, block_duration_hours=336.
-    per_gpu_hourly = 131712 / (336 * 8) = $49.00/hr
+    per_gpu_hourly = 65856 / (336 * 8) = $24.50/hr
     """
     product = _product(
         term_months=1,
@@ -109,7 +109,7 @@ def test_aws_capacity_block_p5_14_day_committed_rate():
         upfront_usd=Decimal("0"),
         monthly_recurring_usd=Decimal("0"),
         per_active_hour_usd=Decimal("0"),
-        capacity_block_total_usd=Decimal("131712.00"),
+        capacity_block_total_usd=Decimal("65856.00"),
         minimum_utilization_floor_pct=Decimal("1.000"),
     )
     deployment = _deployment(
@@ -119,8 +119,8 @@ def test_aws_capacity_block_p5_14_day_committed_rate():
     result = compute_reserved_cloud_cost(deployment)
 
     # block_duration = 336h; billable_util = 1.0; useful = 336
-    # node_committed = 131712 / 336; per_gpu = / 8
-    expected_per_gpu = Decimal("131712.00") / (Decimal(336) * Decimal(8))
+    # node_committed = 65856 / 336; per_gpu = / 8
+    expected_per_gpu = Decimal("65856.00") / (Decimal(336) * Decimal(8))
     assert result["per_gpu_hourly_committed"] == expected_per_gpu.quantize(Decimal("0.0001"))
 
 
