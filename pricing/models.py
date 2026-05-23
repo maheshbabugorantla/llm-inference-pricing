@@ -275,6 +275,53 @@ class ReservedCloudDeployment(models.Model):
                 )
 
 
+class PricingDriftAlert(models.Model):
+    SEVERITY_CHOICES: ClassVar[list[tuple[str, str]]] = [
+        ("info", "Info"),
+        ("warning", "Warning"),
+        ("critical", "Critical"),
+    ]
+
+    provider = models.ForeignKey(Provider, on_delete=models.PROTECT)
+    gpu = models.ForeignKey("catalog.GPU", on_delete=models.PROTECT)
+    tier = models.CharField(max_length=64)
+    curated_usd_per_hour = models.DecimalField(max_digits=8, decimal_places=4)
+    observed_usd_per_hour = models.DecimalField(max_digits=8, decimal_places=4)
+    drift_pct = models.DecimalField(max_digits=8, decimal_places=3)
+    source_url = models.URLField()
+    severity = models.CharField(max_length=10, choices=SEVERITY_CHOICES)
+    detected_at = models.DateTimeField(auto_now_add=True)
+    acknowledged_at = models.DateTimeField(null=True, blank=True)
+    notes = models.TextField(blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ("-detected_at",)
+        indexes: ClassVar = [
+            models.Index(fields=["acknowledged_at", "-detected_at"]),
+        ]
+        constraints: ClassVar = [
+            models.CheckConstraint(
+                condition=Q(drift_pct__gte=0),
+                name="pricingdriftalert_drift_pct_nonneg",
+            ),
+            models.CheckConstraint(
+                condition=Q(curated_usd_per_hour__gte=0),
+                name="pricingdriftalert_curated_usd_per_hour_nonneg",
+            ),
+            models.CheckConstraint(
+                condition=Q(observed_usd_per_hour__gte=0),
+                name="pricingdriftalert_observed_usd_per_hour_nonneg",
+            ),
+        ]
+
+    def __str__(self) -> str:
+        return (
+            f"{self.provider.slug}/{self.gpu.slug}/{self.tier}"
+            f" {self.severity} @ {self.detected_at:%Y-%m-%d %H:%M}"
+        )
+
+
 @receiver(post_save, sender=OnPremDeployment)
 def _regenerate_on_save(sender: type[OnPremDeployment], instance: OnPremDeployment, **kwargs: object) -> None:
     if not kwargs.get("created", False) and not instance.is_active:
