@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
+from django.db import transaction
 from django.db.models import ProtectedError
 from django.db.utils import IntegrityError
 from django.test import TestCase
@@ -53,7 +54,8 @@ class ProviderTest(TestCase):
         A duplicate slug would silently corrupt which rows belong to which provider."""
         ProviderFactory(slug="runpod")
         with self.assertRaises(IntegrityError):
-            ProviderFactory(slug="runpod")
+            with transaction.atomic():
+                ProviderFactory(slug="runpod")
 
     def test_on_prem_provider_type_is_accepted_and_persists(self):
         """on_prem providers are created by the on-prem generator, not scrapers.

@@ -108,12 +108,13 @@ class ReservedCloudDeploymentTest(TestCase):
             cloud_provider=product.cloud_provider,
         )
         with self.assertRaises(IntegrityError):
-            ReservedCloudDeployment.objects.create(
-                slug="lambda-prod-h100-1yr-dup",
-                display_name="Lambda Production H100 1-yr Dup",
-                product=product,
-                cloud_provider=product.cloud_provider,
-            )
+            with db_tx.atomic():
+                ReservedCloudDeployment.objects.create(
+                    slug="lambda-prod-h100-1yr-dup",
+                    display_name="Lambda Production H100 1-yr Dup",
+                    product=product,
+                    cloud_provider=product.cloud_provider,
+                )
 
     def test_mismatched_cloud_provider_fails_full_clean(self):
         """full_clean() must reject a deployment whose cloud_provider differs from product.cloud_provider.

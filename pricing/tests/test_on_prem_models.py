@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from pricing.models import HardwareSKU
@@ -19,7 +19,8 @@ class HardwareSKUTest(TestCase):
     def test_hardware_sku_slug_unique(self):
         HardwareSKUFactory(slug="my-sku")
         with self.assertRaises(IntegrityError):
-            HardwareSKUFactory(slug="my-sku")
+            with transaction.atomic():
+                HardwareSKUFactory(slug="my-sku")
 
     def test_hardware_sku_fk_to_gpu(self):
         sku = HardwareSKUFactory()
@@ -40,7 +41,8 @@ class OnPremDeploymentTest(TestCase):
     def test_on_prem_deployment_slug_unique(self):
         OnPremDeploymentFactory(slug="unique-deploy")
         with self.assertRaises(IntegrityError):
-            OnPremDeploymentFactory(slug="unique-deploy")
+            with transaction.atomic():
+                OnPremDeploymentFactory(slug="unique-deploy")
 
     def test_on_prem_deployment_fk_to_hardware_sku(self):
         d = OnPremDeploymentFactory()

@@ -5,7 +5,7 @@ from __future__ import annotations
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.test import TestCase
 
 from catalog.tests.factories import GPUFactory
@@ -238,17 +238,18 @@ class ReservedCapacityProductConstraintsTest(TestCase):
             listing_observed_at="2025-01-15",
         )
         with self.assertRaises(IntegrityError):
-            ReservedCapacityProduct.objects.create(
-                slug="aws-p5-1yr-dup",
-                display_name="AWS P5 1-yr Duplicate",
-                cloud_provider=provider,
-                gpu=gpu,
-                gpus_per_node=8,
-                payment_cadence="all_upfront",
-                term_months=12,
-                upfront_usd=Decimal("1000000.00"),
-                listing_observed_at="2025-01-15",
-            )
+            with transaction.atomic():
+                ReservedCapacityProduct.objects.create(
+                    slug="aws-p5-1yr-dup",
+                    display_name="AWS P5 1-yr Duplicate",
+                    cloud_provider=provider,
+                    gpu=gpu,
+                    gpus_per_node=8,
+                    payment_cadence="all_upfront",
+                    term_months=12,
+                    upfront_usd=Decimal("1000000.00"),
+                    listing_observed_at="2025-01-15",
+                )
 
     def test_reserved_product_str_returns_display_name(self):
         """__str__ must return display_name per SHARED.md convention."""

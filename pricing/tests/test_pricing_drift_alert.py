@@ -11,7 +11,7 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
 from django.db import models as django_models
 from django.test import TestCase
 from django.utils import timezone
@@ -168,17 +168,20 @@ class PricingDriftAlertConstraintTest(TestCase):
     def test_negative_drift_pct_is_rejected_by_db_constraint(self):
         """drift_pct must be non-negative -- the DB constraint must fire on negative values."""
         with self.assertRaises(IntegrityError):
-            PricingDriftAlertFactory(drift_pct=Decimal("-1.000"))
+            with transaction.atomic():
+                PricingDriftAlertFactory(drift_pct=Decimal("-1.000"))
 
     def test_negative_curated_usd_per_hour_is_rejected_by_db_constraint(self):
         """curated_usd_per_hour must be non-negative -- a negative curated rate is corrupt data."""
         with self.assertRaises(IntegrityError):
-            PricingDriftAlertFactory(curated_usd_per_hour=Decimal("-0.0001"))
+            with transaction.atomic():
+                PricingDriftAlertFactory(curated_usd_per_hour=Decimal("-0.0001"))
 
     def test_negative_observed_usd_per_hour_is_rejected_by_db_constraint(self):
         """observed_usd_per_hour must be non-negative -- a negative observed rate is corrupt data."""
         with self.assertRaises(IntegrityError):
-            PricingDriftAlertFactory(observed_usd_per_hour=Decimal("-0.0001"))
+            with transaction.atomic():
+                PricingDriftAlertFactory(observed_usd_per_hour=Decimal("-0.0001"))
 
     def test_invalid_severity_choice_is_not_enforced_at_db_level(self):
         """Django choices= is form/admin validation only -- the DB accepts any string in severity."""
