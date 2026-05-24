@@ -25,6 +25,54 @@ services:
       timeout: 5s
       retries: 10
 
+  worker:
+    image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+    command: uv run celery -A pricing_dashboard worker --loglevel=info
+    volumes:
+      - .:/workspace
+      - uv-cache:/root/.cache/uv
+    working_dir: /workspace
+    environment:
+      DB_NAME: pricing
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: db
+      DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: pricing_dashboard.settings
+      ENABLE_COMPUTEPRICES_DRIFT_CHECK: "${ENABLE_COMPUTEPRICES_DRIFT_CHECK:-0}"
+      COMPUTEPRICES_API_KEY: "${COMPUTEPRICES_API_KEY:-}"
+      SENTRY_DSN: "${SENTRY_DSN:-}"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
+  beat:
+    image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
+    command: uv run celery -A pricing_dashboard beat --loglevel=info
+    volumes:
+      - .:/workspace
+      - uv-cache:/root/.cache/uv
+    working_dir: /workspace
+    environment:
+      DB_NAME: pricing
+      DB_USER: postgres
+      DB_PASSWORD: postgres
+      DB_HOST: db
+      DB_PORT: "5432"
+      REDIS_URL: redis://redis:6379/0
+      DJANGO_SETTINGS_MODULE: pricing_dashboard.settings
+      SENTRY_DSN: "${SENTRY_DSN:-}"
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: unless-stopped
+
   test:
     image: ghcr.io/astral-sh/uv:python3.12-bookworm-slim
     volumes:
