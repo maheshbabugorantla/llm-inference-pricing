@@ -80,10 +80,12 @@ def parse_computeprices_response(data: list[dict[str, Any]]) -> list[dict[str, s
                 " — API schema may have changed"
             )
 
-        if not isinstance(item["provider_slug"], str) or not item["provider_slug"]:
+        raw_slug = item["provider_slug"]
+        if not isinstance(raw_slug, str) or not raw_slug.strip():
             raise ParserDriftError(
                 f"computeprices API item {i} has null or blank provider_slug — API schema may have changed"
             )
+        provider_slug = raw_slug.strip()
 
         price = item["price_per_hour_usd"]
         if price is None:
@@ -100,7 +102,7 @@ def parse_computeprices_response(data: list[dict[str, Any]]) -> list[dict[str, s
             ) from exc
 
         normalized: dict[str, str] = {
-            "provider": map_provider_slug(str(item["provider_slug"])),
+            "provider": map_provider_slug(provider_slug),
             "hourly_usd": price_str,
         }
         if item.get("gpu"):

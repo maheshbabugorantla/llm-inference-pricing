@@ -243,6 +243,23 @@ def test_parse_computeprices_response_raises_drift_error_when_provider_slug_is_n
         parse_computeprices_response(data)
 
 
+def test_parse_computeprices_response_raises_drift_error_when_provider_slug_is_whitespace_only() -> None:
+    """provider_slug='  ' passes a truthiness check but silently breaks provider matching.
+    Must be rejected as blank after stripping."""
+    data = [{"provider_slug": "   ", "price_per_hour_usd": 2.39, "gpu": "H100"}]
+    with pytest.raises(ParserDriftError, match="null or blank provider_slug"):
+        parse_computeprices_response(data)
+
+
+def test_parse_computeprices_response_strips_whitespace_from_provider_slug() -> None:
+    """Padded slugs like '  coreweave  ' must be stripped before mapping,
+    so they match correctly instead of silently missing drift comparisons."""
+    data = [{"provider_slug": "  coreweave  ", "price_per_hour_usd": 2.39, "gpu": "H100 SXM"}]
+    result = parse_computeprices_response(data)
+    assert len(result) == 1
+    assert result[0]["provider"] == "coreweave"
+
+
 def test_parse_computeprices_response_raises_drift_error_when_price_is_non_numeric() -> None:
     """Non-numeric price_per_hour_usd must raise ParserDriftError at the parser boundary."""
     data = [{"provider_slug": "coreweave", "price_per_hour_usd": "N/A", "gpu": "H100"}]
