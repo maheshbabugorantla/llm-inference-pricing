@@ -262,19 +262,20 @@ def test_tier3_drift_check_ignores_non_manual_curation_providers() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Curated rate: all_upfront uses 720h approximation
+# Curated rate: all_upfront uses 730h/month (aligned with reserved_cloud_cost.py)
 # ---------------------------------------------------------------------------
 
 
 @pytest.mark.django_db
 def test_tier3_upfront_only_product_amortises_over_full_term() -> None:
-    """For all_upfront products, curated hourly rate is upfront_usd / (term_months * 720h) / gpus_per_node.
-    $86,400 upfront over 12 months / 8 GPUs -> $1.25/GPU/hr curated.
+    """For all_upfront products, curated hourly rate is upfront_usd / (term_months * 730h) / gpus_per_node.
+    730h/month matches the convention in reserved_cloud_cost.py and on_prem_cost.py.
+    $87,600 upfront over 12 months / 8 GPUs -> $1.25/GPU/hr curated.
     Aggregator at $1.375/GPU/hr = 10% drift (warning)."""
     _make_tier3_product(
         "coreweave",
         "nvidia-h100-sxm-80-upfront1",
-        upfront_usd="86400.00",
+        upfront_usd="87600.00",
         suffix="-upfront1",
     )
     fake_rows = [{"provider": "coreweave", "hourly_usd": "1.375"}]
@@ -283,7 +284,7 @@ def test_tier3_upfront_only_product_amortises_over_full_term() -> None:
         alerts = check_tier3_drift()
 
     assert len(alerts) == 1
-    expected_curated = Decimal("86400.00") / (Decimal("12") * Decimal("720")) / Decimal("8")
+    expected_curated = Decimal("87600.00") / (Decimal("12") * Decimal("730")) / Decimal("8")
     assert alerts[0].curated_usd_per_hour == expected_curated
     assert alerts[0].severity == "warning"
 

@@ -27,7 +27,7 @@ logger = logging.getLogger("pricing.services.drift_detection")
 _NOISE_THRESHOLD = Decimal("0.5")
 _WARNING_THRESHOLD = Decimal("5")
 _CRITICAL_THRESHOLD = Decimal("20")
-_HOURS_PER_MONTH = Decimal("720")
+_HOURS_PER_MONTH = Decimal("730")
 
 
 def _curated_hourly_rate(product: ReservedCapacityProduct) -> Decimal:
