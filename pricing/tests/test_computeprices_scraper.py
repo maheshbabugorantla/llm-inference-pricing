@@ -21,6 +21,7 @@ import pytest
 
 from pricing.scrapers.base import ParserDriftError
 from pricing.scrapers.computeprices import (
+    BASE_URL,
     GPU_SLUG_MAP,
     fetch_computeprices_gpu_prices,
     map_provider_slug,
@@ -128,8 +129,8 @@ def test_parse_computeprices_response_includes_unmapped_provider_slugs() -> None
 
 
 def test_parse_computeprices_response_hourly_usd_uses_price_per_hour_usd() -> None:
-    """hourly_usd in the output must be price_per_hour_usd (per-GPU) so it aligns
-    with per_active_hour_usd semantics in ReservedCapacityProduct."""
+    """hourly_usd in the output must be price_per_hour_usd (per-GPU). The drift service
+    derives a per-GPU curated rate from per_active_hour_usd by dividing by gpus_per_node."""
     data = json.loads(FIXTURE.read_text())
     result = parse_computeprices_response(data)
     cw = next(r for r in result if r["provider"] == "coreweave")
@@ -171,6 +172,36 @@ def test_parse_computeprices_response_skips_null_price() -> None:
 # ---------------------------------------------------------------------------
 # parse_computeprices_response — failure / drift modes
 # ---------------------------------------------------------------------------
+
+
+def test_parse_computeprices_response_carries_source_url_when_present() -> None:
+    """source_url from the API item must be forwarded so the drift service can use it
+    as the alert source URL instead of constructing a fabricated fallback."""
+    data = [
+        {
+            "provider_slug": "coreweave",
+            "gpu": "H100 SXM",
+            "price_per_hour_usd": 2.39,
+            "source_url": "https://computeprices.com/providers/coreweave/h100",
+        }
+    ]
+    result = parse_computeprices_response(data)
+    assert len(result) == 1
+    assert result[0]["source_url"] == "https://computeprices.com/providers/coreweave/h100"
+
+
+def test_parse_computeprices_response_omits_source_url_when_absent() -> None:
+    """When source_url is absent from the API item, the key must not appear in the output."""
+    data = [
+        {
+            "provider_slug": "coreweave",
+            "gpu": "H100 SXM",
+            "price_per_hour_usd": 2.39,
+        }
+    ]
+    result = parse_computeprices_response(data)
+    assert len(result) == 1
+    assert "source_url" not in result[0]
 
 
 def test_parse_computeprices_response_raises_drift_error_when_data_is_empty() -> None:
@@ -275,3 +306,35 @@ def test_fetch_computeprices_gpu_prices_returns_empty_list_for_unmapped_gpu(
 
     assert result == []
     mock_get.assert_not_called()
+
+
+def test_fetch_computeprices_gpu_prices_raises_parser_drift_error_on_non_dict_response(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If the API returns a non-dict body (e.g. a list or HTML), raise ParserDriftError
+    so the drift service catches it at the boundary and notifies Sentry."""
+    monkeypatch.delenv("COMPUTEPRICES_API_KEY", raising=False)
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = [{"provider_slug": "coreweave", "price_per_hour_usd": 2.39}]
+    mock_resp.raise_for_status.return_value = None
+    with patch(_FETCH_TARGET, return_value=mock_resp):
+        with pytest.raises(ParserDriftError, match="unexpected response shape"):
+            fetch_computeprices_gpu_prices("nvidia-h100-sxm-80")
+
+
+def test_fetch_computeprices_gpu_prices_raises_parser_drift_error_when_data_is_not_list(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If the API returns a dict but 'data' is not a list, raise ParserDriftError."""
+    monkeypatch.delenv("COMPUTEPRICES_API_KEY", raising=False)
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {"data": "unexpected string", "meta": {}}
+    mock_resp.raise_for_status.return_value = None
+    with patch(_FETCH_TARGET, return_value=mock_resp):
+        with pytest.raises(ParserDriftError, match="unexpected response shape"):
+            fetch_computeprices_gpu_prices("nvidia-h100-sxm-80")
+
+
+def test_base_url_is_public_constant() -> None:
+    """BASE_URL must be importable as a public constant for use by the drift service."""
+    assert BASE_URL == "https://computeprices.com/api/v1"

@@ -21,7 +21,8 @@ from pricing.scrapers.base import ParserDriftError
 
 logger = logging.getLogger("pricing.scrapers.computeprices")
 
-_BASE_URL = "https://computeprices.com/api/v1"
+BASE_URL = "https://computeprices.com/api/v1"
+_BASE_URL = BASE_URL  # backwards-compat alias — prefer BASE_URL in new code
 
 # Maps our internal GPU slugs → ComputePrices API gpu slugs.
 # Only GPUs that appear in ComputePrices listings are included.
@@ -58,9 +59,10 @@ def map_provider_slug(their_slug: str) -> str:
 
 
 def parse_computeprices_response(data: list[dict[str, Any]]) -> list[dict[str, str]]:
-    """Normalise ComputePrices API response items to {provider, hourly_usd, gpu?} format.
+    """Normalise ComputePrices API response items to {provider, hourly_usd, gpu?, source_url?} format.
 
-    hourly_usd is price_per_hour_usd (per-GPU) to align with per_active_hour_usd semantics.
+    hourly_usd uses price_per_hour_usd (per-GPU). The drift service derives a per-GPU
+    curated rate from per_active_hour_usd by dividing by gpus_per_node before comparing.
     Items with null price_per_hour_usd are skipped (no price to compare).
     Raises ParserDriftError if data is empty or any item is missing required fields.
     """
@@ -98,6 +100,8 @@ def parse_computeprices_response(data: list[dict[str, Any]]) -> list[dict[str, s
         }
         if item.get("gpu"):
             normalized["gpu"] = str(item["gpu"])
+        if item.get("source_url"):
+            normalized["source_url"] = str(item["source_url"])
         out.append(normalized)
 
     return out
@@ -123,11 +127,14 @@ def fetch_computeprices_gpu_prices(our_gpu_slug: str) -> list[dict[str, str]]:
         headers["Authorization"] = f"Bearer {api_key}"
 
     resp = httpx.get(
-        f"{_BASE_URL}/gpu-prices",
+        f"{BASE_URL}/gpu-prices",
         params={"gpu": their_slug, "pricing_type": "on_demand"},
         headers=headers,
         timeout=30.0,
     )
     resp.raise_for_status()
-    data: list[dict[str, Any]] = resp.json().get("data", [])
+    body = resp.json()
+    if not isinstance(body, dict) or not isinstance(body.get("data"), list):
+        raise ParserDriftError(f"computeprices API returned unexpected response shape for gpu={their_slug!r}")
+    data: list[dict[str, Any]] = body["data"]
     return parse_computeprices_response(data)
