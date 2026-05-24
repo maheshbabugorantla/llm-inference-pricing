@@ -4,58 +4,50 @@ from __future__ import annotations
 
 from decimal import Decimal
 
-import pytest
-from django.db import IntegrityError
+from django.db import IntegrityError, transaction
+from django.test import TestCase
 
 from pricing.models import HardwareSKU
 from pricing.tests.factories import HardwareSKUFactory, OnPremDeploymentFactory
 
 
-@pytest.mark.django_db
-def test_hardware_sku_created():
-    sku = HardwareSKUFactory()
-    assert HardwareSKU.objects.filter(pk=sku.pk).exists()
+class HardwareSKUTest(TestCase):
+    def test_hardware_sku_created(self):
+        sku = HardwareSKUFactory()
+        self.assertTrue(HardwareSKU.objects.filter(pk=sku.pk).exists())
 
-
-@pytest.mark.django_db
-def test_hardware_sku_slug_unique():
-    HardwareSKUFactory(slug="my-sku")
-    with pytest.raises(IntegrityError):
+    def test_hardware_sku_slug_unique(self):
         HardwareSKUFactory(slug="my-sku")
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                HardwareSKUFactory(slug="my-sku")
+
+    def test_hardware_sku_fk_to_gpu(self):
+        sku = HardwareSKUFactory()
+        self.assertIsNotNone(sku.gpu)
+        self.assertIsNotNone(sku.gpu.pk)
 
 
-@pytest.mark.django_db
-def test_hardware_sku_fk_to_gpu():
-    sku = HardwareSKUFactory()
-    assert sku.gpu is not None
-    assert sku.gpu.pk is not None
+class OnPremDeploymentTest(TestCase):
+    def test_on_prem_deployment_defaults(self):
+        d = OnPremDeploymentFactory()
+        self.assertEqual(d.salvage_pct, Decimal("0.100"))
+        self.assertEqual(d.depreciation_years, 4)
+        self.assertEqual(d.expected_utilization_pct, Decimal("0.700"))
+        self.assertEqual(d.pue, Decimal("1.400"))
+        self.assertEqual(d.gpu_count_per_admin, 128)
+        self.assertTrue(d.is_active)
 
-
-@pytest.mark.django_db
-def test_on_prem_deployment_defaults():
-    d = OnPremDeploymentFactory()
-    assert d.salvage_pct == Decimal("0.100")
-    assert d.depreciation_years == 4
-    assert d.expected_utilization_pct == Decimal("0.700")
-    assert d.pue == Decimal("1.400")
-    assert d.gpu_count_per_admin == 128
-    assert d.is_active is True
-
-
-@pytest.mark.django_db
-def test_on_prem_deployment_slug_unique():
-    OnPremDeploymentFactory(slug="unique-deploy")
-    with pytest.raises(IntegrityError):
+    def test_on_prem_deployment_slug_unique(self):
         OnPremDeploymentFactory(slug="unique-deploy")
+        with self.assertRaises(IntegrityError):
+            with transaction.atomic():
+                OnPremDeploymentFactory(slug="unique-deploy")
 
+    def test_on_prem_deployment_fk_to_hardware_sku(self):
+        d = OnPremDeploymentFactory()
+        self.assertIsInstance(d.hardware_sku, HardwareSKU)
 
-@pytest.mark.django_db
-def test_on_prem_deployment_fk_to_hardware_sku():
-    d = OnPremDeploymentFactory()
-    assert isinstance(d.hardware_sku, HardwareSKU)
-
-
-@pytest.mark.django_db
-def test_on_prem_deployment_str():
-    d = OnPremDeploymentFactory(display_name="My Lab")
-    assert str(d) == "My Lab"
+    def test_on_prem_deployment_str(self):
+        d = OnPremDeploymentFactory(display_name="My Lab")
+        self.assertEqual(str(d), "My Lab")

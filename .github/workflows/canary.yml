@@ -67,7 +67,7 @@ jobs:
         run: python manage.py seed_providers
 
       - name: Run scraper fixture tests
-        run: pytest pricing/tests/test_scrape_pricing_command.py pricing/tests/test_runpod_parser.py pricing/tests/test_lambda_scraper.py pricing/tests/test_vast_scraper.py pricing/tests/test_nebius_scraper.py pricing/tests/test_gcp_scraper.py pricing/tests/test_aws_scraper.py pricing/tests/test_azure_scraper.py -q
+        run: python manage.py test pricing.tests.test_scrape_pricing_command pricing.tests.test_runpod_parser pricing.tests.test_lambda_scraper pricing.tests.test_vast_scraper pricing.tests.test_nebius_scraper pricing.tests.test_gcp_scraper pricing.tests.test_aws_scraper pricing.tests.test_azure_scraper --noinput -v 0
 
       - name: Smoke RunPod live API (network flakiness is non-fatal)
         run: python manage.py scrape_pricing --provider runpod

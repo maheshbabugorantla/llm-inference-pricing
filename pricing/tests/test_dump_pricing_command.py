@@ -1,19 +1,18 @@
 from __future__ import annotations
 
 import json
+import shutil
+import tempfile
+import unittest
 from decimal import Decimal
-from typing import TYPE_CHECKING
+from pathlib import Path
 from unittest.mock import patch
 
-import pytest
-from django.core.management import call_command
+from django.test import TestCase
 
 from pricing.models import PricingSnapshot
 from pricing.scrapers import ScraperEntry
 from pricing.scrapers.base import ScrapedPrice
-
-if TYPE_CHECKING:
-    from pathlib import Path
 
 
 def _fake_price(slug: str = "runpod") -> ScrapedPrice:
@@ -37,69 +36,87 @@ def _entry(slug: str, prices: list[ScrapedPrice] | None = None) -> ScraperEntry:
     )
 
 
-def test_dump_pricing_writes_per_provider_json(tmp_path: Path) -> None:
-    with patch.dict("pricing.scrapers.SCRAPERS", {"runpod": _entry("runpod")}):
-        call_command("dump_pricing", "--provider", "runpod", "--out", str(tmp_path))
+class DumpPricingCommandTest(unittest.TestCase):
+    def setUp(self) -> None:
+        self._tmp = tempfile.mkdtemp()
+        self.tmp_path = Path(self._tmp)
 
-    out_file = tmp_path / "runpod.json"
-    assert out_file.exists()
-    data = json.loads(out_file.read_text())
-    assert data["provider_slug"] == "runpod"
-    assert data["schema_version"] == 1
-    assert len(data["prices"]) == 1
-    assert data["prices"][0]["hourly_usd"] == "2.50"
+    def tearDown(self) -> None:
+        shutil.rmtree(self._tmp, ignore_errors=True)
+
+    def test_dump_pricing_writes_per_provider_json(self) -> None:
+        from django.core.management import call_command
+
+        with patch.dict("pricing.scrapers.SCRAPERS", {"runpod": _entry("runpod")}):
+            call_command("dump_pricing", "--provider", "runpod", "--out", str(self.tmp_path))
+
+        out_file = self.tmp_path / "runpod.json"
+        self.assertTrue(out_file.exists())
+        data = json.loads(out_file.read_text())
+        self.assertEqual(data["provider_slug"], "runpod")
+        self.assertEqual(data["schema_version"], 1)
+        self.assertEqual(len(data["prices"]), 1)
+        self.assertEqual(data["prices"][0]["hourly_usd"], "2.50")
+
+    def test_dump_pricing_all_writes_all_providers(self) -> None:
+        from django.core.management import call_command
+
+        fake_scrapers = {
+            "runpod": _entry("runpod"),
+            "lambda": _entry("lambda"),
+            "vast": _entry("vast"),
+            "nebius": _entry("nebius"),
+        }
+        with patch.dict("pricing.scrapers.SCRAPERS", fake_scrapers, clear=True):
+            call_command("dump_pricing", "--provider", "all", "--out", str(self.tmp_path))
+
+        for slug in ("runpod", "lambda", "vast", "nebius"):
+            self.assertTrue((self.tmp_path / f"{slug}.json").exists())
+
+    def test_dump_pricing_does_not_overwrite_on_scraper_exception(self) -> None:
+        from django.core.management import call_command
+
+        prior_content = '{"schema_version": 1, "provider_slug": "runpod", "prices": []}\n'
+        (self.tmp_path / "runpod.json").write_text(prior_content)
+
+        broken = ScraperEntry(
+            scrape_fn=lambda: (_ for _ in ()).throw(RuntimeError("network down")),
+            gpu_slug_resolver=lambda x: x,
+            source_url="https://runpod.example.com",
+        )
+        with patch.dict("pricing.scrapers.SCRAPERS", {"runpod": broken}):
+            with self.assertRaises(SystemExit):
+                call_command("dump_pricing", "--provider", "runpod", "--out", str(self.tmp_path))
+
+        self.assertEqual((self.tmp_path / "runpod.json").read_text(), prior_content)
+
+    def test_dump_pricing_returns_nonzero_on_partial_failure(self) -> None:
+        from django.core.management import call_command
+
+        broken = ScraperEntry(
+            scrape_fn=lambda: (_ for _ in ()).throw(RuntimeError("bang")),
+            gpu_slug_resolver=lambda x: x,
+            source_url="https://runpod.example.com",
+        )
+        with patch.dict("pricing.scrapers.SCRAPERS", {"runpod": broken}):
+            with self.assertRaises(SystemExit) as ctx:
+                call_command("dump_pricing", "--provider", "runpod", "--out", str(self.tmp_path))
+
+        self.assertNotEqual(ctx.exception.code, 0)
 
 
-def test_dump_pricing_all_writes_all_providers(tmp_path: Path) -> None:
-    fake_scrapers = {
-        "runpod": _entry("runpod"),
-        "lambda": _entry("lambda"),
-        "vast": _entry("vast"),
-        "nebius": _entry("nebius"),
-    }
-    with patch.dict("pricing.scrapers.SCRAPERS", fake_scrapers, clear=True):
-        call_command("dump_pricing", "--provider", "all", "--out", str(tmp_path))
+class DumpPricingDatabaseTest(TestCase):
+    def setUp(self) -> None:
+        self._tmp = tempfile.mkdtemp()
+        self.tmp_path = Path(self._tmp)
 
-    for slug in ("runpod", "lambda", "vast", "nebius"):
-        assert (tmp_path / f"{slug}.json").exists()
+    def tearDown(self) -> None:
+        shutil.rmtree(self._tmp, ignore_errors=True)
 
+    def test_dump_pricing_does_not_touch_database(self) -> None:
+        from django.core.management import call_command
 
-def test_dump_pricing_does_not_overwrite_on_scraper_exception(tmp_path: Path) -> None:
-    prior_content = '{"schema_version": 1, "provider_slug": "runpod", "prices": []}\n'
-    (tmp_path / "runpod.json").write_text(prior_content)
+        with patch.dict("pricing.scrapers.SCRAPERS", {"runpod": _entry("runpod")}):
+            call_command("dump_pricing", "--provider", "runpod", "--out", str(self.tmp_path))
 
-    broken = ScraperEntry(
-        scrape_fn=lambda: (_ for _ in ()).throw(RuntimeError("network down")),
-        gpu_slug_resolver=lambda x: x,
-        source_url="https://runpod.example.com",
-    )
-    with (
-        patch.dict("pricing.scrapers.SCRAPERS", {"runpod": broken}),
-        pytest.raises(SystemExit),
-    ):
-        call_command("dump_pricing", "--provider", "runpod", "--out", str(tmp_path))
-
-    assert (tmp_path / "runpod.json").read_text() == prior_content
-
-
-def test_dump_pricing_returns_nonzero_on_partial_failure(tmp_path: Path) -> None:
-    broken = ScraperEntry(
-        scrape_fn=lambda: (_ for _ in ()).throw(RuntimeError("bang")),
-        gpu_slug_resolver=lambda x: x,
-        source_url="https://runpod.example.com",
-    )
-    with (
-        patch.dict("pricing.scrapers.SCRAPERS", {"runpod": broken}),
-        pytest.raises(SystemExit) as exc_info,
-    ):
-        call_command("dump_pricing", "--provider", "runpod", "--out", str(tmp_path))
-
-    assert exc_info.value.code != 0
-
-
-@pytest.mark.django_db
-def test_dump_pricing_does_not_touch_database(tmp_path: Path) -> None:
-    with patch.dict("pricing.scrapers.SCRAPERS", {"runpod": _entry("runpod")}):
-        call_command("dump_pricing", "--provider", "runpod", "--out", str(tmp_path))
-
-    assert PricingSnapshot.objects.count() == 0
+        self.assertEqual(PricingSnapshot.objects.count(), 0)

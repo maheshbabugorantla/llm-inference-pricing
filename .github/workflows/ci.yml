@@ -67,4 +67,4 @@ jobs:
           DB_HOST: localhost
           DB_PORT: 5432
           REDIS_URL: redis://localhost:6379/0
-        run: pytest -q --cov=catalog --cov=pricing --cov-report=term-missing
+        run: coverage run manage.py test catalog pricing tests --noinput -v 0 && coverage report

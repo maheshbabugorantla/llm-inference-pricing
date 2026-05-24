@@ -43,7 +43,7 @@ On-prem and reserved-cloud pricing is computed from YAML-curated deployment conf
 - **Pydantic v2** for scraper return types, artifact schema validation, and YAML seed validation
 - **httpx + tenacity** for HTTP scraping with retries
 - **BeautifulSoup4** for HTML parsing
-- **pytest + pytest-django** · **ruff** · **mypy strict** · **pre-commit**
+- **Django TestCase / coverage** · **ruff** · **mypy strict** · **pre-commit**
 - **uv** for dependency management
 
 ## Quickstart
@@ -97,7 +97,13 @@ python manage.py load_pricing --provider all     # → PricingSnapshot rows
 ### 5 — Run tests
 
 ```bash
-pytest -q
+python manage.py test catalog pricing tests --noinput -v 0
+```
+
+Or with coverage:
+
+```bash
+coverage run manage.py test catalog pricing tests --noinput -v 0 && coverage report
 ```
 
 All tests are fixture-driven — no live network calls.
@@ -246,10 +252,10 @@ Hardware configs in `seeds/hardware/`; deployment configs in `seeds/deployments/
 ### Quality gate
 
 ```bash
-ruff check && ruff format --check   # lint + format
-mypy catalog pricing                # type check
-pytest -q                           # full test suite
-python manage.py makemigrations --check  # no pending migrations
+ruff check && ruff format --check              # lint + format
+mypy catalog pricing                           # type check
+python manage.py test catalog pricing tests --noinput -v 0  # full test suite
+python manage.py makemigrations --check        # no pending migrations
 ```
 
 ### Pre-commit hooks
@@ -268,7 +274,7 @@ docker compose -f docker-compose.yml -f compose.claude.yml run --rm \
   --entrypoint /bin/bash \
   -e DB_HOST=db -e DB_PORT=5432 -e DB_NAME=pricing \
   -e DB_USER=postgres -e DB_PASSWORD=postgres \
-  claude -c "cd /workspace && .venv-linux/bin/pytest -q"
+  claude -c "cd /workspace && .venv-linux/bin/python manage.py test catalog pricing tests --noinput -v 0"
 ```
 
 See [`docs/DOCKER.md`](docs/DOCKER.md) for how to run Claude Code with `--dangerously-skip-permissions` safely inside a container with an egress firewall.
@@ -290,7 +296,7 @@ See [`docs/DOCKER.md`](docs/DOCKER.md) for how to run Claude Code with `--danger
 | M08 | On-prem (`HardwareSKU`, `OnPremDeployment`, TCO generator) | ✅ |
 | M09 | Reserved cloud (`ReservedCapacityProduct`, payment cadences) | ✅ |
 | M10 | ComputePrices.com drift detection *(optional)* | 🔲 |
-| M11 | Test quality uplift (business-scenario test refactor) | 🔲 |
+| M11 | Test quality uplift — pytest → Django TestCase, coverage CI | ✅ |
 
 Full specs in [`spec/INDEX.md`](spec/INDEX.md).
 
