@@ -153,8 +153,8 @@ class RefreshCostCellsTaskTest(TransactionTestCase):
 
         with connection.cursor() as c:
             c.execute(
-                "SELECT COUNT(*) FROM pricing_current_cost_cells WHERE provider_id = %s",
-                [provider.id],
+                "SELECT COUNT(*) FROM pricing_current_cost_cells WHERE provider_slug = %s",
+                [provider.slug],
             )
             row_count = c.fetchone()[0]
 

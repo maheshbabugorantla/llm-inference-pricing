@@ -17,7 +17,7 @@ class CostCellIntegrationTest(TransactionTestCase):
         quant = QuantizationFactory(slug="fp8")
         gpu = GPUFactory(slug="nvidia-h100-sxm-80", vram_gb=80)
         model = ModelFactory(slug="qwen", recommended_quant=quant)
-        bp = BenchmarkPointFactory(
+        BenchmarkPointFactory(
             model=model,
             gpu=gpu,
             quantization=quant,
@@ -43,9 +43,9 @@ class CostCellIntegrationTest(TransactionTestCase):
                 """
                 SELECT usd_per_m_input, usd_per_m_output
                 FROM pricing_current_cost_cells
-                WHERE benchmark_point_id = %s AND provider_id = %s AND pricing_tier = 'community'
+                WHERE gpu_slug = %s AND provider_slug = %s AND tier = %s
             """,
-                [bp.id, provider.id],
+                ["nvidia-h100-sxm-80", "runpod", "community"],
             )
             row = c.fetchone()
 
@@ -60,7 +60,7 @@ class CostCellIntegrationTest(TransactionTestCase):
     def test_cost_cell_picks_latest_snapshot(self):
         gpu = GPUFactory(slug="nvidia-a100-sxm-80")
         provider = ProviderFactory(slug="runpod-latest")
-        bp = BenchmarkPointFactory(gpu=gpu, tp_size=1, prefill_tps_aggregate=10000, decode_tps_aggregate=500)
+        BenchmarkPointFactory(gpu=gpu, tp_size=1, prefill_tps_aggregate=10000, decode_tps_aggregate=500)
 
         old_time = timezone.now() - datetime.timedelta(hours=2)
         PricingSnapshotFactory(
@@ -80,9 +80,9 @@ class CostCellIntegrationTest(TransactionTestCase):
             c.execute(
                 """
                 SELECT hourly_usd FROM pricing_current_cost_cells
-                WHERE benchmark_point_id = %s AND provider_id = %s AND pricing_tier = 'on_demand'
+                WHERE gpu_slug = %s AND provider_slug = %s AND tier = %s
             """,
-                [bp.id, provider.id],
+                ["nvidia-a100-sxm-80", "runpod-latest", "on_demand"],
             )
             row = c.fetchone()
 
@@ -92,7 +92,7 @@ class CostCellIntegrationTest(TransactionTestCase):
     def test_cost_cell_excludes_unavailable_snapshots(self):
         gpu = GPUFactory(slug="nvidia-t4")
         provider = ProviderFactory(slug="provider-unavail")
-        bp = BenchmarkPointFactory(gpu=gpu, tp_size=1, prefill_tps_aggregate=5000, decode_tps_aggregate=300)
+        BenchmarkPointFactory(gpu=gpu, tp_size=1, prefill_tps_aggregate=5000, decode_tps_aggregate=300)
         PricingSnapshotFactory(
             provider=provider,
             gpu=gpu,
@@ -108,9 +108,9 @@ class CostCellIntegrationTest(TransactionTestCase):
             c.execute(
                 """
                 SELECT COUNT(*) FROM pricing_current_cost_cells
-                WHERE benchmark_point_id = %s AND provider_id = %s
+                WHERE gpu_slug = %s AND provider_slug = %s
             """,
-                [bp.id, provider.id],
+                ["nvidia-t4", "provider-unavail"],
             )
             count = c.fetchone()[0]
 

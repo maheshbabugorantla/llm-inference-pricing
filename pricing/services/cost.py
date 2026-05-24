@@ -24,3 +24,9 @@ def refresh_cost_cells(*, concurrently: bool = True) -> None:
     )
     with connection.cursor() as c:
         c.execute(sql)
+
+
+def get_current_cost_cells_queryset() -> object:
+    from pricing.models import CurrentCostCell
+
+    return CurrentCostCell.objects.all()

@@ -355,3 +355,37 @@ def _regenerate_reserved_on_save(
     from pricing.generators.reserved_cloud import regenerate_reserved_cloud_snapshots
 
     transaction.on_commit(regenerate_reserved_cloud_snapshots)
+
+
+class CurrentCostCell(models.Model):
+    """Read-only unmanaged model backed by the pricing_current_cost_cells materialized view."""
+
+    row_hash = models.CharField(max_length=32, primary_key=True)
+    gpu_slug = models.CharField(max_length=64)
+    gpu_display_name = models.CharField(max_length=128)
+    model_slug = models.CharField(max_length=64)
+    model_display_name = models.CharField(max_length=128)
+    quantization_slug = models.CharField(max_length=64)
+    tp_size = models.PositiveIntegerField()
+    batch_size = models.PositiveIntegerField()
+    context_length = models.PositiveIntegerField()
+    provider_slug = models.CharField(max_length=64)
+    provider_display_name = models.CharField(max_length=64)
+    provider_type = models.CharField(max_length=16)
+    data_source_tier = models.CharField(max_length=24)
+    tier = models.CharField(max_length=64)
+    region = models.CharField(max_length=64, null=True, blank=True)  # noqa: DJ001
+    hourly_usd = models.DecimalField(max_digits=12, decimal_places=4)
+    decode_tps_aggregate = models.DecimalField(max_digits=12, decimal_places=2)
+    prefill_tps_aggregate = models.DecimalField(max_digits=12, decimal_places=2)
+    ttft_ms = models.FloatField(null=True)
+    usd_per_m_input = models.DecimalField(max_digits=12, decimal_places=4)
+    usd_per_m_output = models.DecimalField(max_digits=12, decimal_places=4)
+    scraped_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "pricing_current_cost_cells"
+
+    def __str__(self) -> str:
+        return f"{self.provider_slug}/{self.gpu_slug}/{self.model_slug}"
