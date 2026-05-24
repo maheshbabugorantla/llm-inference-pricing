@@ -235,6 +235,14 @@ def test_parse_computeprices_response_raises_drift_error_when_provider_slug_is_b
         parse_computeprices_response(data)
 
 
+def test_parse_computeprices_response_raises_drift_error_when_provider_slug_is_non_string() -> None:
+    """provider_slug=0 (integer) must not pass as a valid slug — schema requires a non-empty string.
+    Allowing it would coerce to '0' and silently miss all drift matches."""
+    data = [{"provider_slug": 0, "price_per_hour_usd": 2.39, "gpu": "H100"}]
+    with pytest.raises(ParserDriftError, match="null or blank provider_slug"):
+        parse_computeprices_response(data)
+
+
 def test_parse_computeprices_response_raises_drift_error_when_price_is_non_numeric() -> None:
     """Non-numeric price_per_hour_usd must raise ParserDriftError at the parser boundary."""
     data = [{"provider_slug": "coreweave", "price_per_hour_usd": "N/A", "gpu": "H100"}]

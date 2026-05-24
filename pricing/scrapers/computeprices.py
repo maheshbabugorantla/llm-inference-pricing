@@ -80,7 +80,7 @@ def parse_computeprices_response(data: list[dict[str, Any]]) -> list[dict[str, s
                 " — API schema may have changed"
             )
 
-        if not item["provider_slug"] and item["provider_slug"] != 0:
+        if not isinstance(item["provider_slug"], str) or not item["provider_slug"]:
             raise ParserDriftError(
                 f"computeprices API item {i} has null or blank provider_slug — API schema may have changed"
             )
