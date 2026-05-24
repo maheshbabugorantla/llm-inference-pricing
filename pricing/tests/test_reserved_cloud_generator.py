@@ -2,7 +2,7 @@
 
 Note: the scenarios here overlap with test_generators_transaction.py which provides
 the same coverage using cleaner setUpTestData / setUp patterns. Both files are kept
-so no tests are dropped during the pytest to Django TestCase migration.
+so no tests are dropped from the test suite.
 
 Uses Django TestCase with captureOnCommitCallbacks(execute=True) to test
 on_commit callbacks without requiring real transactions.

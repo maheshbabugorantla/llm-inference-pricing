@@ -67,4 +67,4 @@ jobs:
           DB_HOST: localhost
           DB_PORT: 5432
           REDIS_URL: redis://localhost:6379/0
-        run: coverage run manage.py test catalog pricing --noinput -v 0 && coverage report
+        run: coverage run manage.py test catalog pricing tests --noinput -v 0 && coverage report

@@ -97,13 +97,13 @@ python manage.py load_pricing --provider all     # → PricingSnapshot rows
 ### 5 — Run tests
 
 ```bash
-python manage.py test catalog pricing --noinput -v 0
+python manage.py test catalog pricing tests --noinput -v 0
 ```
 
 Or with coverage:
 
 ```bash
-coverage run manage.py test catalog pricing --noinput -v 0 && coverage report
+coverage run manage.py test catalog pricing tests --noinput -v 0 && coverage report
 ```
 
 All tests are fixture-driven — no live network calls.
@@ -254,7 +254,7 @@ Hardware configs in `seeds/hardware/`; deployment configs in `seeds/deployments/
 ```bash
 ruff check && ruff format --check              # lint + format
 mypy catalog pricing                           # type check
-python manage.py test catalog pricing -v 0    # full test suite
+python manage.py test catalog pricing tests --noinput -v 0  # full test suite
 python manage.py makemigrations --check        # no pending migrations
 ```
 
@@ -274,7 +274,7 @@ docker compose -f docker-compose.yml -f compose.claude.yml run --rm \
   --entrypoint /bin/bash \
   -e DB_HOST=db -e DB_PORT=5432 -e DB_NAME=pricing \
   -e DB_USER=postgres -e DB_PASSWORD=postgres \
-  claude -c "cd /workspace && .venv-linux/bin/python manage.py test catalog pricing -v 0"
+  claude -c "cd /workspace && .venv-linux/bin/python manage.py test catalog pricing tests --noinput -v 0"
 ```
 
 See [`docs/DOCKER.md`](docs/DOCKER.md) for how to run Claude Code with `--dangerously-skip-permissions` safely inside a container with an egress firewall.

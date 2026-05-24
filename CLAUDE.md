@@ -22,7 +22,7 @@ You are working on **llm-inference-pricing** — a Django backend that prices LL
 ## Stack invariants
 
 - Python **3.12+**, Django **5.x**, Postgres **16+** with the **TimescaleDB** extension installed.
-- **pytest + pytest-django** for tests (never `unittest` or Django's test runner directly).
+- **Django TestCase / `python manage.py test`** for tests. `coverage` for reporting. No pytest.
 - **pydantic v2** for YAML schema validation and scraper return types.
 - **Celery** + **Celery Beat** for scheduling, with **Redis** as broker.
 - **ruff** for lint + format (`ruff check` + `ruff format`). No black, no isort.
@@ -35,11 +35,11 @@ You are working on **llm-inference-pricing** — a Django backend that prices LL
 A task is done when **all** of the following are true:
 
 ```
-pytest path/to/affected/tests -q          # all green
-pytest -q                                 # full suite still green
-ruff check && ruff format --check         # clean
-mypy catalog pricing                      # clean
-python manage.py makemigrations --check   # no pending migrations
+python manage.py test <app>.tests.<module> -v 0  # targeted tests, all green
+python manage.py test catalog pricing tests -v 0 # full suite still green
+ruff check && ruff format --check                # clean
+mypy catalog pricing                             # clean
+python manage.py makemigrations --check          # no pending migrations
 ```
 
 Plus the task's specific verification block at the bottom of its spec file.
