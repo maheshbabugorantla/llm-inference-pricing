@@ -4,7 +4,6 @@ import datetime
 from typing import TYPE_CHECKING, Any
 
 from django.contrib import admin
-from django.db.models import Case, F, Value, When
 from django.utils import timezone
 
 from pricing.models import (
@@ -145,13 +144,7 @@ def _mark_drift_alerts_acknowledged(
     queryset: Any,
 ) -> None:
     now = timezone.now()
-    queryset.update(
-        updated_at=now,
-        acknowledged_at=Case(
-            When(acknowledged_at__isnull=True, then=Value(now)),
-            default=F("acknowledged_at"),
-        ),
-    )
+    queryset.filter(acknowledged_at__isnull=True).update(acknowledged_at=now, updated_at=now)
 
 
 @admin.register(PricingDriftAlert)

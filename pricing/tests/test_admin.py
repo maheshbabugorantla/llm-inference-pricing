@@ -116,6 +116,7 @@ def test_mark_acknowledged_action_does_not_overwrite_existing_acknowledged_at(
             break
 
     assert action_fn is not None
+    before = timezone.now()
     qs = PricingDriftAlert.objects.filter(pk__in=[already_acked.pk, unacked.pk])
     action_fn(model_admin, None, qs)
 
@@ -123,4 +124,5 @@ def test_mark_acknowledged_action_does_not_overwrite_existing_acknowledged_at(
     unacked.refresh_from_db()
 
     assert already_acked.acknowledged_at == original_time, "Existing acknowledged_at must not be overwritten"
+    assert already_acked.updated_at < before, "updated_at of already-acknowledged alert must not be touched"
     assert unacked.acknowledged_at is not None, "Unacknowledged alert must be stamped"
