@@ -80,6 +80,11 @@ def parse_computeprices_response(data: list[dict[str, Any]]) -> list[dict[str, s
                 " — API schema may have changed"
             )
 
+        if not item["provider_slug"] and item["provider_slug"] != 0:
+            raise ParserDriftError(
+                f"computeprices API item {i} has null or blank provider_slug — API schema may have changed"
+            )
+
         price = item["price_per_hour_usd"]
         if price is None:
             logger.debug("computeprices item %d has null price_per_hour_usd — skipping", i)

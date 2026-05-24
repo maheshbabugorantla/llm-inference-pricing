@@ -220,6 +220,21 @@ def test_parse_computeprices_response_raises_drift_error_when_provider_slug_miss
         parse_computeprices_response(data)
 
 
+def test_parse_computeprices_response_raises_drift_error_when_provider_slug_is_null() -> None:
+    """provider_slug=None coerces to 'None' string and silently breaks provider matching.
+    Must raise ParserDriftError so the task fails loudly instead of silently missing alerts."""
+    data = [{"provider_slug": None, "price_per_hour_usd": 2.39, "gpu": "H100"}]
+    with pytest.raises(ParserDriftError, match="null or blank provider_slug"):
+        parse_computeprices_response(data)
+
+
+def test_parse_computeprices_response_raises_drift_error_when_provider_slug_is_blank() -> None:
+    """provider_slug='' silently breaks provider matching — must raise ParserDriftError."""
+    data = [{"provider_slug": "", "price_per_hour_usd": 2.39, "gpu": "H100"}]
+    with pytest.raises(ParserDriftError, match="null or blank provider_slug"):
+        parse_computeprices_response(data)
+
+
 def test_parse_computeprices_response_raises_drift_error_when_price_is_non_numeric() -> None:
     """Non-numeric price_per_hour_usd must raise ParserDriftError at the parser boundary."""
     data = [{"provider_slug": "coreweave", "price_per_hour_usd": "N/A", "gpu": "H100"}]
