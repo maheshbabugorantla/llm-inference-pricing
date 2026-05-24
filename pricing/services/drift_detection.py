@@ -7,7 +7,7 @@ In tests, patch 'pricing.services.drift_detection.fetch_computeprices_gpu_prices
 at the network boundary.
 
 Curated rate approximation: for all_upfront products, amortises upfront_usd over
-term_months x 720h then divides by gpus_per_node to get a per-GPU hourly rate.
+term_months x 730h then divides by gpus_per_node to get a per-GPU hourly rate.
 The exact rate requires a ReservedCloudDeployment and compute_reserved_cloud_cost();
 that dependency is deferred until the service proves useful in production.
 """
@@ -39,7 +39,7 @@ def _curated_hourly_rate(product: ReservedCapacityProduct) -> Decimal:
 
     Priority:
       1. per_active_hour_usd > 0: divide by gpus_per_node to get per-GPU rate.
-      2. upfront_usd > 0: amortise over the full term (term_months x 720h), then divide by gpus_per_node.
+      2. upfront_usd > 0: amortise over the full term (term_months x 730h), then divide by gpus_per_node.
       3. Both zero: raise ValueError — cannot compute drift without a curated rate.
     """
     gpus = Decimal(product.gpus_per_node)

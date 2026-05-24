@@ -134,8 +134,8 @@ def test_drift_alerts_are_ordered_newest_first():
     older = PricingDriftAlertFactory(provider=provider, gpu=gpu, severity="info")
     newer = PricingDriftAlertFactory(provider=provider, gpu=gpu, severity="critical")
 
-    old_time = timezone.now().replace(year=2024, month=1, day=1)
-    new_time = timezone.now().replace(year=2025, month=1, day=1)
+    old_time = timezone.make_aware(timezone.datetime(2024, 1, 1))
+    new_time = timezone.make_aware(timezone.datetime(2025, 1, 1))
     PricingDriftAlert.objects.filter(pk=older.pk).update(detected_at=old_time)
     PricingDriftAlert.objects.filter(pk=newer.pk).update(detected_at=new_time)
 
