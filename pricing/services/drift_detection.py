@@ -65,10 +65,11 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
     Returns the list of PricingDriftAlert instances created in this run.
 
     Raises:
-        NotImplementedError: propagated from fetch_computeprices_table when TOS is
-            not yet verified (expected until explicitly enabled in production).
+        ParserDriftError: if the ComputePrices API response is malformed.
+        httpx.HTTPStatusError: on non-2xx responses from the ComputePrices API.
     """
     alerts_created: list[PricingDriftAlert] = []
+    _gpu_price_cache: dict[str, list[dict[str, str]]] = {}
 
     tier3_products = (
         ReservedCapacityProduct.objects.filter(
@@ -80,9 +81,12 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
     )
 
     for product in tier3_products:
-        observed_rows = fetch_computeprices_gpu_prices(product.gpu.slug)
-        # fetch_computeprices_table returns rows already normalized by
-        # parse_computeprices_table — r["provider"] is already our slug
+        gpu_slug = product.gpu.slug
+        if gpu_slug not in _gpu_price_cache:
+            _gpu_price_cache[gpu_slug] = fetch_computeprices_gpu_prices(gpu_slug)
+        observed_rows = _gpu_price_cache[gpu_slug]
+        # fetch_computeprices_gpu_prices returns rows normalised by
+        # parse_computeprices_response — r["provider"] is already our slug
         matching = [r for r in observed_rows if r["provider"] == product.cloud_provider.slug]
         if not matching:
             logger.debug(
@@ -133,7 +137,7 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
         )
         alerts_created.append(alert)
         logger.info(
-            "Drift alert created: product=%s severity=%s drift=%.3f%%",
+            "Drift alert created: product=%s severity=%s drift=%s%%",
             product.slug,
             severity,
             abs_pct,
