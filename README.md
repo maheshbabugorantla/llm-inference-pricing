@@ -19,17 +19,26 @@ All four modes write to a single `PricingSnapshot` hypertable (TimescaleDB). A `
 GitHub Actions (daily)
   └─ dump_pricing --provider all
        └─ data/pricing/<provider>.json   ← committed back to main
+  └─ load_pricing + refresh_cost_cells
+       └─ current_cost_cells view refreshed
+  └─ dump_cost_cells (M13)
+       └─ data/cost-cells/v1/cells.json  ← CDN-served static artifact
 
 Developer / CI
   └─ load_pricing --provider all
        └─ PricingSnapshot (TimescaleDB)
-            └─ current_cost_cells (materialized view)
+            └─ current_cost_cells (materialized view, 9 indexes)
+                 └─ REST API (/api/v1/cost-cells/)  ← cursor-paginated, filtered
 
 On-prem & reserved-cloud generators (run on seed / deployment save)
   └─ seed_on_prem / seed_reserved
        └─ OnPremDeployment / ReservedCloudDeployment
-            └─ PricingSnapshot rows (synthetic, tier = "tco"/"marginal" or "reserved-<slug>"/"reserved-marginal-<slug>")
+            └─ PricingSnapshot rows (synthetic)
                  └─ current_cost_cells (same view, same schema)
+
+Angular frontend
+  ├─ first paint ← data/cost-cells/v1/cells.json (Vercel CDN, <100ms)
+  └─ filtered queries ← /api/v1/cost-cells/?provider_type=cloud&max_usd_per_m_output=1.00
 ```
 
 Scrapers run on GitHub Actions runners — no rate-limiting, no container egress issues. The JSON artifacts are version-controlled so every scrape is auditable as a plain git diff.
@@ -39,6 +48,9 @@ On-prem and reserved-cloud pricing is computed from YAML-curated deployment conf
 ## Tech stack
 
 - **Python 3.12**, **Django 5.x**, **Postgres 16 + TimescaleDB**
+- **Django REST Framework** + **drf-spectacular** (OpenAPI schema, Swagger UI, ReDoc)
+- **djangorestframework-camel-case** + **django-filter** for camelCase API responses and filter backends
+- **django-cors-headers** for CORS (Angular frontend at localhost:4200)
 - **Celery + Redis** for background scheduling
 - **Pydantic v2** for scraper return types, artifact schema validation, and YAML seed validation
 - **httpx + tenacity** for HTTP scraping with retries
@@ -94,16 +106,23 @@ python manage.py dump_pricing --provider all     # → data/pricing/*.json
 python manage.py load_pricing --provider all     # → PricingSnapshot rows
 ```
 
-### 5 — Run tests
+### 5 — Refresh the cost-cell view and start the API server
 
 ```bash
-python manage.py test catalog pricing tests --noinput -v 0
+python manage.py refresh_cost_cells     # populate current_cost_cells view
+python manage.py runserver              # browse http://localhost:8000/api/docs/
+```
+
+### 6 — Run tests
+
+```bash
+python manage.py test catalog pricing api tests --noinput -v 1
 ```
 
 Or with coverage:
 
 ```bash
-coverage run manage.py test catalog pricing tests --noinput -v 0 && coverage report
+coverage run manage.py test catalog pricing api tests --noinput -v 1 && coverage report
 ```
 
 All tests are fixture-driven — no live network calls.
@@ -119,6 +138,7 @@ All tests are fixture-driven — no live network calls.
 | `scrape_pricing --provider <slug>` | Live-scrapes one provider and persists to DB immediately |
 | `dump_pricing --provider <slug\|all>` | Fetches live prices and writes `data/pricing/<slug>.json` (no DB) |
 | `load_pricing --provider <slug\|all>` | Reads `data/pricing/<slug>.json` and persists to DB |
+| `refresh_cost_cells` | Refreshes the `current_cost_cells` materialized view |
 
 `dump_pricing` and `load_pricing` are deliberately separate: the GitHub Actions runner does the network-heavy scraping; a local developer just loads the committed artifacts without touching any provider site.
 
@@ -191,10 +211,35 @@ Hardware configs in `seeds/hardware/`; deployment configs in `seeds/deployments/
 | `lambda-echelon-4xh100` | Lambda Echelon with 4× H100 |
 | `supermicro-8xmi300x` | Supermicro with 8× MI300X |
 
+## REST API
+
+Base URL: `/api/`
+
+| Endpoint | Description |
+|---|---|
+| `GET /api/v1/health/` | Healthcheck — no DB, no throttle |
+| `GET /api/v1/gpus/` | GPU catalog (cursor-paginated, ordered by slug) |
+| `GET /api/v1/models/` | Model catalog (cursor-paginated, ordered by slug) |
+| `GET /api/v1/quantizations/` | Quantization catalog (cursor-paginated) |
+| `GET /api/v1/providers/` | Provider list with `last_scraped_at` annotation |
+| `GET /api/v1/cost-cells/` | Full cost-cell grid (cursor-paginated, filtered) |
+| `GET /api/schema/` | OpenAPI YAML schema |
+| `GET /api/docs/` | Swagger UI |
+| `GET /api/redoc/` | ReDoc |
+
+Cost-cells filter params (snake_case): `gpu_slug`, `model_slug`, `quantization_slug`, `provider_slug`, `provider_type`, `data_source_tier`, `tier`, `batch_size`, `context_length`, `max_usd_per_m_output`.
+
+Responses are camelCase JSON. Throttled to 1000 req/hour for unauthenticated clients. CORS allowed from `http://localhost:4200` and `$FRONTEND_ORIGIN`.
+
 ## Project layout
 
 ```
 .
+├── api/                            # DRF REST API app
+│   ├── serializers/                # catalog.py, pricing.py, cost_cells.py
+│   ├── views/                      # health.py, catalog.py, pricing.py, cost_cells.py
+│   ├── pagination.py               # SlugCursorPagination, CostCellCursorPagination
+│   └── urls.py
 ├── catalog/                        # GPUs, Models, Quantizations, Benchmarks
 ├── pricing/
 │   ├── scrapers/
@@ -253,8 +298,8 @@ Hardware configs in `seeds/hardware/`; deployment configs in `seeds/deployments/
 
 ```bash
 ruff check && ruff format --check              # lint + format
-mypy catalog pricing                           # type check
-python manage.py test catalog pricing tests --noinput -v 0  # full test suite
+mypy catalog pricing api                       # type check
+python manage.py test catalog pricing api tests --noinput -v 1  # full test suite
 python manage.py makemigrations --check        # no pending migrations
 ```
 
@@ -295,8 +340,11 @@ See [`docs/DOCKER.md`](docs/DOCKER.md) for how to run Claude Code with `--danger
 | M07 | Ops hardening (TimescaleDB retention, Sentry, canary CI) | ✅ |
 | M08 | On-prem (`HardwareSKU`, `OnPremDeployment`, TCO generator) | ✅ |
 | M09 | Reserved cloud (`ReservedCapacityProduct`, payment cadences) | ✅ |
-| M10 | ComputePrices.com drift detection *(optional)* | 🔲 |
+| M10 | ComputePrices.com drift detection *(optional)* | ✅ |
 | M11 | Test quality uplift — pytest → Django TestCase, coverage CI | ✅ |
+| M12 | Public REST API — DRF, cost-cells endpoint, OpenAPI schema | ✅ |
+| M13 | Static cost-cell artifact (CDN-served JSON) | 🔲 |
+| M14 | Free-tier deploy (Neon + Render + Vercel) | 🔲 |
 
 Full specs in [`spec/INDEX.md`](spec/INDEX.md).
 
