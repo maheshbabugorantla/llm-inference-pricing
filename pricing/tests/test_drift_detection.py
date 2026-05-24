@@ -331,6 +331,39 @@ def test_tier3_drift_is_atomic_no_partial_alerts_on_error() -> None:
 
 
 @pytest.mark.django_db
+def test_tier3_partial_upfront_product_is_excluded_from_drift_check() -> None:
+    """partial_upfront products have both upfront_usd and monthly_recurring_usd.
+    Computing a curated rate that ignores monthly_recurring_usd would understate
+    the true committed rate and generate misleading drift alerts. Excluded until
+    the service handles both payment components."""
+    gpu = GPUFactory(slug="nvidia-h100-sxm-80-partup", vram_gb=80, tdp_watts=700)
+    provider = ProviderFactory(
+        slug="coreweave-partup-test",
+        provider_type="cloud",
+        data_source_tier="manual_curation",
+    )
+    ReservedCapacityProduct.objects.create(
+        slug="coreweave-h100-partial-upfront-test",
+        display_name="CoreWeave H100 Partial Upfront Test",
+        cloud_provider=provider,
+        gpu=gpu,
+        gpus_per_node=8,
+        payment_cadence="partial_upfront",
+        term_months=12,
+        upfront_usd=Decimal("20000.00"),
+        monthly_recurring_usd=Decimal("5000.00"),
+        listing_observed_at="2025-01-15",
+    )
+    fake_rows = [{"provider": "coreweave-partup-test", "hourly_usd": "3.50"}]
+
+    with patch(_PATCH_TARGET, return_value=fake_rows):
+        alerts = check_tier3_drift()
+
+    assert alerts == []
+    assert PricingDriftAlert.objects.count() == 0
+
+
+@pytest.mark.django_db
 def test_tier3_capacity_block_product_is_excluded_from_drift_check() -> None:
     """capacity_block products have no comparable hourly rate derivable from
     per_active_hour_usd or upfront_usd — they are excluded from drift checking

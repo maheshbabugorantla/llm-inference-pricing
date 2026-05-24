@@ -81,7 +81,7 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
             cloud_provider__data_source_tier="manual_curation",
             is_active=True,
         )
-        .exclude(payment_cadence="capacity_block")
+        .exclude(payment_cadence__in=["capacity_block", "partial_upfront"])
         .select_related("cloud_provider", "gpu")
     )
 
