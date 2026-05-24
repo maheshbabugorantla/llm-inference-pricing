@@ -335,6 +335,34 @@ def test_fetch_computeprices_gpu_prices_raises_parser_drift_error_when_data_is_n
             fetch_computeprices_gpu_prices("nvidia-h100-sxm-80")
 
 
+def test_fetch_computeprices_gpu_prices_raises_parser_drift_error_on_invalid_json(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If the response body is not valid JSON (e.g. HTML error page with 200 status),
+    raise ParserDriftError — not ValueError — so the task handles it via the right path."""
+    monkeypatch.delenv("COMPUTEPRICES_API_KEY", raising=False)
+    mock_resp = MagicMock()
+    mock_resp.json.side_effect = ValueError("No JSON object could be decoded")
+    mock_resp.raise_for_status.return_value = None
+    with patch(_FETCH_TARGET, return_value=mock_resp):
+        with pytest.raises(ParserDriftError, match="non-JSON"):
+            fetch_computeprices_gpu_prices("nvidia-h100-sxm-80")
+
+
+def test_fetch_computeprices_gpu_prices_raises_parser_drift_error_when_data_item_not_dict(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    """If the API returns a list where items are not dicts, raise ParserDriftError
+    so the drift service handles it cleanly rather than getting an AttributeError."""
+    monkeypatch.delenv("COMPUTEPRICES_API_KEY", raising=False)
+    mock_resp = MagicMock()
+    mock_resp.json.return_value = {"data": ["not-a-dict", 42], "meta": {}}
+    mock_resp.raise_for_status.return_value = None
+    with patch(_FETCH_TARGET, return_value=mock_resp):
+        with pytest.raises(ParserDriftError, match="not a dict"):
+            fetch_computeprices_gpu_prices("nvidia-h100-sxm-80")
+
+
 def test_base_url_is_public_constant() -> None:
     """BASE_URL must be importable as a public constant for use by the drift service."""
     assert BASE_URL == "https://computeprices.com/api/v1"

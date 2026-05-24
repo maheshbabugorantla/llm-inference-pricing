@@ -133,8 +133,18 @@ def fetch_computeprices_gpu_prices(our_gpu_slug: str) -> list[dict[str, str]]:
         timeout=30.0,
     )
     resp.raise_for_status()
-    body = resp.json()
+    try:
+        body = resp.json()
+    except Exception as exc:
+        raise ParserDriftError(
+            f"computeprices API returned non-JSON response for gpu={their_slug!r}"
+        ) from exc
     if not isinstance(body, dict) or not isinstance(body.get("data"), list):
         raise ParserDriftError(f"computeprices API returned unexpected response shape for gpu={their_slug!r}")
-    data: list[dict[str, Any]] = body["data"]
+    data = body["data"]
+    for i, item in enumerate(data):
+        if not isinstance(item, dict):
+            raise ParserDriftError(
+                f"computeprices API data[{i}] is not a dict (got {type(item).__name__!r}) for gpu={their_slug!r}"
+            )
     return parse_computeprices_response(data)
