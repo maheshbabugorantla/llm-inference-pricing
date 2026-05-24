@@ -284,7 +284,7 @@ class PricingDriftAlert(models.Model):
 
     provider = models.ForeignKey(Provider, on_delete=models.PROTECT)
     gpu = models.ForeignKey("catalog.GPU", on_delete=models.PROTECT)
-    tier = models.CharField(max_length=128)
+    tier = models.CharField(max_length=256)
     curated_usd_per_hour = models.DecimalField(max_digits=8, decimal_places=4)
     observed_usd_per_hour = models.DecimalField(max_digits=8, decimal_places=4)
     drift_pct = models.DecimalField(max_digits=8, decimal_places=3)
