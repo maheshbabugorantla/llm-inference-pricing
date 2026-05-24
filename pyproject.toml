@@ -76,6 +76,11 @@ ignore_missing_imports = true
 module = ["boto3.*", "botocore.*"]
 ignore_missing_imports = true
 
+[[tool.mypy.overrides]]
+module = ["rest_framework.*", "drf_spectacular.*", "corsheaders.*", "django_filters.*", "djangorestframework_camel_case.*"]
+ignore_missing_imports = true
+ignore_errors = true
+
 [tool.django-stubs]
 django_settings_module = "pricing_dashboard.settings"
 
