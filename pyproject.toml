@@ -20,9 +20,7 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0",
-    "pytest-django>=4.8",
-    "pytest-cov>=5.0",
+    "coverage>=7.5",
     "factory-boy>=3.3",
     "ruff>=0.5",
     "mypy>=1.10",
@@ -75,14 +73,6 @@ ignore_missing_imports = true
 
 [tool.django-stubs]
 django_settings_module = "pricing_dashboard.settings"
-
-[tool.pytest.ini_options]
-DJANGO_SETTINGS_MODULE = "pricing_dashboard.settings"
-python_files = ["test_*.py"]
-addopts = "-ra --strict-markers"
-markers = [
-    "smoke: slow integration tests against real seeds and live DB (deselect with -m 'not smoke')",
-]
 
 [tool.coverage.run]
 source = ["catalog", "pricing"]
