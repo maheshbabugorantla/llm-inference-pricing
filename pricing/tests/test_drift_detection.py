@@ -259,6 +259,44 @@ def test_tier3_drift_check_ignores_non_manual_curation_providers() -> None:
 
 
 # ---------------------------------------------------------------------------
+# Guard: curated rate rounds to zero after 4dp quantization
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.django_db
+def test_tier3_drift_handles_tiny_curated_rate_without_crashing() -> None:
+    """per_active_hour_usd=0.0002 / 8 GPUs = 0.000025/GPU/hr.
+    Drift is computed at full precision so tiny curated rates produce a valid
+    critical alert rather than crashing with DivisionByZero."""
+    gpu = GPUFactory(slug="nvidia-h100-sxm-80-tiny-rate", vram_gb=80, tdp_watts=700)
+    provider = ProviderFactory(
+        slug="coreweave-tiny-rate",
+        provider_type="cloud",
+        data_source_tier="manual_curation",
+    )
+    ReservedCapacityProduct.objects.create(
+        slug="coreweave-tiny-rate-product",
+        display_name="Tiny Rate Product",
+        cloud_provider=provider,
+        gpu=gpu,
+        gpus_per_node=8,
+        payment_cadence="no_upfront",
+        term_months=12,
+        per_active_hour_usd=Decimal("0.0002"),  # /8 = 0.000025 per GPU/hr
+        monthly_recurring_usd=Decimal("0"),
+        listing_observed_at="2025-01-15",
+    )
+    # curated = 0.000025, observed = 0.000030 → 20% drift → critical, no DivisionByZero
+    fake_rows = [{"provider": "coreweave-tiny-rate", "hourly_usd": "0.000030"}]
+
+    with patch(_PATCH_TARGET, return_value=fake_rows):
+        alerts = check_tier3_drift()
+
+    assert len(alerts) == 1
+    assert alerts[0].severity == "critical"
+
+
+# ---------------------------------------------------------------------------
 # Curated rate: all_upfront uses 730h/month (aligned with reserved_cloud_cost.py)
 # ---------------------------------------------------------------------------
 

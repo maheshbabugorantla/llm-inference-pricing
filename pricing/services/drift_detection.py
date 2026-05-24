@@ -127,9 +127,6 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
             )
             continue
 
-        curated = curated.quantize(Decimal("0.0001"))
-        observed = observed.quantize(Decimal("0.0001"))
-
         signed_pct = (observed - curated) / curated * Decimal("100")
         abs_pct_exact = abs(signed_pct)
 
@@ -146,8 +143,8 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
                 "provider": product.cloud_provider,
                 "gpu": product.gpu,
                 "tier": f"reserved-{product.slug}",
-                "curated_usd_per_hour": curated,
-                "observed_usd_per_hour": observed,
+                "curated_usd_per_hour": curated.quantize(Decimal("0.0001")),
+                "observed_usd_per_hour": observed.quantize(Decimal("0.0001")),
                 "drift_pct": abs_pct,
                 "source_url": source_url,
                 "severity": _classify_severity(abs_pct_exact),
