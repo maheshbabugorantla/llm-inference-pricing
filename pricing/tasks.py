@@ -148,7 +148,7 @@ def computeprices_sanity_check(self: Any) -> int:
         sentry_sdk.capture_exception(exc)
         logger.exception("computeprices drift check failed (HTTPStatusError)")
         raise self.retry(exc=exc) from exc
-    except Exception as exc:
+    except httpx.TransportError as exc:
         sentry_sdk.capture_exception(exc)
-        logger.exception("computeprices drift check failed")
+        logger.exception("computeprices drift check failed (TransportError)")
         raise self.retry(exc=exc) from exc
