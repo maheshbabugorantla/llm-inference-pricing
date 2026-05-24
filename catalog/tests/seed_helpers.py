@@ -1,6 +1,9 @@
+"""Shared helpers for tests that need a temporary seeds directory."""
+
 from __future__ import annotations
 
-import pytest
+import pathlib
+import tempfile
 
 MINIMAL_GPUS_YAML = """\
 - slug: nvidia-h100-sxm-80
@@ -49,10 +52,14 @@ MINIMAL_MODELS_YAML = """\
 """
 
 
-@pytest.fixture
-def tmp_seeds_dir(tmp_path):
-    (tmp_path / "gpus.yaml").write_text(MINIMAL_GPUS_YAML)
-    (tmp_path / "quantizations.yaml").write_text(MINIMAL_QUANTS_YAML)
-    (tmp_path / "models").mkdir()
-    (tmp_path / "models" / "qwen.yaml").write_text(MINIMAL_MODELS_YAML)
-    return tmp_path
+def make_tmp_seeds_dir() -> pathlib.Path:
+    """Create a temporary seeds directory with minimal YAML fixtures.
+
+    The caller is responsible for cleanup (use tearDown / tearDownClass).
+    """
+    tmp = pathlib.Path(tempfile.mkdtemp())
+    (tmp / "gpus.yaml").write_text(MINIMAL_GPUS_YAML)
+    (tmp / "quantizations.yaml").write_text(MINIMAL_QUANTS_YAML)
+    (tmp / "models").mkdir()
+    (tmp / "models" / "qwen.yaml").write_text(MINIMAL_MODELS_YAML)
+    return tmp
