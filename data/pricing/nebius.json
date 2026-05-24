@@ -99,7 +99,7 @@
   ],
   "provider_slug": "nebius",
   "schema_version": 1,
-  "scraped_at": "2026-05-21T07:36:43.891681Z",
-  "scraper_version": "2c79eee",
+  "scraped_at": "2026-05-24T07:25:01.913757Z",
+  "scraper_version": "235888f",
   "source_url": "https://nebius.com/prices"
 }

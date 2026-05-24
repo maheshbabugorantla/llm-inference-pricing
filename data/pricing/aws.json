@@ -1,0 +1,657 @@
+{
+  "prices": [
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "1.6688000000",
+      "raw": {
+        "instance_hourly_usd": "6.6752000000",
+        "instance_type": "g6.24xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-v100",
+      "hourly_usd": "3.9015000000",
+      "raw": {
+        "instance_hourly_usd": "31.2120000000",
+        "instance_type": "p3dn.24xlarge",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a100-sxm-80",
+      "hourly_usd": "3.4308812500",
+      "raw": {
+        "instance_hourly_usd": "27.4470500000",
+        "instance_type": "p4de.24xlarge",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "2.0744000000",
+      "raw": {
+        "instance_hourly_usd": "8.2976000000",
+        "instance_type": "g6.24xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-t4",
+      "hourly_usd": "0.5260000000",
+      "raw": {
+        "instance_hourly_usd": "0.5260000000",
+        "instance_type": "g4dn.xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "2.3048000000",
+      "raw": {
+        "instance_hourly_usd": "2.3048000000",
+        "instance_type": "g6.xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "4.5488000000",
+      "raw": {
+        "instance_hourly_usd": "36.3904000000",
+        "instance_type": "g6.48xlarge",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "2.5552000000",
+      "raw": {
+        "instance_hourly_usd": "2.5552000000",
+        "instance_type": "g6.8xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "11.0768000000",
+      "raw": {
+        "instance_hourly_usd": "11.0768000000",
+        "instance_type": "g6.16xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a10g",
+      "hourly_usd": "2.0360000000",
+      "raw": {
+        "instance_hourly_usd": "8.1440000000",
+        "instance_type": "g5.24xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "2.0744000000",
+      "raw": {
+        "instance_hourly_usd": "16.5952000000",
+        "instance_type": "g6.48xlarge",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "2.0144000000",
+      "raw": {
+        "instance_hourly_usd": "2.0144000000",
+        "instance_type": "g6.8xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a10g",
+      "hourly_usd": "4.0960000000",
+      "raw": {
+        "instance_hourly_usd": "4.0960000000",
+        "instance_type": "g5.16xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a100-sxm-40",
+      "hourly_usd": "2.7447052500",
+      "raw": {
+        "instance_hourly_usd": "21.9576420000",
+        "instance_type": "p4d.24xlarge",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "1.3532000000",
+      "raw": {
+        "instance_hourly_usd": "5.4128000000",
+        "instance_type": "g6.12xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-t4",
+      "hourly_usd": "0.7520000000",
+      "raw": {
+        "instance_hourly_usd": "0.7520000000",
+        "instance_type": "g4dn.2xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "5.6504000000",
+      "raw": {
+        "instance_hourly_usd": "22.6016000000",
+        "instance_type": "g6.12xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a10g",
+      "hourly_usd": "1.4180000000",
+      "raw": {
+        "instance_hourly_usd": "5.6720000000",
+        "instance_type": "g5.12xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "7.3232000000",
+      "raw": {
+        "instance_hourly_usd": "7.3232000000",
+        "instance_type": "g6.4xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "14.0144000000",
+      "raw": {
+        "instance_hourly_usd": "14.0144000000",
+        "instance_type": "g6.8xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "1.3232000000",
+      "raw": {
+        "instance_hourly_usd": "1.3232000000",
+        "instance_type": "g6.4xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "3.2432000000",
+      "raw": {
+        "instance_hourly_usd": "3.2432000000",
+        "instance_type": "g6.4xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a10g",
+      "hourly_usd": "2.4480000000",
+      "raw": {
+        "instance_hourly_usd": "2.4480000000",
+        "instance_type": "g5.8xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "0.8048000000",
+      "raw": {
+        "instance_hourly_usd": "0.8048000000",
+        "instance_type": "g6.xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "10.6688000000",
+      "raw": {
+        "instance_hourly_usd": "42.6752000000",
+        "instance_type": "g6.24xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-v100",
+      "hourly_usd": "3.0600000000",
+      "raw": {
+        "instance_hourly_usd": "12.2400000000",
+        "instance_type": "p3.8xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-v100",
+      "hourly_usd": "3.0600000000",
+      "raw": {
+        "instance_hourly_usd": "3.0600000000",
+        "instance_type": "p3.2xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a10g",
+      "hourly_usd": "2.0360000000",
+      "raw": {
+        "instance_hourly_usd": "16.2880000000",
+        "instance_type": "g5.48xlarge",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "1.1504000000",
+      "raw": {
+        "instance_hourly_usd": "4.6016000000",
+        "instance_type": "g6.12xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "4.4784000000",
+      "raw": {
+        "instance_hourly_usd": "4.4784000000",
+        "instance_type": "g6.16xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "1.6688000000",
+      "raw": {
+        "instance_hourly_usd": "13.3504000000",
+        "instance_type": "g6.48xlarge",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-t4",
+      "hourly_usd": "2.1760000000",
+      "raw": {
+        "instance_hourly_usd": "2.1760000000",
+        "instance_type": "g4dn.8xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-t4",
+      "hourly_usd": "0.9780000000",
+      "raw": {
+        "instance_hourly_usd": "3.9120000000",
+        "instance_type": "g4dn.12xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "27.3968000000",
+      "raw": {
+        "instance_hourly_usd": "27.3968000000",
+        "instance_type": "g6.16xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-v100",
+      "hourly_usd": "3.0600000000",
+      "raw": {
+        "instance_hourly_usd": "24.4800000000",
+        "instance_type": "p3.16xlarge",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a10g",
+      "hourly_usd": "1.2120000000",
+      "raw": {
+        "instance_hourly_usd": "1.2120000000",
+        "instance_type": "g5.2xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-h100-sxm-80",
+      "hourly_usd": "6.8800000000",
+      "raw": {
+        "instance_hourly_usd": "55.0400000000",
+        "instance_type": "p5.48xlarge",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "4.5488000000",
+      "raw": {
+        "instance_hourly_usd": "18.1952000000",
+        "instance_type": "g6.24xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "2.5904000000",
+      "raw": {
+        "instance_hourly_usd": "10.3616000000",
+        "instance_type": "g6.12xlarge",
+        "num_gpus": 4
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "3.9776000000",
+      "raw": {
+        "instance_hourly_usd": "3.9776000000",
+        "instance_type": "g6.2xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "10.6688000000",
+      "raw": {
+        "instance_hourly_usd": "85.3504000000",
+        "instance_type": "g6.48xlarge",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-t4",
+      "hourly_usd": "1.2040000000",
+      "raw": {
+        "instance_hourly_usd": "1.2040000000",
+        "instance_type": "g4dn.4xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "1.5936000000",
+      "raw": {
+        "instance_hourly_usd": "1.5936000000",
+        "instance_type": "g6.4xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a10g",
+      "hourly_usd": "1.0060000000",
+      "raw": {
+        "instance_hourly_usd": "1.0060000000",
+        "instance_type": "g5.xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "0.8724000000",
+      "raw": {
+        "instance_hourly_usd": "0.8724000000",
+        "instance_type": "g6.xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-t4",
+      "hourly_usd": "4.3520000000",
+      "raw": {
+        "instance_hourly_usd": "4.3520000000",
+        "instance_type": "g4dn.16xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "0.9776000000",
+      "raw": {
+        "instance_hourly_usd": "0.9776000000",
+        "instance_type": "g6.2xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-a10g",
+      "hourly_usd": "1.6240000000",
+      "raw": {
+        "instance_hourly_usd": "1.6240000000",
+        "instance_type": "g5.4xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "1.2848000000",
+      "raw": {
+        "instance_hourly_usd": "1.2848000000",
+        "instance_type": "g6.xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-t4",
+      "hourly_usd": "0.9780000000",
+      "raw": {
+        "instance_hourly_usd": "7.8240000000",
+        "instance_type": "g4dn.metal",
+        "num_gpus": 8
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "1.1128000000",
+      "raw": {
+        "instance_hourly_usd": "1.1128000000",
+        "instance_type": "g6.2xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "3.3968000000",
+      "raw": {
+        "instance_hourly_usd": "3.3968000000",
+        "instance_type": "g6.16xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "5.8544000000",
+      "raw": {
+        "instance_hourly_usd": "5.8544000000",
+        "instance_type": "g6.8xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    },
+    {
+      "available": true,
+      "gpu_slug_hint": "nvidia-l4",
+      "hourly_usd": "1.9376000000",
+      "raw": {
+        "instance_hourly_usd": "1.9376000000",
+        "instance_type": "g6.2xlarge",
+        "num_gpus": 1
+      },
+      "region": "us-east-1",
+      "tier": "on_demand"
+    }
+  ],
+  "provider_slug": "aws",
+  "schema_version": 1,
+  "scraped_at": "2026-05-24T07:24:47.247077Z",
+  "scraper_version": "235888f",
+  "source_url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.json"
+}
