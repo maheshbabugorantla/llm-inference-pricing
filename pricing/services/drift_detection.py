@@ -6,11 +6,10 @@ PricingDriftAlert records when observed prices diverge from curated YAML values.
 In tests, patch 'pricing.services.drift_detection.fetch_computeprices_gpu_prices'
 at the network boundary.
 
-Curated rate approximation: for all_upfront products, divides upfront_usd by 720
-(30-day month x 24h) as a rough hourly equivalent. This understates the effective
-committed rate for multi-month terms. The exact rate requires a ReservedCloudDeployment
-and compute_reserved_cloud_cost(); that dependency is deferred until the service
-proves useful in production.
+Curated rate approximation: for all_upfront products, amortises upfront_usd over
+term_months x 720h then divides by gpus_per_node to get a per-GPU hourly rate.
+The exact rate requires a ReservedCloudDeployment and compute_reserved_cloud_cost();
+that dependency is deferred until the service proves useful in production.
 """
 
 from __future__ import annotations

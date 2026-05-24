@@ -4,7 +4,7 @@ Business scenario: ComputePrices.com returns an H100 price for a Tier 3 provider
 The service compares that against the curated YAML-seeded price and writes a
 PricingDriftAlert when the gap exceeds the 0.5% noise threshold.
 
-All tests patch fetch_computeprices_table at the service module boundary.
+All tests patch fetch_computeprices_gpu_prices at the service module boundary.
 No real network calls are made.
 """
 
