@@ -40,14 +40,15 @@ def _curated_hourly_rate(product: ReservedCapacityProduct) -> Decimal:
 
     Priority:
       1. per_active_hour_usd > 0: divide by gpus_per_node to get per-GPU rate.
-      2. upfront_usd > 0: divide by 720 (30-day month approximation), then by gpus_per_node.
+      2. upfront_usd > 0: amortise over the full term (term_months x 720h), then divide by gpus_per_node.
       3. Both zero: raise ValueError — cannot compute drift without a curated rate.
     """
     gpus = Decimal(product.gpus_per_node)
     if product.per_active_hour_usd > Decimal("0"):
         return product.per_active_hour_usd / gpus
     if product.upfront_usd > Decimal("0"):
-        return (product.upfront_usd / _HOURS_PER_MONTH) / gpus
+        term_hours = Decimal(product.term_months) * _HOURS_PER_MONTH
+        return (product.upfront_usd / term_hours) / gpus
     raise ValueError(
         f"ReservedCapacityProduct '{product.slug}' has per_active_hour_usd=0 and "
         "upfront_usd=0 — cannot derive a curated hourly rate for drift comparison"
@@ -124,10 +125,12 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
             continue
 
         signed_pct = (observed - curated) / curated * Decimal("100")
-        abs_pct = abs(signed_pct).quantize(Decimal("0.001"))
+        abs_pct_exact = abs(signed_pct)
 
-        if abs_pct < _NOISE_THRESHOLD:
+        if abs_pct_exact <= _NOISE_THRESHOLD:
             continue
+
+        abs_pct = abs_pct_exact.quantize(Decimal("0.001"))
 
         their_slug = GPU_SLUG_MAP.get(product.gpu.slug, product.gpu.slug)
         source_url = matching[0].get("source_url") or f"{BASE_URL}/gpu-prices?gpu={their_slug}"

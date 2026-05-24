@@ -116,6 +116,25 @@ def test_tier3_h100_price_within_noise_threshold_produces_no_alert() -> None:
     assert PricingDriftAlert.objects.count() == 0
 
 
+@pytest.mark.django_db
+def test_tier3_price_at_exact_noise_threshold_produces_no_alert() -> None:
+    """A drift of exactly 0.5% must NOT create an alert — the threshold is inclusive.
+    curated $2.00/GPU/hr, observed $2.01/GPU/hr = exactly 0.5% drift."""
+    _make_tier3_product(
+        "coreweave",
+        "nvidia-h100-sxm-80-boundary1",
+        per_active_hour_usd="16.0000",
+        suffix="-boundary1",
+    )
+    fake_rows = [{"provider": "coreweave", "hourly_usd": "2.01"}]
+
+    with patch(_PATCH_TARGET, return_value=fake_rows):
+        alerts = check_tier3_drift()
+
+    assert alerts == []
+    assert PricingDriftAlert.objects.count() == 0
+
+
 # ---------------------------------------------------------------------------
 # Severity classification at each threshold
 # ---------------------------------------------------------------------------
@@ -245,22 +264,24 @@ def test_tier3_drift_check_ignores_non_manual_curation_providers() -> None:
 
 
 @pytest.mark.django_db
-def test_tier3_upfront_only_product_uses_720h_approximation() -> None:
-    """For all_upfront products, curated hourly rate is (upfront_usd / 720) / gpus_per_node.
-    $72,000 upfront / 8 GPUs -> $12.50/GPU/hr curated. Aggregator at $13.75/GPU/hr = 10% drift."""
+def test_tier3_upfront_only_product_amortises_over_full_term() -> None:
+    """For all_upfront products, curated hourly rate is upfront_usd / (term_months * 720h) / gpus_per_node.
+    $86,400 upfront over 12 months / 8 GPUs -> $1.25/GPU/hr curated.
+    Aggregator at $1.375/GPU/hr = 10% drift (warning)."""
     _make_tier3_product(
         "coreweave",
         "nvidia-h100-sxm-80-upfront1",
-        upfront_usd="72000.00",
+        upfront_usd="86400.00",
         suffix="-upfront1",
     )
-    fake_rows = [{"provider": "coreweave", "hourly_usd": "13.75"}]
+    fake_rows = [{"provider": "coreweave", "hourly_usd": "1.375"}]
 
     with patch(_PATCH_TARGET, return_value=fake_rows):
         alerts = check_tier3_drift()
 
     assert len(alerts) == 1
-    assert alerts[0].curated_usd_per_hour == Decimal("72000.00") / Decimal("720") / Decimal("8")
+    expected_curated = Decimal("86400.00") / (Decimal("12") * Decimal("720")) / Decimal("8")
+    assert alerts[0].curated_usd_per_hour == expected_curated
     assert alerts[0].severity == "warning"
 
 
