@@ -296,8 +296,9 @@ def test_tier3_upfront_only_product_amortises_over_full_term() -> None:
 
 @pytest.mark.django_db
 def test_tier3_drift_is_atomic_no_partial_alerts_on_error() -> None:
-    """If fetch raises mid-loop, @transaction.atomic rolls back all alerts
-    that were created earlier in the same call."""
+    """If fetch raises mid-loop, no alerts are written — fetches complete before
+    any DB writes begin, so a mid-fetch error means _write_drift_alerts is never
+    called and no partial state is committed."""
     _make_tier3_product(
         "coreweave",
         "nvidia-h100-sxm-80-atm1",

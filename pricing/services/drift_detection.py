@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import logging
 from decimal import Decimal, InvalidOperation
+from typing import Any
 
 from django.db import transaction
 
@@ -62,10 +63,13 @@ def _classify_severity(abs_drift_pct: Decimal) -> str:
     return "info"
 
 
-@transaction.atomic
 def check_tier3_drift() -> list[PricingDriftAlert]:
     """For each active Tier 3 ReservedCapacityProduct, compare curated price against
     ComputePrices.com and create a PricingDriftAlert when divergence exceeds 0.5%.
+
+    HTTP fetches and drift calculations happen outside any DB transaction to avoid
+    holding an open connection during network I/O. DB writes are wrapped in a single
+    atomic block at the end so alerts are created all-or-nothing.
 
     Returns the list of PricingDriftAlert instances created in this run.
 
@@ -73,10 +77,7 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
         ParserDriftError: if the ComputePrices API response is malformed.
         httpx.HTTPStatusError: on non-2xx responses from the ComputePrices API.
     """
-    alerts_created: list[PricingDriftAlert] = []
-    _gpu_price_cache: dict[str, list[dict[str, str]]] = {}
-
-    tier3_products = (
+    tier3_products = list(
         ReservedCapacityProduct.objects.filter(
             cloud_provider__data_source_tier="manual_curation",
             is_active=True,
@@ -85,13 +86,16 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
         .select_related("cloud_provider", "gpu")
     )
 
+    # Phase 1: fetch + compute outside any transaction — avoids holding a DB
+    # connection open during HTTP calls to the ComputePrices API.
+    _gpu_price_cache: dict[str, list[dict[str, str]]] = {}
+    alert_specs: list[dict[str, Any]] = []
+
     for product in tier3_products:
         gpu_slug = product.gpu.slug
         if gpu_slug not in _gpu_price_cache:
             _gpu_price_cache[gpu_slug] = fetch_computeprices_gpu_prices(gpu_slug)
         observed_rows = _gpu_price_cache[gpu_slug]
-        # fetch_computeprices_gpu_prices returns rows normalised by
-        # parse_computeprices_response — r["provider"] is already our slug
         matching = [r for r in observed_rows if r["provider"] == product.cloud_provider.slug]
         if not matching:
             logger.debug(
@@ -130,28 +134,39 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
             continue
 
         abs_pct = abs_pct_exact.quantize(Decimal("0.001"))
-
         their_slug = GPU_SLUG_MAP.get(product.gpu.slug, product.gpu.slug)
         source_url = (
             matching[0].get("source_url") or f"{BASE_URL}/gpu-prices?gpu={their_slug}&pricing_type=on_demand"
         )
-        severity = _classify_severity(abs_pct_exact)
-        alert = PricingDriftAlert.objects.create(
-            provider=product.cloud_provider,
-            gpu=product.gpu,
-            tier=f"reserved-{product.slug}",
-            curated_usd_per_hour=curated,
-            observed_usd_per_hour=observed,
-            drift_pct=abs_pct,
-            source_url=source_url,
-            severity=severity,
+        alert_specs.append(
+            {
+                "provider": product.cloud_provider,
+                "gpu": product.gpu,
+                "tier": f"reserved-{product.slug}",
+                "curated_usd_per_hour": curated,
+                "observed_usd_per_hour": observed,
+                "drift_pct": abs_pct,
+                "source_url": source_url,
+                "severity": _classify_severity(abs_pct_exact),
+                "_product_slug": product.slug,
+            }
         )
+
+    # Phase 2: atomic DB writes — all alerts created or none.
+    return _write_drift_alerts(alert_specs)
+
+
+@transaction.atomic
+def _write_drift_alerts(alert_specs: list[dict[str, Any]]) -> list[PricingDriftAlert]:
+    alerts_created: list[PricingDriftAlert] = []
+    for spec in alert_specs:
+        product_slug = spec.pop("_product_slug")
+        alert = PricingDriftAlert.objects.create(**spec)
         alerts_created.append(alert)
         logger.info(
             "Drift alert created: product=%s severity=%s drift=%s%%",
-            product.slug,
-            severity,
-            abs_pct,
+            product_slug,
+            alert.severity,
+            alert.drift_pct,
         )
-
     return alerts_created
