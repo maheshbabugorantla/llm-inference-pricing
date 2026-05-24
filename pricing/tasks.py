@@ -124,14 +124,31 @@ def refresh_current_cost_cells() -> None:
     refresh_cost_cells()
 
 
-@shared_task  # type: ignore[untyped-decorator]
-def computeprices_sanity_check() -> int:
+_DRIFT_CHECK_TRUTHY = frozenset({"1", "true", "yes", "on"})
+
+
+@shared_task(bind=True, max_retries=3, default_retry_delay=600)  # type: ignore[untyped-decorator]
+def computeprices_sanity_check(self: Any) -> int:
     """Weekly drift check against ComputePrices.com for Tier 3 providers.
 
-    Disabled by default — set ENABLE_COMPUTEPRICES_DRIFT_CHECK=1 to activate
-    after TOS verification (see pricing/scrapers/computeprices.py).
+    Disabled by default — set ENABLE_COMPUTEPRICES_DRIFT_CHECK=1 (or true/yes/on)
+    to activate. Any other value (including "0") is treated as disabled.
     """
-    if not os.environ.get("ENABLE_COMPUTEPRICES_DRIFT_CHECK"):
-        logger.info("computeprices drift check is disabled (set ENABLE_COMPUTEPRICES_DRIFT_CHECK to enable)")
+    if os.environ.get("ENABLE_COMPUTEPRICES_DRIFT_CHECK", "").lower() not in _DRIFT_CHECK_TRUTHY:
+        logger.info(
+            "computeprices drift check is disabled (set ENABLE_COMPUTEPRICES_DRIFT_CHECK=1 to enable)"
+        )
         return 0
-    return len(check_tier3_drift())
+    try:
+        return len(check_tier3_drift())
+    except ParserDriftError as exc:
+        sentry_sdk.capture_message(str(exc), level="error")
+        raise
+    except httpx.HTTPStatusError as exc:
+        sentry_sdk.capture_exception(exc)
+        logger.exception("computeprices drift check failed (HTTPStatusError)")
+        raise self.retry(exc=exc) from exc
+    except Exception as exc:
+        sentry_sdk.capture_exception(exc)
+        logger.exception("computeprices drift check failed")
+        raise self.retry(exc=exc) from exc

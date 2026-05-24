@@ -581,12 +581,18 @@ def test_refresh_cost_cells_task_produces_queryable_cost_cells():
 # ---------------------------------------------------------------------------
 
 
-def test_computeprices_sanity_check_returns_zero_and_skips_drift_when_env_var_unset(
+@pytest.mark.parametrize("env_value", [None, "0", "false", "no", "off", "FALSE", ""])
+def test_computeprices_sanity_check_returns_zero_for_falsy_env_values(
     monkeypatch: pytest.MonkeyPatch,
+    env_value: str | None,
 ) -> None:
-    """When ENABLE_COMPUTEPRICES_DRIFT_CHECK is not set, the task must return 0 immediately
-    without calling check_tier3_drift — so no DB writes or network calls occur."""
-    monkeypatch.delenv("ENABLE_COMPUTEPRICES_DRIFT_CHECK", raising=False)
+    """Task must return 0 and skip drift check for any non-truthy env value.
+    Critically, '0' must be treated as disabled — not as enabled — so an operator
+    can explicitly turn the flag off without removing the variable entirely."""
+    if env_value is None:
+        monkeypatch.delenv("ENABLE_COMPUTEPRICES_DRIFT_CHECK", raising=False)
+    else:
+        monkeypatch.setenv("ENABLE_COMPUTEPRICES_DRIFT_CHECK", env_value)
 
     with patch("pricing.tasks.check_tier3_drift") as mock_drift:
         result = computeprices_sanity_check.apply().get()
@@ -596,12 +602,13 @@ def test_computeprices_sanity_check_returns_zero_and_skips_drift_when_env_var_un
 
 
 @pytest.mark.django_db
-def test_computeprices_sanity_check_delegates_to_drift_service_when_enabled(
+@pytest.mark.parametrize("env_value", ["1", "true", "yes", "on", "TRUE"])
+def test_computeprices_sanity_check_delegates_to_drift_service_for_truthy_env_values(
     monkeypatch: pytest.MonkeyPatch,
+    env_value: str,
 ) -> None:
-    """When ENABLE_COMPUTEPRICES_DRIFT_CHECK=1, the task calls check_tier3_drift
-    and returns the count of alerts created."""
-    monkeypatch.setenv("ENABLE_COMPUTEPRICES_DRIFT_CHECK", "1")
+    """Task must call check_tier3_drift and return alert count for any truthy env value."""
+    monkeypatch.setenv("ENABLE_COMPUTEPRICES_DRIFT_CHECK", env_value)
 
     with patch("pricing.tasks.check_tier3_drift", return_value=["alert1", "alert2"]) as mock_drift:
         result = computeprices_sanity_check.apply().get()
