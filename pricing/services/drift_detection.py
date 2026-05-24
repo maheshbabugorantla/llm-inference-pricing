@@ -132,8 +132,10 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
         abs_pct = abs_pct_exact.quantize(Decimal("0.001"))
 
         their_slug = GPU_SLUG_MAP.get(product.gpu.slug, product.gpu.slug)
-        source_url = matching[0].get("source_url") or f"{BASE_URL}/gpu-prices?gpu={their_slug}"
-        severity = _classify_severity(abs_pct)
+        source_url = (
+            matching[0].get("source_url") or f"{BASE_URL}/gpu-prices?gpu={their_slug}&pricing_type=on_demand"
+        )
+        severity = _classify_severity(abs_pct_exact)
         alert = PricingDriftAlert.objects.create(
             provider=product.cloud_provider,
             gpu=product.gpu,

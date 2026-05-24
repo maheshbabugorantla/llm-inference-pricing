@@ -149,6 +149,9 @@ def test_tier3_price_at_exact_noise_threshold_produces_no_alert() -> None:
         ("16.0000", "2.12", "warning"),  # 6% drift → warning
         ("16.0000", "2.50", "critical"),  # 25% drift → critical
         ("16.0000", "1.60", "critical"),  # 20% drift → critical
+        # Boundary: 4.9996% rounds to 5.000% when quantized, but must stay 'info'
+        # (classification must use the unrounded value, not the stored drift_pct)
+        ("16.0000", "2.09999", "info"),  # ~4.9995% drift → info, not warning
     ],
 )
 @pytest.mark.django_db
