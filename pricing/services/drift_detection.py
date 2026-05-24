@@ -127,6 +127,9 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
             )
             continue
 
+        curated = curated.quantize(Decimal("0.0001"))
+        observed = observed.quantize(Decimal("0.0001"))
+
         signed_pct = (observed - curated) / curated * Decimal("100")
         abs_pct_exact = abs(signed_pct)
 
@@ -160,8 +163,9 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
 def _write_drift_alerts(alert_specs: list[dict[str, Any]]) -> list[PricingDriftAlert]:
     alerts_created: list[PricingDriftAlert] = []
     for spec in alert_specs:
-        product_slug = spec.pop("_product_slug")
-        alert = PricingDriftAlert.objects.create(**spec)
+        product_slug = spec["_product_slug"]
+        create_kwargs = {k: v for k, v in spec.items() if k != "_product_slug"}
+        alert = PricingDriftAlert.objects.create(**create_kwargs)
         alerts_created.append(alert)
         logger.info(
             "Drift alert created: product=%s severity=%s drift=%s%%",
