@@ -149,12 +149,45 @@ def test_parse_computeprices_response_hourly_usd_parseable_as_decimal() -> None:
         assert parsed > Decimal("0")
 
 
-def test_parse_computeprices_response_preserves_gpu_field() -> None:
-    """Optional 'gpu' field must be forwarded so the drift service can log the exact SKU."""
-    data = json.loads(FIXTURE.read_text())
+def test_parse_computeprices_response_includes_gpu_field_when_present() -> None:
+    """When the API item has a non-null 'gpu' field it must appear in the output row."""
+    data = [
+        {
+            "provider_slug": "coreweave",
+            "gpu": "H100 SXM",
+            "price_per_hour_usd": 2.39,
+        }
+    ]
     result = parse_computeprices_response(data)
-    for row in result:
-        assert "gpu" in row
+    assert len(result) == 1
+    assert result[0]["gpu"] == "H100 SXM"
+
+
+def test_parse_computeprices_response_omits_gpu_field_when_absent() -> None:
+    """'gpu' is optional — items without it must produce rows without the key."""
+    data = [
+        {
+            "provider_slug": "coreweave",
+            "price_per_hour_usd": 2.39,
+        }
+    ]
+    result = parse_computeprices_response(data)
+    assert len(result) == 1
+    assert "gpu" not in result[0]
+
+
+def test_parse_computeprices_response_omits_gpu_field_when_null() -> None:
+    """'gpu': null must be treated as absent — no 'gpu' key in the output row."""
+    data = [
+        {
+            "provider_slug": "coreweave",
+            "gpu": None,
+            "price_per_hour_usd": 2.39,
+        }
+    ]
+    result = parse_computeprices_response(data)
+    assert len(result) == 1
+    assert "gpu" not in result[0]
 
 
 def test_parse_computeprices_response_skips_null_price() -> None:
