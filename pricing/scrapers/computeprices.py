@@ -135,7 +135,7 @@ def fetch_computeprices_gpu_prices(our_gpu_slug: str) -> list[dict[str, str]]:
     resp.raise_for_status()
     try:
         body = resp.json()
-    except Exception as exc:
+    except ValueError as exc:
         raise ParserDriftError(
             f"computeprices API returned non-JSON response for gpu={their_slug!r}"
         ) from exc
