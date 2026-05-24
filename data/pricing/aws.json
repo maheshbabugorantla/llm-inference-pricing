@@ -651,7 +651,7 @@
   ],
   "provider_slug": "aws",
   "schema_version": 1,
-  "scraped_at": "2026-05-24T07:24:47.247077Z",
-  "scraper_version": "235888f",
+  "scraped_at": "2026-05-24T23:11:15.400092Z",
+  "scraper_version": "018d073",
   "source_url": "https://pricing.us-east-1.amazonaws.com/offers/v1.0/aws/AmazonEC2/current/index.json"
 }

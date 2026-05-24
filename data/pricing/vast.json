@@ -3,13 +3,13 @@
     {
       "available": true,
       "gpu_slug_hint": "RTX 4090",
-      "hourly_usd": "0.201481",
+      "hourly_usd": "0.268889",
       "raw": {
         "count": 5,
         "max": 0.5355555555555556,
         "min": 0.13555555555555554,
-        "p50": 0.20148148148148146,
-        "p90": 0.42888888888888893
+        "p50": 0.2688888888888889,
+        "p90": 0.4555555555555556
       },
       "region": "",
       "tier": "on_demand"
@@ -31,27 +31,13 @@
     {
       "available": true,
       "gpu_slug_hint": "B200",
-      "hourly_usd": "6.284188",
+      "hourly_usd": "6.213675",
       "raw": {
         "count": 2,
         "max": 8.335470085470085,
-        "min": 4.232905982905983,
-        "p50": 6.284188034188034,
-        "p90": 7.925213675213675
-      },
-      "region": "",
-      "tier": "on_demand"
-    },
-    {
-      "available": true,
-      "gpu_slug_hint": "H200",
-      "hourly_usd": "1.974975",
-      "raw": {
-        "count": 1,
-        "max": 1.974974533106961,
-        "min": 1.974974533106961,
-        "p50": 1.974974533106961,
-        "p90": 1.974974533106961
+        "min": 4.0918803418803416,
+        "p50": 6.213675213675213,
+        "p90": 7.911111111111111
       },
       "region": "",
       "tier": "on_demand"
@@ -59,7 +45,7 @@
   ],
   "provider_slug": "vast",
   "schema_version": 1,
-  "scraped_at": "2026-05-24T07:25:03.006594Z",
-  "scraper_version": "235888f",
+  "scraped_at": "2026-05-24T23:11:30.123054Z",
+  "scraper_version": "018d073",
   "source_url": "https://console.vast.ai/api/v0/bundles/"
 }
