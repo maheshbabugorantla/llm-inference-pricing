@@ -16,7 +16,7 @@ class Migration(migrations.Migration):
             name='PricingDriftAlert',
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('tier', models.CharField(max_length=64)),
+                ('tier', models.CharField(max_length=256)),
                 ('curated_usd_per_hour', models.DecimalField(decimal_places=4, max_digits=8)),
                 ('observed_usd_per_hour', models.DecimalField(decimal_places=4, max_digits=8)),
                 ('drift_pct', models.DecimalField(decimal_places=3, max_digits=8)),
