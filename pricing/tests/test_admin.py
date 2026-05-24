@@ -95,3 +95,32 @@ def test_mark_acknowledged_action_sets_acknowledged_at_on_selected_alerts(
     # updated_at must also be stamped so the auto_now field reflects the acknowledgement
     assert alert1.updated_at >= before
     assert alert2.updated_at >= before
+
+
+@pytest.mark.django_db
+def test_mark_acknowledged_action_does_not_overwrite_existing_acknowledged_at(
+    admin_client: object,
+) -> None:
+    """Re-running 'mark acknowledged' on an already-acknowledged alert must not
+    overwrite the original acknowledgement timestamp — that timestamp is audit history."""
+    original_time = timezone.make_aware(timezone.datetime(2024, 6, 1, 12, 0, 0))
+    already_acked = PricingDriftAlertFactory(acknowledged_at=original_time)
+    unacked = PricingDriftAlertFactory()
+
+    model_admin = site._registry[PricingDriftAlert]
+    action_fn = None
+    for action in model_admin.actions or []:
+        name = action if isinstance(action, str) else getattr(action, "__name__", str(action))
+        if "acknowledged" in name.lower():
+            action_fn = model_admin.get_action(action)[0] if isinstance(action, str) else action
+            break
+
+    assert action_fn is not None
+    qs = PricingDriftAlert.objects.filter(pk__in=[already_acked.pk, unacked.pk])
+    action_fn(model_admin, None, qs)
+
+    already_acked.refresh_from_db()
+    unacked.refresh_from_db()
+
+    assert already_acked.acknowledged_at == original_time, "Existing acknowledged_at must not be overwritten"
+    assert unacked.acknowledged_at is not None, "Unacknowledged alert must be stamped"
