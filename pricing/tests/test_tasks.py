@@ -17,6 +17,7 @@ from catalog.tests.factories import GPUFactory
 from pricing.models import PricingSnapshot, Provider
 from pricing.scrapers.base import ParserDriftError, ScrapedPrice
 from pricing.tasks import (
+    computeprices_sanity_check,
     refresh_current_cost_cells,
     regenerate_on_prem_snapshots_task,
     scrape_aws,
@@ -573,3 +574,44 @@ def test_refresh_cost_cells_task_produces_queryable_cost_cells():
         row_count = c.fetchone()[0]
 
     assert row_count > 0
+
+
+# ---------------------------------------------------------------------------
+# M10.T04 — computeprices_sanity_check task
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("env_value", [None, "0", "false", "no", "off", "FALSE", ""])
+def test_computeprices_sanity_check_returns_zero_for_falsy_env_values(
+    monkeypatch: pytest.MonkeyPatch,
+    env_value: str | None,
+) -> None:
+    """Task must return 0 and skip drift check for any non-truthy env value.
+    Critically, '0' must be treated as disabled — not as enabled — so an operator
+    can explicitly turn the flag off without removing the variable entirely."""
+    if env_value is None:
+        monkeypatch.delenv("ENABLE_COMPUTEPRICES_DRIFT_CHECK", raising=False)
+    else:
+        monkeypatch.setenv("ENABLE_COMPUTEPRICES_DRIFT_CHECK", env_value)
+
+    with patch("pricing.tasks.check_tier3_drift") as mock_drift:
+        result = computeprices_sanity_check.apply().get()
+
+    assert result == 0
+    mock_drift.assert_not_called()
+
+
+@pytest.mark.django_db
+@pytest.mark.parametrize("env_value", ["1", "true", "yes", "on", "TRUE"])
+def test_computeprices_sanity_check_delegates_to_drift_service_for_truthy_env_values(
+    monkeypatch: pytest.MonkeyPatch,
+    env_value: str,
+) -> None:
+    """Task must call check_tier3_drift and return alert count for any truthy env value."""
+    monkeypatch.setenv("ENABLE_COMPUTEPRICES_DRIFT_CHECK", env_value)
+
+    with patch("pricing.tasks.check_tier3_drift", return_value=["alert1", "alert2"]) as mock_drift:
+        result = computeprices_sanity_check.apply().get()
+
+    assert result == 2
+    mock_drift.assert_called_once()

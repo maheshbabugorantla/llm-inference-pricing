@@ -5,7 +5,7 @@ from django.utils import timezone
 from factory.django import DjangoModelFactory
 
 from catalog.tests.factories import GPUFactory
-from pricing.models import HardwareSKU, OnPremDeployment, PricingSnapshot, Provider
+from pricing.models import HardwareSKU, OnPremDeployment, PricingDriftAlert, PricingSnapshot, Provider
 
 
 class ProviderFactory(DjangoModelFactory):
@@ -83,3 +83,23 @@ class PricingSnapshotFactory(DjangoModelFactory):
     available = True
     scraped_at = factory.LazyFunction(timezone.now)
     raw_payload = factory.LazyFunction(dict)
+
+
+class PricingDriftAlertFactory(DjangoModelFactory):
+    class Meta:
+        model = PricingDriftAlert
+
+    provider = factory.SubFactory(ProviderFactory)
+    gpu = factory.SubFactory(GPUFactory)
+    tier = "on_demand"
+    curated_usd_per_hour = factory.LazyFunction(
+        lambda: __import__("decimal", fromlist=["Decimal"]).Decimal("2.0000")
+    )
+    observed_usd_per_hour = factory.LazyFunction(
+        lambda: __import__("decimal", fromlist=["Decimal"]).Decimal("2.1000")
+    )
+    drift_pct = factory.LazyFunction(lambda: __import__("decimal", fromlist=["Decimal"]).Decimal("5.000"))
+    source_url = factory.Sequence(lambda n: f"https://example.com/pricing/{n}")
+    severity = "warning"
+    acknowledged_at = None
+    notes = ""

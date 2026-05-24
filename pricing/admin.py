@@ -9,6 +9,7 @@ from django.utils import timezone
 from pricing.models import (
     HardwareSKU,
     OnPremDeployment,
+    PricingDriftAlert,
     PricingSnapshot,
     Provider,
     ReservedCapacityProduct,
@@ -119,3 +120,45 @@ class OnPremDeploymentAdmin(_ReadOnlyAdmin):
     )
     search_fields = ("slug", "display_name")
     list_filter = ("hardware_sku", "is_active")
+
+
+class _UnacknowledgedFilter(admin.SimpleListFilter):
+    title = "acknowledgement"
+    parameter_name = "unacknowledged"
+
+    def lookups(self, request: HttpRequest, model_admin: Any) -> list[tuple[str, str]]:
+        return [("yes", "Unacknowledged"), ("no", "Acknowledged")]
+
+    def queryset(self, request: HttpRequest, queryset: Any) -> Any:
+        if self.value() == "yes":
+            return queryset.filter(acknowledged_at__isnull=True)
+        if self.value() == "no":
+            return queryset.filter(acknowledged_at__isnull=False)
+        return queryset
+
+
+@admin.action(description="Mark selected alerts as acknowledged")
+def _mark_drift_alerts_acknowledged(
+    modeladmin: admin.ModelAdmin,  # type: ignore[type-arg]
+    request: HttpRequest,
+    queryset: Any,
+) -> None:
+    now = timezone.now()
+    queryset.filter(acknowledged_at__isnull=True).update(acknowledged_at=now, updated_at=now)
+
+
+@admin.register(PricingDriftAlert)
+class PricingDriftAlertAdmin(admin.ModelAdmin):  # type: ignore[type-arg]
+    list_display = (
+        "detected_at",
+        "provider",
+        "gpu",
+        "tier",
+        "curated_usd_per_hour",
+        "observed_usd_per_hour",
+        "drift_pct",
+        "severity",
+        "acknowledged_at",
+    )
+    list_filter = ("severity", _UnacknowledgedFilter, "provider")
+    actions = (_mark_drift_alerts_acknowledged,)
