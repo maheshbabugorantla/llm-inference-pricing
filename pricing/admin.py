@@ -143,7 +143,7 @@ def _mark_drift_alerts_acknowledged(
     request: HttpRequest,
     queryset: Any,
 ) -> None:
-    queryset.update(acknowledged_at=timezone.now())
+    queryset.update(acknowledged_at=timezone.now(), updated_at=timezone.now())
 
 
 @admin.register(PricingDriftAlert)

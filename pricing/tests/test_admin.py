@@ -92,3 +92,6 @@ def test_mark_acknowledged_action_sets_acknowledged_at_on_selected_alerts(
     assert alert1.acknowledged_at >= before
     assert alert2.acknowledged_at is not None
     assert unrelated.acknowledged_at is None
+    # updated_at must also be stamped so the auto_now field reflects the acknowledgement
+    assert alert1.updated_at >= before
+    assert alert2.updated_at >= before
