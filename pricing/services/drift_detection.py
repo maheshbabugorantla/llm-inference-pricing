@@ -21,7 +21,7 @@ from decimal import Decimal, InvalidOperation
 from django.db import transaction
 
 from pricing.models import PricingDriftAlert, ReservedCapacityProduct
-from pricing.scrapers.computeprices import fetch_computeprices_gpu_prices
+from pricing.scrapers.computeprices import BASE_URL, GPU_SLUG_MAP, fetch_computeprices_gpu_prices
 
 logger = logging.getLogger("pricing.services.drift_detection")
 
@@ -32,17 +32,22 @@ _HOURS_PER_MONTH = Decimal("720")
 
 
 def _curated_hourly_rate(product: ReservedCapacityProduct) -> Decimal:
-    """Derive an effective hourly rate from curated product fields.
+    """Derive an effective per-GPU hourly rate from curated product fields.
+
+    per_active_hour_usd and upfront_usd are node-level charges covering all GPUs in the node.
+    We divide by gpus_per_node to obtain a per-GPU rate that is comparable to
+    ComputePrices API's price_per_hour_usd (which is per-GPU).
 
     Priority:
-      1. per_active_hour_usd > 0: use directly.
-      2. upfront_usd > 0: divide by 720 as a single-month rough approximation.
+      1. per_active_hour_usd > 0: divide by gpus_per_node to get per-GPU rate.
+      2. upfront_usd > 0: divide by 720 (30-day month approximation), then by gpus_per_node.
       3. Both zero: raise ValueError — cannot compute drift without a curated rate.
     """
+    gpus = Decimal(product.gpus_per_node)
     if product.per_active_hour_usd > Decimal("0"):
-        return product.per_active_hour_usd
+        return product.per_active_hour_usd / gpus
     if product.upfront_usd > Decimal("0"):
-        return product.upfront_usd / _HOURS_PER_MONTH
+        return (product.upfront_usd / _HOURS_PER_MONTH) / gpus
     raise ValueError(
         f"ReservedCapacityProduct '{product.slug}' has per_active_hour_usd=0 and "
         "upfront_usd=0 — cannot derive a curated hourly rate for drift comparison"
@@ -124,6 +129,8 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
         if abs_pct < _NOISE_THRESHOLD:
             continue
 
+        their_slug = GPU_SLUG_MAP.get(product.gpu.slug, product.gpu.slug)
+        source_url = matching[0].get("source_url") or f"{BASE_URL}/gpu-prices?gpu={their_slug}"
         severity = _classify_severity(abs_pct)
         alert = PricingDriftAlert.objects.create(
             provider=product.cloud_provider,
@@ -132,7 +139,7 @@ def check_tier3_drift() -> list[PricingDriftAlert]:
             curated_usd_per_hour=curated,
             observed_usd_per_hour=observed,
             drift_pct=abs_pct,
-            source_url="https://computeprices.com/" + product.gpu.slug,
+            source_url=source_url,
             severity=severity,
         )
         alerts_created.append(alert)

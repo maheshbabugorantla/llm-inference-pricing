@@ -66,12 +66,13 @@ def _make_tier3_product(
 
 @pytest.mark.django_db
 def test_tier3_h100_price_divergence_from_coreweave_creates_drift_alert() -> None:
-    """When ComputePrices.com lists CoreWeave H100 at $3.20/hr and curated rate is $2.00/hr,
-    a PricingDriftAlert is written with severity=critical and drift_pct=60.000."""
+    """When ComputePrices.com lists CoreWeave H100 at $3.20/GPU/hr and curated node rate is
+    $16.00/node/hr (8 GPUs → $2.00/GPU/hr), a PricingDriftAlert is written with
+    severity=critical and drift_pct=60.000."""
     product = _make_tier3_product(
         "coreweave",
         "nvidia-h100-sxm-80-drft1",
-        per_active_hour_usd="2.0000",
+        per_active_hour_usd="16.0000",
         suffix="-drft1",
     )
     fake_rows = [{"provider": "coreweave", "hourly_usd": "3.20"}]
@@ -84,7 +85,7 @@ def test_tier3_h100_price_divergence_from_coreweave_creates_drift_alert() -> Non
     assert alert.provider == product.cloud_provider
     assert alert.gpu == product.gpu
     assert alert.tier == f"reserved-{product.slug}"
-    assert alert.curated_usd_per_hour == Decimal("2.0000")
+    assert alert.curated_usd_per_hour == Decimal("16.0000") / Decimal("8")
     assert alert.observed_usd_per_hour == Decimal("3.20")
     assert alert.drift_pct == Decimal("60.000")
     assert alert.severity == "critical"
@@ -98,12 +99,12 @@ def test_tier3_h100_price_divergence_from_coreweave_creates_drift_alert() -> Non
 
 @pytest.mark.django_db
 def test_tier3_h100_price_within_noise_threshold_produces_no_alert() -> None:
-    """When ComputePrices.com shows $2.005/hr vs curated $2.00/hr (0.25% drift),
-    no alert is created — this is within the 0.5% noise floor."""
+    """When ComputePrices.com shows $2.005/GPU/hr vs curated node rate $16.00/node/hr
+    (8 GPUs → $2.00/GPU/hr, 0.25% drift), no alert is created — within 0.5% noise floor."""
     _make_tier3_product(
         "coreweave",
         "nvidia-h100-sxm-80-noise1",
-        per_active_hour_usd="2.0000",
+        per_active_hour_usd="16.0000",
         suffix="-noise1",
     )
     fake_rows = [{"provider": "coreweave", "hourly_usd": "2.005"}]
@@ -123,10 +124,12 @@ def test_tier3_h100_price_within_noise_threshold_produces_no_alert() -> None:
 @pytest.mark.parametrize(
     ("curated_rate", "observed_rate", "expected_severity"),
     [
-        ("2.0000", "2.08", "info"),
-        ("2.0000", "2.12", "warning"),
-        ("2.0000", "2.50", "critical"),
-        ("2.0000", "1.60", "critical"),
+        # curated_rate is node-level per_active_hour_usd (8 GPUs → divide by 8 for per-GPU)
+        # curated_rate=16.0000 → $2.00/GPU/hr; observed_rate is per-GPU from ComputePrices
+        ("16.0000", "2.08", "info"),  # 4% drift → info
+        ("16.0000", "2.12", "warning"),  # 6% drift → warning
+        ("16.0000", "2.50", "critical"),  # 25% drift → critical
+        ("16.0000", "1.60", "critical"),  # 20% drift → critical
     ],
 )
 @pytest.mark.django_db
@@ -139,6 +142,7 @@ def test_severity_classification_at_each_threshold(
 
     Thresholds: info < 5%, warning 5-20%, critical >= 20%.
     drift_pct is stored as absolute value (non-negative DB constraint).
+    curated_rate is the node-level per_active_hour_usd; the service divides by gpus_per_node (8).
     """
     suffix = f"-{curated_rate.replace('.', '')}{observed_rate.replace('.', '')}"
     slug_suffix = suffix[:16]
@@ -170,7 +174,7 @@ def test_no_alert_when_no_matching_provider_in_aggregator() -> None:
     _make_tier3_product(
         "coreweave",
         "nvidia-h100-sxm-80-nomatch",
-        per_active_hour_usd="2.0000",
+        per_active_hour_usd="16.0000",
         suffix="-nomatch",
     )
     fake_rows = [{"provider": "runpod", "hourly_usd": "1.99"}]
@@ -193,7 +197,7 @@ def test_tier3_drift_check_ignores_inactive_products() -> None:
     product = _make_tier3_product(
         "coreweave",
         "nvidia-h100-sxm-80-inact2",
-        per_active_hour_usd="2.0000",
+        per_active_hour_usd="16.0000",
         suffix="-inact2",
     )
     product.is_active = False
@@ -242,21 +246,21 @@ def test_tier3_drift_check_ignores_non_manual_curation_providers() -> None:
 
 @pytest.mark.django_db
 def test_tier3_upfront_only_product_uses_720h_approximation() -> None:
-    """For all_upfront products, the curated hourly rate is upfront_usd / 720.
-    $72,000 upfront -> $100.00/hr curated. Aggregator at $110.00/hr = 10% drift."""
+    """For all_upfront products, curated hourly rate is (upfront_usd / 720) / gpus_per_node.
+    $72,000 upfront / 8 GPUs -> $12.50/GPU/hr curated. Aggregator at $13.75/GPU/hr = 10% drift."""
     _make_tier3_product(
         "coreweave",
         "nvidia-h100-sxm-80-upfront1",
         upfront_usd="72000.00",
         suffix="-upfront1",
     )
-    fake_rows = [{"provider": "coreweave", "hourly_usd": "110.00"}]
+    fake_rows = [{"provider": "coreweave", "hourly_usd": "13.75"}]
 
     with patch(_PATCH_TARGET, return_value=fake_rows):
         alerts = check_tier3_drift()
 
     assert len(alerts) == 1
-    assert alerts[0].curated_usd_per_hour == Decimal("72000.00") / Decimal("720")
+    assert alerts[0].curated_usd_per_hour == Decimal("72000.00") / Decimal("720") / Decimal("8")
     assert alerts[0].severity == "warning"
 
 
@@ -272,13 +276,13 @@ def test_tier3_drift_is_atomic_no_partial_alerts_on_error() -> None:
     _make_tier3_product(
         "coreweave",
         "nvidia-h100-sxm-80-atm1",
-        per_active_hour_usd="2.0000",
+        per_active_hour_usd="16.0000",
         suffix="-atm1",
     )
     _make_tier3_product(
         "crusoe",
         "nvidia-h100-sxm-80-atm2",
-        per_active_hour_usd="2.0000",
+        per_active_hour_usd="16.0000",
         suffix="-atm2",
     )
 
