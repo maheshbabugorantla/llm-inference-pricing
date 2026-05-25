@@ -109,7 +109,7 @@ python manage.py load_pricing --provider all     # → PricingSnapshot rows
 ### 5 — Refresh the cost-cell view and start the API server
 
 ```bash
-python manage.py refresh_cost_cells     # populate current_cost_cells view
+python manage.py refresh_cost_cells     # populate pricing_current_cost_cells view
 python manage.py runserver              # browse http://localhost:8000/api/docs/
 ```
 
@@ -138,7 +138,7 @@ All tests are fixture-driven — no live network calls.
 | `scrape_pricing --provider <slug>` | Live-scrapes one provider and persists to DB immediately |
 | `dump_pricing --provider <slug\|all>` | Fetches live prices and writes `data/pricing/<slug>.json` (no DB) |
 | `load_pricing --provider <slug\|all>` | Reads `data/pricing/<slug>.json` and persists to DB |
-| `refresh_cost_cells` | Refreshes the `current_cost_cells` materialized view |
+| `refresh_cost_cells` | Refreshes the `pricing_current_cost_cells` materialized view |
 
 `dump_pricing` and `load_pricing` are deliberately separate: the GitHub Actions runner does the network-heavy scraping; a local developer just loads the committed artifacts without touching any provider site.
 

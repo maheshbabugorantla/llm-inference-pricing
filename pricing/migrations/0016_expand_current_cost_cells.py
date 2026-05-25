@@ -107,10 +107,10 @@ SELECT
     latest.region,
     latest.hourly_usd,
     latest.scraped_at                               AS pricing_scraped_at,
-    (latest.hourly_usd * bp.tp_size * 1000000.0
-        / (bp.prefill_tps_aggregate * 3600.0))::numeric(10, 4)  AS usd_per_m_input,
-    (latest.hourly_usd * bp.tp_size * 1000000.0
-        / (bp.decode_tps_aggregate  * 3600.0))::numeric(10, 4)  AS usd_per_m_output
+    (latest.hourly_usd * bp.tp_size::numeric * 1000000
+        / (bp.prefill_tps_aggregate::numeric * 3600))::numeric(10, 4)  AS usd_per_m_input,
+    (latest.hourly_usd * bp.tp_size::numeric * 1000000
+        / (bp.decode_tps_aggregate::numeric  * 3600))::numeric(10, 4)  AS usd_per_m_output
 FROM catalog_benchmarkpoint bp
 JOIN latest            ON latest.gpu_id = bp.gpu_id
 JOIN pricing_provider  p ON p.id        = latest.provider_id

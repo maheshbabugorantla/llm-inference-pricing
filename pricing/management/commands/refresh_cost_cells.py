@@ -6,8 +6,8 @@ from pricing.services.cost import refresh_cost_cells
 
 
 class Command(BaseCommand):
-    help = "Refresh the current_cost_cells materialized view"
+    help = "Refresh the pricing_current_cost_cells materialized view"
 
     def handle(self, *args: object, **options: object) -> None:
         refresh_cost_cells()
-        self.stdout.write(self.style.SUCCESS("Refreshed current_cost_cells"))
+        self.stdout.write(self.style.SUCCESS("Refreshed pricing_current_cost_cells"))
