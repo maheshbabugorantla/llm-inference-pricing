@@ -49,7 +49,7 @@ On-prem and reserved-cloud pricing is computed from YAML-curated deployment conf
 
 - **Python 3.12**, **Django 5.x**, **Postgres 16 + TimescaleDB**
 - **Django REST Framework** + **drf-spectacular** (OpenAPI schema, Swagger UI, ReDoc)
-- **djangorestframework-camel-case** + **django-filter** for camelCase API responses and filter backends
+- **django-filter** for filter backends
 - **django-cors-headers** for CORS (Angular frontend at localhost:4200)
 - **Celery + Redis** for background scheduling
 - **Pydantic v2** for scraper return types, artifact schema validation, and YAML seed validation
@@ -229,7 +229,7 @@ Base URL: `/api/`
 
 Cost-cells filter params (snake_case): `gpu_slug`, `model_slug`, `quantization_slug`, `provider_slug`, `provider_type`, `data_source_tier`, `tier`, `batch_size`, `context_length`, `max_usd_per_m_output`.
 
-Responses are camelCase JSON. Throttled to 1000 req/hour for unauthenticated clients. CORS allowed from `http://localhost:4200` and `$FRONTEND_ORIGIN`.
+Responses are snake_case JSON. Throttled to 1000 req/hour for unauthenticated clients. CORS allowed from `http://localhost:4200` and `$FRONTEND_ORIGIN`.
 
 ## Project layout
 

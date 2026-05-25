@@ -17,7 +17,6 @@ dependencies = [
     "sentry-sdk[django]>=2.0",
     "python-json-logger>=2.0",
     "djangorestframework>=3.17.1",
-    "djangorestframework-camel-case>=1.4.2",
     "drf-spectacular>=0.29.0",
     "django-cors-headers>=4.9.0",
     "django-filter>=25.2",
@@ -77,7 +76,7 @@ module = ["boto3.*", "botocore.*"]
 ignore_missing_imports = true
 
 [[tool.mypy.overrides]]
-module = ["rest_framework.*", "drf_spectacular.*", "corsheaders.*", "django_filters.*", "djangorestframework_camel_case.*"]
+module = ["rest_framework.*", "drf_spectacular.*", "corsheaders.*", "django_filters.*"]
 ignore_missing_imports = true
 ignore_errors = true
 
