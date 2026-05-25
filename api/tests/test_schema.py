@@ -39,25 +39,65 @@ class OpenAPISchemaTest(SimpleTestCase):
 
 
 class CORSTest(SimpleTestCase):
-    def test_cors_allows_localhost_4200(self) -> None:
-        response = self.client.get(
-            "/api/v1/health/",
-            HTTP_ORIGIN="http://localhost:4200",
-        )
-        self.assertEqual(response.get("Access-Control-Allow-Origin"), "http://localhost:4200")
+    """
+    Verify that CORS headers are emitted only for /api/ paths.
 
-    def test_cors_blocks_unknown_origin(self) -> None:
-        response = self.client.get(
+    CORS_URLS_REGEX = r"^/api/.*$" means the corsheaders middleware skips
+    non-API paths entirely, so an allowed origin hitting /admin/ or any other
+    non-API route must NOT receive Access-Control-Allow-Origin.
+    """
+
+    ALLOWED_ORIGIN = "http://localhost:4200"
+    UNKNOWN_ORIGIN = "http://evil.example.com"
+
+    # --- API paths: header must be present for allowed origin ---
+
+    def test_api_path_allowed_origin_gets_acao_header(self) -> None:
+        response = self.client.get("/api/v1/health/", HTTP_ORIGIN=self.ALLOWED_ORIGIN)
+        self.assertEqual(response.get("Access-Control-Allow-Origin"), self.ALLOWED_ORIGIN)
+
+    def test_api_schema_path_allowed_origin_gets_acao_header(self) -> None:
+        response = self.client.get("/api/schema/", HTTP_ORIGIN=self.ALLOWED_ORIGIN)
+        self.assertEqual(response.get("Access-Control-Allow-Origin"), self.ALLOWED_ORIGIN)
+
+    def test_api_path_preflight_allowed_origin_gets_acao_header(self) -> None:
+        response = self.client.options(
             "/api/v1/health/",
-            HTTP_ORIGIN="http://evil.example.com",
+            HTTP_ORIGIN=self.ALLOWED_ORIGIN,
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
+        )
+        self.assertEqual(response.get("Access-Control-Allow-Origin"), self.ALLOWED_ORIGIN)
+
+    # --- API paths: header must be absent for unknown origin ---
+
+    def test_api_path_unknown_origin_no_acao_header(self) -> None:
+        response = self.client.get("/api/v1/health/", HTTP_ORIGIN=self.UNKNOWN_ORIGIN)
+        self.assertIsNone(response.get("Access-Control-Allow-Origin"))
+
+    # --- Non-API paths: header must be absent even for allowed origin ---
+
+    def test_non_api_path_allowed_origin_no_acao_header(self) -> None:
+        # /admin/ is not under /api/ — corsheaders must not touch the response.
+        response = self.client.get("/admin/", HTTP_ORIGIN=self.ALLOWED_ORIGIN)
+        self.assertIsNone(response.get("Access-Control-Allow-Origin"))
+
+    def test_non_api_root_allowed_origin_no_acao_header(self) -> None:
+        response = self.client.get("/", HTTP_ORIGIN=self.ALLOWED_ORIGIN)
+        self.assertIsNone(response.get("Access-Control-Allow-Origin"))
+
+    def test_non_api_path_preflight_no_acao_header(self) -> None:
+        # Even a preflight OPTIONS to a non-API path must not get CORS headers.
+        response = self.client.options(
+            "/admin/",
+            HTTP_ORIGIN=self.ALLOWED_ORIGIN,
+            HTTP_ACCESS_CONTROL_REQUEST_METHOD="GET",
         )
         self.assertIsNone(response.get("Access-Control-Allow-Origin"))
 
-    def test_cors_no_credentials(self) -> None:
-        response = self.client.get(
-            "/api/v1/health/",
-            HTTP_ORIGIN="http://localhost:4200",
-        )
+    # --- Credentials must never be allowed ---
+
+    def test_api_path_no_allow_credentials_header(self) -> None:
+        response = self.client.get("/api/v1/health/", HTTP_ORIGIN=self.ALLOWED_ORIGIN)
         self.assertNotEqual(response.get("Access-Control-Allow-Credentials", "false"), "true")
 
 
