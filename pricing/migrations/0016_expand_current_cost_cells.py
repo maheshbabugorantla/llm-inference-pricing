@@ -60,8 +60,7 @@ FROM       catalog_benchmarkpoint  bp
 INNER JOIN catalog_gpu             g  ON g.id  = bp.gpu_id
 INNER JOIN catalog_model           m  ON m.id  = bp.model_id
 INNER JOIN catalog_quantization    q  ON q.id  = bp.quantization_id
-INNER JOIN pricing_pricingsnapshot ps ON ps.gpu_id = bp.gpu_id
-INNER JOIN latest                     ON latest.id = ps.id
+INNER JOIN latest                     ON latest.gpu_id = bp.gpu_id
 INNER JOIN pricing_provider        p  ON p.id  = latest.provider_id
 WHERE bp.prefill_tps_aggregate > 0
   AND bp.decode_tps_aggregate  > 0;
