@@ -52,9 +52,9 @@ SELECT
     bp.prefill_tps_aggregate::numeric(12, 2)                AS prefill_tps_aggregate,
     bp.ttft_ms                                              AS ttft_ms,
     (latest.hourly_usd * bp.tp_size::numeric * 1000000
-        / (bp.prefill_tps_aggregate::numeric * 3600))::numeric(12, 4)   AS usd_per_m_input,
+        / (bp.prefill_tps_aggregate::numeric(12, 2) * 3600))::numeric(12, 4)   AS usd_per_m_input,
     (latest.hourly_usd * bp.tp_size::numeric * 1000000
-        / (bp.decode_tps_aggregate::numeric  * 3600))::numeric(12, 4)   AS usd_per_m_output,
+        / (bp.decode_tps_aggregate::numeric(12, 2)  * 3600))::numeric(12, 4)   AS usd_per_m_output,
     latest.scraped_at                                       AS scraped_at
 FROM       catalog_benchmarkpoint  bp
 INNER JOIN catalog_gpu             g  ON g.id  = bp.gpu_id
@@ -81,8 +81,12 @@ DROP_UNIQUE_INDEX_SQL = """
 DROP INDEX IF EXISTS pricing_cost_cells_uniq;
 """
 
-# Restores the M05 view definition so reversing this migration leaves the
-# database in the state that existed after 0005_current_cost_cells ran.
+# Restores the M05 view structure so reversing this migration leaves the
+# database with a working pricing_current_cost_cells view.
+# NOTE: the original 0005 SQL used float literals (1000000.0, 3600.0) in
+# cost arithmetic. This restore intentionally uses ::numeric casts instead
+# so rollbacks do not reintroduce float-based pricing math. The view schema
+# (columns, JOIN logic, DISTINCT ON key) is otherwise identical to M05.
 RESTORE_M05_VIEW_SQL = """
 CREATE MATERIALIZED VIEW pricing_current_cost_cells AS
 WITH latest AS (
