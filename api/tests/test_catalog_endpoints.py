@@ -25,13 +25,13 @@ class GPUListEndpointTest(TestCase):
         slugs = [r["slug"] for r in response.json()["results"]]
         self.assertEqual(slugs, sorted(slugs))
 
-    def test_camel_case_keys(self) -> None:
+    def test_snake_case_keys(self) -> None:
         response = self.client.get("/api/v1/gpus/")
         result = response.json()["results"][0]
-        self.assertIn("vramGb", result)
-        self.assertIn("memoryBandwidthGbs", result)
-        self.assertIn("tdpWatts", result)
-        self.assertIn("fp16Tflops", result)
+        self.assertIn("vram_gb", result)
+        self.assertIn("memory_bandwidth_gbs", result)
+        self.assertIn("tdp_watts", result)
+        self.assertIn("fp16_tflops", result)
 
     def test_no_extra_queries(self) -> None:
         with self.assertNumQueries(1):
@@ -64,13 +64,13 @@ class ModelListEndpointTest(TestCase):
         slugs = [r["slug"] for r in response.json()["results"]]
         self.assertEqual(slugs, sorted(slugs))
 
-    def test_camel_case_keys(self) -> None:
+    def test_snake_case_keys(self) -> None:
         response = self.client.get("/api/v1/models/")
         result = response.json()["results"][0]
-        self.assertIn("displayName", result)
-        self.assertIn("totalParamsB", result)
-        self.assertIn("activeParamsB", result)
-        self.assertIn("maxContext", result)
+        self.assertIn("display_name", result)
+        self.assertIn("total_params_b", result)
+        self.assertIn("active_params_b", result)
+        self.assertIn("max_context", result)
 
     def test_no_extra_queries(self) -> None:
         with self.assertNumQueries(1):
@@ -97,12 +97,12 @@ class QuantizationListEndpointTest(TestCase):
         slugs = [r["slug"] for r in response.json()["results"]]
         self.assertEqual(slugs, sorted(slugs))
 
-    def test_camel_case_keys(self) -> None:
+    def test_snake_case_keys(self) -> None:
         response = self.client.get("/api/v1/quantizations/")
         result = response.json()["results"][0]
-        self.assertIn("displayName", result)
-        self.assertIn("weightBits", result)
-        self.assertIn("kvCacheBits", result)
+        self.assertIn("display_name", result)
+        self.assertIn("weight_bits", result)
+        self.assertIn("kv_cache_bits", result)
 
     def test_no_extra_queries(self) -> None:
         with self.assertNumQueries(1):

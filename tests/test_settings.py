@@ -29,13 +29,13 @@ class DRFSettingsTest(SimpleTestCase):
         rates = settings.REST_FRAMEWORK.get("DEFAULT_THROTTLE_RATES", {})
         self.assertIn("anon", rates)
 
-    def test_camel_case_renderer_configured(self):
+    def test_json_renderer_configured(self):
         renderers = settings.REST_FRAMEWORK.get("DEFAULT_RENDERER_CLASSES", [])
-        self.assertIn("djangorestframework_camel_case.render.CamelCaseJSONRenderer", renderers)
+        self.assertIn("rest_framework.renderers.JSONRenderer", renderers)
 
-    def test_camel_case_parser_configured(self):
+    def test_json_parser_configured(self):
         parsers = settings.REST_FRAMEWORK.get("DEFAULT_PARSER_CLASSES", [])
-        self.assertIn("djangorestframework_camel_case.parser.CamelCaseJSONParser", parsers)
+        self.assertIn("rest_framework.parsers.JSONParser", parsers)
 
     def test_spectacular_schema_class_configured(self):
         self.assertEqual(

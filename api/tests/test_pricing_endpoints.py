@@ -29,24 +29,24 @@ class ProviderListEndpointTest(TestCase):
         self.assertIn("runpod", slugs)
         self.assertIn("vast", slugs)
 
-    def test_camel_case_keys(self) -> None:
+    def test_snake_case_keys(self) -> None:
         response = self.client.get("/api/v1/providers/")
         result = response.json()["results"][0]
-        self.assertIn("providerType", result)
-        self.assertIn("dataSourceTier", result)
-        self.assertIn("hasApi", result)
-        self.assertIn("isActive", result)
-        self.assertIn("lastScrapedAt", result)
+        self.assertIn("provider_type", result)
+        self.assertIn("data_source_tier", result)
+        self.assertIn("has_api", result)
+        self.assertIn("is_active", result)
+        self.assertIn("last_scraped_at", result)
 
     def test_last_scraped_at_non_null_for_active(self) -> None:
         response = self.client.get("/api/v1/providers/")
         results = {r["slug"]: r for r in response.json()["results"]}
-        self.assertIsNotNone(results["runpod"]["lastScrapedAt"])
+        self.assertIsNotNone(results["runpod"]["last_scraped_at"])
 
     def test_last_scraped_at_null_when_no_snapshots(self) -> None:
         response = self.client.get("/api/v1/providers/")
         results = {r["slug"]: r for r in response.json()["results"]}
-        self.assertIsNone(results["vast"]["lastScrapedAt"])
+        self.assertIsNone(results["vast"]["last_scraped_at"])
 
     def test_no_extra_queries(self) -> None:
         with self.assertNumQueries(1):

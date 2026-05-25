@@ -37,20 +37,20 @@ class CostCellsEndpointTest(TestCase):
         data = response.json()
         self.assertGreater(len(data["results"]), 0)
 
-    def test_camel_case_keys(self) -> None:
+    def test_snake_case_keys(self) -> None:
         response = self.client.get("/api/v1/cost-cells/")
         result = response.json()["results"][0]
         for key in (
-            "gpuSlug",
-            "modelSlug",
-            "quantizationSlug",
-            "providerSlug",
-            "providerType",
-            "dataSourceTier",
-            "hourlyUsd",
-            "usdPerMOutput",
-            "usdPerMInput",
-            "decodeTpsAggregate",
+            "gpu_slug",
+            "model_slug",
+            "quantization_slug",
+            "provider_slug",
+            "provider_type",
+            "data_source_tier",
+            "hourly_usd",
+            "usd_per_m_output",
+            "usd_per_m_input",
+            "decode_tps_aggregate",
         ):
             self.assertIn(key, result, f"missing key: {key}")
 
@@ -69,33 +69,32 @@ class CostCellsEndpointTest(TestCase):
             cur.execute("REFRESH MATERIALIZED VIEW pricing_current_cost_cells")
 
         response = self.client.get("/api/v1/cost-cells/")
-        costs = [Decimal(r["usdPerMOutput"]) for r in response.json()["results"]]
+        costs = [Decimal(r["usd_per_m_output"]) for r in response.json()["results"]]
         self.assertEqual(costs, sorted(costs))
 
     def test_filter_by_provider_slug(self) -> None:
         response = self.client.get("/api/v1/cost-cells/?provider_slug=lambda")
         data = response.json()
         for r in data["results"]:
-            self.assertEqual(r["providerSlug"], "lambda")
+            self.assertEqual(r["provider_slug"], "lambda")
 
     def test_filter_by_provider_type(self) -> None:
         response = self.client.get("/api/v1/cost-cells/?provider_type=cloud")
         data = response.json()
         for r in data["results"]:
-            self.assertEqual(r["providerType"], "cloud")
+            self.assertEqual(r["provider_type"], "cloud")
 
     def test_filter_by_gpu_slug(self) -> None:
         response = self.client.get("/api/v1/cost-cells/?gpu_slug=nvidia-h100")
         data = response.json()
         for r in data["results"]:
-            self.assertEqual(r["gpuSlug"], "nvidia-h100")
+            self.assertEqual(r["gpu_slug"], "nvidia-h100")
 
     def test_max_usd_per_m_output_cap(self) -> None:
         response = self.client.get("/api/v1/cost-cells/?max_usd_per_m_output=0.001")
         data = response.json()
-        # Everything above 0.001 filtered out; likely 0 rows
         for r in data["results"]:
-            self.assertLessEqual(Decimal(r["usdPerMOutput"]), Decimal("0.001"))
+            self.assertLessEqual(Decimal(r["usd_per_m_output"]), Decimal("0.001"))
 
     def test_malformed_max_cap_ignored(self) -> None:
         response = self.client.get("/api/v1/cost-cells/?max_usd_per_m_output=notanumber")
