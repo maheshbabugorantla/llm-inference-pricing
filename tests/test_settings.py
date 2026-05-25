@@ -33,6 +33,10 @@ class DRFSettingsTest(SimpleTestCase):
         renderers = settings.REST_FRAMEWORK.get("DEFAULT_RENDERER_CLASSES", [])
         self.assertIn("rest_framework.renderers.JSONRenderer", renderers)
 
+    def test_browsable_api_renderer_not_configured(self):
+        renderers = settings.REST_FRAMEWORK.get("DEFAULT_RENDERER_CLASSES", [])
+        self.assertNotIn("rest_framework.renderers.BrowsableAPIRenderer", renderers)
+
     def test_json_parser_configured(self):
         parsers = settings.REST_FRAMEWORK.get("DEFAULT_PARSER_CLASSES", [])
         self.assertIn("rest_framework.parsers.JSONParser", parsers)
