@@ -48,3 +48,6 @@ class DRFSettingsTest(SimpleTestCase):
 
     def test_cors_credentials_disabled(self):
         self.assertFalse(settings.CORS_ALLOW_CREDENTIALS)
+
+    def test_cors_scoped_to_api(self):
+        self.assertEqual(settings.CORS_URLS_REGEX, r"^/api/.*$")

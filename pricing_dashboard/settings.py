@@ -124,6 +124,7 @@ SPECTACULAR_SETTINGS = {
 _frontend_origin = os.environ.get("FRONTEND_ORIGIN")
 CORS_ALLOWED_ORIGINS = ["http://localhost:4200"] + ([_frontend_origin] if _frontend_origin else [])
 CORS_ALLOW_CREDENTIALS = False
+CORS_URLS_REGEX = r"^/api/.*$"
 
 CELERY_BROKER_URL = os.environ.get("REDIS_URL", "redis://redis:6379/0")
 CELERY_RESULT_BACKEND = CELERY_BROKER_URL
