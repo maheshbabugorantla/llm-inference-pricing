@@ -1,0 +1,106 @@
+# vLLM throughput benchmarks — Qwen2.5-Coder-32B on AMD MI300X at BF16
+#
+# Hardware: MI300X — 192 GB HBM3, 5,300 GB/s bandwidth, 1,307 TFLOPS BF16.
+# MI300X has the largest memory of any GPU in this benchmark set — ideal for
+# large batches and long contexts without quantization.
+#
+# Model VRAM: Qwen2.5-Coder-32B in BF16 ≈ 64 GB. 128 GB available for KV cache.
+# KV cache per token (BF16): 2 × 8 kv_heads × 128 head_dim × 2 bytes × 64 layers = 4 KB.
+#
+# VRAM budget — uses compute_fit() formula with 15% overhead:
+#   per_gpu = weights + (kv_total + activations) × 1.15
+#   weights = 64 GB (BF16), kv_per_token = 262,144 bytes
+#
+#   batch=1,  ctx=4096:   67.4 GB ✓
+#   batch=1,  ctx=32768:  76.1 GB ✓
+#   batch=8,  ctx=4096:   76.5 GB ✓
+#   batch=8,  ctx=32768: 145.6 GB ✓ (fits MI300X 192 GB; exceeds H200 141 GB)
+#   batch=32, ctx=4096:  107.5 GB ✓
+#   batch=64, ctx=4096:  148.9 GB ✓ (MI300X-only; exceeds H200 141 GB)
+#
+# Derivation methodology (scaling from vllm-blog-2025-03-h100-fp8 baseline):
+#   decode_ratio  = (MI300X_bw / H100_SXM_bw) × (H100_FP8_model / MI300X_BF16_model)
+#                 = (5300 / 3350) × (32 GB / 64 GB) = 0.791
+#   prefill_ratio = MI300X_BF16_tflops / H100_FP8_tflops = 1307 / 1979 = 0.661
+#
+# ROCm/vLLM benchmark references: AMD MI300X achieves comparable vLLM throughput
+# to NVIDIA H100 for BF16 workloads on popular models (Llama, Qwen).
+# Values are estimates — measure against your own ROCm cluster before production use.
+
+source:
+  slug: mi300x-qwen2-5-32b-bf16
+  title: "Hardware-Derived Benchmarks — Qwen2.5-Coder-32B on AMD MI300X (BF16)"
+  url: https://rocm.docs.amd.com/en/latest/how-to/performance-validation/mi300x-inference-performance.html
+  publisher: hardware-estimate
+  published_at: 2025-01-01
+  engine: vllm
+  engine_version: "0.7.0"
+  notes: |
+    Numbers derived from AMD MI300X specifications (5,300 GB/s HBM3,
+    1,307 TFLOPS BF16) scaled from published H100 SXM FP8 vLLM benchmarks.
+    MI300X delivers ~0.79× H100 FP8 decode throughput on BF16; prefill is
+    ~0.66× H100 FP8 rate. The MI300X advantage is its 192 GB HBM3 — enabling
+    batch=64 at ctx=4096, which no NVIDIA GPU in this catalog can match
+    on a single die. Software efficiency of ROCm + vLLM may vary.
+    TTFT omitted — not measured in this derivation.
+
+points:
+  # --- batch=1, ctx=4096 ---
+  - model: qwen-2-5-coder-32b
+    gpu: amd-mi300x
+    quantization: bf16
+    tp_size: 1
+    batch_size: 1
+    context_length: 4096
+    prefill_tps_aggregate: 7930
+    decode_tps_aggregate: 123
+
+  # --- batch=1, ctx=32768 ---
+  - model: qwen-2-5-coder-32b
+    gpu: amd-mi300x
+    quantization: bf16
+    tp_size: 1
+    batch_size: 1
+    context_length: 32768
+    prefill_tps_aggregate: 7400
+    decode_tps_aggregate: 117
+
+  # --- batch=8, ctx=4096 ---
+  - model: qwen-2-5-coder-32b
+    gpu: amd-mi300x
+    quantization: bf16
+    tp_size: 1
+    batch_size: 8
+    context_length: 4096
+    prefill_tps_aggregate: 18780
+    decode_tps_aggregate: 728
+
+  # --- batch=8, ctx=32768 (KV=64 GB, total=128 GB) ---
+  - model: qwen-2-5-coder-32b
+    gpu: amd-mi300x
+    quantization: bf16
+    tp_size: 1
+    batch_size: 8
+    context_length: 32768
+    prefill_tps_aggregate: 16390
+    decode_tps_aggregate: 633
+
+  # --- batch=32, ctx=4096 (KV=32 GB, total=96 GB) ---
+  - model: qwen-2-5-coder-32b
+    gpu: amd-mi300x
+    quantization: bf16
+    tp_size: 1
+    batch_size: 32
+    context_length: 4096
+    prefill_tps_aggregate: 34370
+    decode_tps_aggregate: 1463
+
+  # --- batch=64, ctx=4096 (KV=64 GB, total=128 GB — MI300X-only) ---
+  - model: qwen-2-5-coder-32b
+    gpu: amd-mi300x
+    quantization: bf16
+    tp_size: 1
+    batch_size: 64
+    context_length: 4096
+    prefill_tps_aggregate: 49500
+    decode_tps_aggregate: 2340

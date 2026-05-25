@@ -1,0 +1,90 @@
+# vLLM throughput benchmarks — Qwen2.5-Coder-32B on NVIDIA H100 PCIe 80GB at FP8
+#
+# Hardware: H100 PCIe 80GB — 2,000 GB/s HBM2e, 1,513 TFLOPS FP8.
+# The PCIe variant has lower memory bandwidth than the SXM (2,000 vs 3,350 GB/s)
+# and lower FP8 TFLOPS (1,513 vs 1,979), making it ~0.60× SXM for decode and
+# ~0.76× SXM for prefill.
+#
+# Model VRAM: Qwen2.5-Coder-32B in FP8 ≈ 32 GB. 48 GB available for KV cache.
+# KV cache per token (FP8): 2 × 8 kv_heads × 128 head_dim × 1 byte × 64 layers = 2 KB.
+#
+# VRAM budget for operating points (model=32 GB, total VRAM=80 GB):
+#   batch=1,  ctx=4096:  KV=0.5 GB → 32.5 GB ✓
+#   batch=1,  ctx=32768: KV=4 GB   → 36 GB   ✓
+#   batch=8,  ctx=4096:  KV=4 GB   → 36 GB   ✓
+#   batch=8,  ctx=32768: KV=32 GB  → 64 GB   ✓
+#   batch=32, ctx=4096:  KV=16 GB  → 48 GB   ✓
+#
+# Derivation methodology (scaling from vllm-blog-2025-03-h100-fp8 baseline):
+#   decode_ratio  = H100_PCIe_bw / H100_SXM_bw = 2000 / 3350 = 0.597
+#   prefill_ratio = H100_PCIe_fp8_tflops / H100_SXM_fp8_tflops = 1513 / 1979 = 0.765
+#   (same model size FP8 = 32 GB — no size adjustment needed for decode ratio)
+#
+# Values are estimates — measure against your own cluster before production use.
+
+source:
+  slug: h100-pcie-80-qwen2-5-32b-fp8
+  title: "Hardware-Derived Benchmarks — Qwen2.5-Coder-32B on H100 PCIe 80GB (FP8)"
+  url: https://developer.nvidia.com/blog/nvidia-hopper-architecture-in-depth
+  publisher: hardware-estimate
+  published_at: 2025-01-01
+  engine: vllm
+  engine_version: "0.7.0"
+  notes: |
+    Numbers derived from H100 PCIe 80GB specifications (2,000 GB/s HBM2e,
+    1,513 TFLOPS FP8) scaled from published H100 SXM FP8 vLLM benchmarks.
+    H100 PCIe achieves ~0.60× H100 SXM decode throughput (bandwidth-limited)
+    and ~0.76× SXM prefill throughput (compute-limited). FP8 is supported
+    natively on both PCIe and SXM Hopper variants.
+    TTFT omitted — not measured in this derivation.
+
+points:
+  # --- batch=1, ctx=4096 ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h100-pcie-80
+    quantization: fp8-e4m3
+    tp_size: 1
+    batch_size: 1
+    context_length: 4096
+    prefill_tps_aggregate: 9180
+    decode_tps_aggregate: 93
+
+  # --- batch=1, ctx=32768 ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h100-pcie-80
+    quantization: fp8-e4m3
+    tp_size: 1
+    batch_size: 1
+    context_length: 32768
+    prefill_tps_aggregate: 8570
+    decode_tps_aggregate: 88
+
+  # --- batch=8, ctx=4096 ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h100-pcie-80
+    quantization: fp8-e4m3
+    tp_size: 1
+    batch_size: 8
+    context_length: 4096
+    prefill_tps_aggregate: 21730
+    decode_tps_aggregate: 549
+
+  # --- batch=8, ctx=32768 ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h100-pcie-80
+    quantization: fp8-e4m3
+    tp_size: 1
+    batch_size: 8
+    context_length: 32768
+    prefill_tps_aggregate: 18970
+    decode_tps_aggregate: 478
+
+  # --- batch=32, ctx=4096 ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h100-pcie-80
+    quantization: fp8-e4m3
+    tp_size: 1
+    batch_size: 32
+    context_length: 4096
+    prefill_tps_aggregate: 39780
+    decode_tps_aggregate: 1105

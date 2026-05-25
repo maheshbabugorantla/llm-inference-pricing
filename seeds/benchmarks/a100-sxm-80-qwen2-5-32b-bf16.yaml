@@ -1,0 +1,71 @@
+# vLLM throughput benchmarks — Qwen2.5-Coder-32B on NVIDIA A100 SXM 80GB at BF16
+#
+# Source: derived from A100 hardware specifications and Hyperstack A100/H100
+# inference comparison benchmarks.
+#
+# Hardware: A100 SXM 80GB — 2,000 GB/s HBM2e, 312 TFLOPS BF16 (tensor cores).
+# A100 does not support native FP8 acceleration; BF16 is the optimal precision.
+#
+# Model VRAM: Qwen2.5-Coder-32B in BF16 ≈ 64 GB. Leaves ~16 GB for KV cache.
+# KV cache per token (BF16): 2 × 8 kv_heads × 128 head_dim × 2 bytes × 64 layers = 4 KB.
+#
+# VRAM budget for operating points (model=64 GB):
+#   batch=1,  ctx=4096:  KV=1 GB  → 65 GB ✓
+#   batch=1,  ctx=32768: KV=8 GB  → 72 GB ✓
+#   batch=8,  ctx=4096:  KV=8 GB  → 72 GB ✓
+#   batch=8,  ctx=32768: KV=64 GB → 128 GB ✗ (exceeds 80 GB)
+#   batch=32, ctx=4096:  KV=32 GB → 96 GB  ✗ (exceeds 80 GB)
+#
+# Derivation methodology (scaling from vllm-blog-2025-03-h100-fp8 baseline):
+#   decode_ratio  = (A100_bw / H100_bw) × (H100_FP8_model / A100_BF16_model)
+#                 = (2000 / 3350) × (32 GB / 64 GB) = 0.299
+#   prefill_ratio = A100_BF16_tflops / H100_FP8_tflops = 312 / 1979 = 0.158
+#
+# Values are estimates — measure against your own cluster before production use.
+
+source:
+  slug: a100-sxm-80-qwen2-5-32b-bf16
+  title: "Hardware-Derived Benchmarks — Qwen2.5-Coder-32B on A100 SXM 80GB (BF16)"
+  url: https://www.hyperstack.cloud/blog/thought-leadership/nvidia-a100-vs-h100-gpus-for-ai-inference
+  publisher: hardware-estimate
+  published_at: 2025-01-01
+  engine: vllm
+  engine_version: "0.7.0"
+  notes: |
+    Numbers derived from A100 SXM 80GB hardware specifications (2,000 GB/s
+    bandwidth, 312 TFLOPS BF16) scaled from published H100 SXM FP8 vLLM
+    benchmarks. A100 does not support native FP8; BF16 is used throughout.
+    Decode throughput is memory-bandwidth-limited (0.30× H100 FP8 rate).
+    Prefill throughput is compute-limited (0.16× H100 FP8 rate).
+    TTFT omitted — not measured in this derivation.
+
+points:
+  # --- batch=1, ctx=4096 (KV=1 GB, total=65 GB) ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-a100-sxm-80
+    quantization: bf16
+    tp_size: 1
+    batch_size: 1
+    context_length: 4096
+    prefill_tps_aggregate: 1900
+    decode_tps_aggregate: 46
+
+  # --- batch=1, ctx=32768 (KV=8 GB, total=72 GB) ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-a100-sxm-80
+    quantization: bf16
+    tp_size: 1
+    batch_size: 1
+    context_length: 32768
+    prefill_tps_aggregate: 1770
+    decode_tps_aggregate: 44
+
+  # --- batch=8, ctx=4096 (KV=8 GB, total=72 GB) ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-a100-sxm-80
+    quantization: bf16
+    tp_size: 1
+    batch_size: 8
+    context_length: 4096
+    prefill_tps_aggregate: 4490
+    decode_tps_aggregate: 276

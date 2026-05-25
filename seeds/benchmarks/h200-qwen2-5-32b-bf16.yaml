@@ -1,0 +1,96 @@
+# vLLM throughput benchmarks — Qwen2.5-Coder-32B on NVIDIA H200 SXM at BF16
+#
+# Hardware: H200 SXM — 141 GB HBM3e, 4,800 GB/s bandwidth.
+# Compute: same FP8/BF16 tensor-core spec as H100 SXM (989 TFLOPS BF16).
+# The H200 advantage is larger, faster memory — enabling bigger batches and
+# higher decode throughput on memory-bandwidth-limited workloads.
+#
+# Model VRAM: Qwen2.5-Coder-32B in BF16 ≈ 64 GB. 77 GB available for KV cache.
+# KV cache per token (BF16): 2 × 8 kv_heads × 128 head_dim × 2 bytes × 64 layers = 4 KB.
+#
+# VRAM budget for operating points — uses compute_fit() formula with 15% overhead:
+#   per_gpu = weights + (kv_total + activations) × 1.15
+#   weights = 64 GB (BF16), kv_per_token = 2×64 layers×8 kv_heads×128 head_dim×2 bytes = 262,144 bytes
+#
+#   batch=1,  ctx=4096:  67.4 GB ✓
+#   batch=1,  ctx=32768: 76.1 GB ✓
+#   batch=8,  ctx=4096:  76.5 GB ✓
+#   batch=8,  ctx=16384: 106.1 GB ✓ (H200-only; H100 SXM 80 GB can't fit)
+#   batch=8,  ctx=32768: 145.6 GB ✗ (marginally exceeds H200 141 GB w/ overhead)
+#   batch=32, ctx=4096:  107.5 GB ✓ (H200-only)
+#
+# Derivation methodology (scaling from vllm-blog-2025-03-h100-fp8 baseline):
+#   decode_ratio  = (H200_bw / H100_SXM_bw) × (H100_FP8_model / H200_BF16_model)
+#                 = (4800 / 3350) × (32 GB / 64 GB) = 0.716
+#   prefill_ratio = H200_BF16_tflops / H100_FP8_tflops = 989 / 1979 = 0.500
+#
+# Values are estimates — measure against your own cluster before production use.
+
+source:
+  slug: h200-qwen2-5-32b-bf16
+  title: "Hardware-Derived Benchmarks — Qwen2.5-Coder-32B on H200 SXM (BF16)"
+  url: https://developer.nvidia.com/blog/nvidia-h200-tensor-core-gpu-outperforms-h100-on-llm-inference
+  publisher: hardware-estimate
+  published_at: 2025-01-01
+  engine: vllm
+  engine_version: "0.7.0"
+  notes: |
+    Numbers derived from H200 SXM hardware specifications (4,800 GB/s HBM3e,
+    989 TFLOPS BF16) scaled from published H100 SXM FP8 vLLM benchmarks.
+    H200 delivers ~1.43× H100 decode throughput on BF16 due to higher memory
+    bandwidth; prefill throughput is ~0.5× H100 FP8 (same compute, larger
+    model). Operating points batch=8/ctx=16384 and batch=32/ctx=4096 are
+    unique to H200 — they exceed H100's 80 GB VRAM budget with overhead.
+    batch=8/ctx=16384 TPS is interpolated from ctx=4096 and ctx=32768 endpoints.
+    TTFT omitted — not measured in this derivation.
+
+points:
+  # --- batch=1, ctx=4096 ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h200
+    quantization: bf16
+    tp_size: 1
+    batch_size: 1
+    context_length: 4096
+    prefill_tps_aggregate: 6000
+    decode_tps_aggregate: 111
+
+  # --- batch=1, ctx=32768 ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h200
+    quantization: bf16
+    tp_size: 1
+    batch_size: 1
+    context_length: 32768
+    prefill_tps_aggregate: 5600
+    decode_tps_aggregate: 106
+
+  # --- batch=8, ctx=4096 ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h200
+    quantization: bf16
+    tp_size: 1
+    batch_size: 8
+    context_length: 4096
+    prefill_tps_aggregate: 14200
+    decode_tps_aggregate: 659
+
+  # --- batch=8, ctx=16384 (106 GB with overhead — H200-only; H100 SXM 80 GB can't fit) ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h200
+    quantization: bf16
+    tp_size: 1
+    batch_size: 8
+    context_length: 16384
+    prefill_tps_aggregate: 13200
+    decode_tps_aggregate: 610
+
+  # --- batch=32, ctx=4096 (KV=32 GB, total=96 GB — fits H200 141 GB only) ---
+  - model: qwen-2-5-coder-32b
+    gpu: nvidia-h200
+    quantization: bf16
+    tp_size: 1
+    batch_size: 32
+    context_length: 4096
+    prefill_tps_aggregate: 26000
+    decode_tps_aggregate: 1325
