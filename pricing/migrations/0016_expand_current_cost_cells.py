@@ -11,14 +11,18 @@ from django.db import migrations, models
 #      to prevent ambiguous concatenation (e.g. "ab"+"c" vs "a"+"bc").
 #   3. decode_tps_aggregate / prefill_tps_aggregate are cast to
 #      numeric(12,2) so the unmanaged model's DecimalField matches exactly.
+#   4. DISTINCT ON includes region so each (provider, gpu, tier, region)
+#      tuple gets its own row — omitting region would make selection
+#      nondeterministic when a provider has multiple regions for the same
+#      (provider, gpu, tier) key.
 VIEW_SQL = """
 CREATE MATERIALIZED VIEW pricing_current_cost_cells AS
 WITH latest AS (
-    SELECT DISTINCT ON (provider_id, gpu_id, tier)
+    SELECT DISTINCT ON (provider_id, gpu_id, tier, region)
         id, provider_id, gpu_id, tier, hourly_usd, scraped_at, region
     FROM   pricing_pricingsnapshot
     WHERE  available = TRUE
-    ORDER  BY provider_id, gpu_id, tier, scraped_at DESC
+    ORDER  BY provider_id, gpu_id, tier, region, scraped_at DESC
 )
 SELECT
     MD5(
