@@ -389,3 +389,9 @@ class CurrentCostCell(models.Model):
 
     def __str__(self) -> str:
         return f"{self.provider_slug}/{self.gpu_slug}/{self.model_slug}"
+
+    def save(self, *args: object, **kwargs: object) -> None:
+        raise TypeError("CurrentCostCell is read-only — backed by a materialized view")
+
+    def delete(self, *args: object, **kwargs: object) -> tuple[int, dict[str, int]]:
+        raise TypeError("CurrentCostCell is read-only — backed by a materialized view")
