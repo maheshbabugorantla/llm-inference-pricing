@@ -411,22 +411,22 @@ class CurrentCostCell(models.Model):
     class Meta:
         managed = False
         db_table = "pricing_current_cost_cells"
-        # Indexes below are created by raw SQL in migrations 0016/0018/0019/0021.
-        # Django does not execute DDL for unmanaged models, so models.Index is
-        # not used (its name field is capped at 30 chars, shorter than several
-        # of the actual index names). This comment mirrors the live index set:
+        # Indexes are created by migrations 0016 (unique) and 0017 (covering).
+        # Django skips DDL for managed=False models, so AddIndexConcurrently
+        # is used explicitly. Names > 30 chars use the pcc_ prefix to satisfy
+        # Django's Index.max_name_length = 30 constraint.
         #
-        #   UNIQUE  pricing_cost_cells_uniq               (row_hash)          ← primary key
-        #           pricing_cost_cells_model               (model_slug)
-        #           pricing_cost_cells_gpu                 (gpu_slug)
-        #           pricing_cost_cells_provider            (provider_slug)
-        #           pricing_cost_cells_output_cost_hash    (usd_per_m_output, row_hash)
-        #           pricing_cost_cells_provider_output     (provider_slug, usd_per_m_output, row_hash)
-        #           pricing_cost_cells_provtype_output     (provider_type, usd_per_m_output, row_hash)
-        #           pricing_cost_cells_gpu_output          (gpu_slug, usd_per_m_output, row_hash)
-        #           pricing_cost_cells_model_output        (model_slug, usd_per_m_output, row_hash)
-        #           pricing_cost_cells_tier_output         (tier, usd_per_m_output, row_hash)
-        #           pricing_cost_cells_datasource_output   (data_source_tier, usd_per_m_output, row_hash)
+        #   UNIQUE  pricing_cost_cells_uniq        (row_hash)                          ← 0016
+        #           pricing_cost_cells_model        (model_slug)                        ← 0017
+        #           pricing_cost_cells_gpu          (gpu_slug)                          ← 0017
+        #           pricing_cost_cells_provider     (provider_slug)                     ← 0017
+        #           pcc_output_cost_hash            (usd_per_m_output, row_hash)        ← 0017
+        #           pcc_provider_output             (provider_slug, usd_per_m_output, row_hash)   ← 0017
+        #           pcc_provtype_output             (provider_type, usd_per_m_output, row_hash)   ← 0017
+        #           pricing_cost_cells_gpu_output   (gpu_slug, usd_per_m_output, row_hash)        ← 0017
+        #           pcc_model_output                (model_slug, usd_per_m_output, row_hash)      ← 0017
+        #           pricing_cost_cells_tier_output  (tier, usd_per_m_output, row_hash)            ← 0017
+        #           pcc_datasrc_output              (data_source_tier, usd_per_m_output, row_hash) ← 0017
 
     def __str__(self) -> str:
         return f"{self.provider_slug}/{self.gpu_slug}/{self.model_slug}"
