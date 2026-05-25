@@ -147,7 +147,7 @@
   ],
   "provider_slug": "lambda",
   "schema_version": 1,
-  "scraped_at": "2026-05-24T23:11:27.764196Z",
-  "scraper_version": "018d073",
+  "scraped_at": "2026-05-25T06:08:58.328672Z",
+  "scraper_version": "566ef7b",
   "source_url": "https://lambda.ai/instances"
 }

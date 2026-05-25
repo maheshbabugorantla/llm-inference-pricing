@@ -37677,7 +37677,7 @@
   ],
   "provider_slug": "azure",
   "schema_version": 1,
-  "scraped_at": "2026-05-24T23:11:17.006622Z",
-  "scraper_version": "018d073",
+  "scraped_at": "2026-05-25T06:12:22.893010Z",
+  "scraper_version": "566ef7b",
   "source_url": "https://prices.azure.com/api/retail/prices"
 }

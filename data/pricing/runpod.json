@@ -1363,7 +1363,7 @@
   ],
   "provider_slug": "runpod",
   "schema_version": 1,
-  "scraped_at": "2026-05-24T23:11:29.411068Z",
-  "scraper_version": "018d073",
+  "scraped_at": "2026-05-25T06:08:51.401788Z",
+  "scraper_version": "566ef7b",
   "source_url": "https://api.runpod.io/graphql"
 }

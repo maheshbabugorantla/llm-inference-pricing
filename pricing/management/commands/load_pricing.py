@@ -12,8 +12,36 @@ from pricing.services.scrape_runner import persist_prices
 
 if TYPE_CHECKING:
     from argparse import ArgumentParser
+    from collections.abc import Callable
 
 logger = logging.getLogger("pricing.management.load_pricing")
+
+
+def _make_hybrid_resolver(
+    scraper_resolver: Callable[[str], str | None],
+) -> Callable[[str], str | None]:
+    """Return a resolver that accepts pre-resolved catalog GPU slugs.
+
+    Some scrapers (aws, gcp) write the already-resolved catalog slug into
+    gpu_slug_hint rather than the raw provider name.  When load_pricing reads
+    those artifacts back, the per-scraper resolver (map_aws_gpu, map_gcp_gpu)
+    returns None for slug-shaped hints — dropping the price silently.
+
+    This wrapper pre-fetches the full set of catalog GPU slugs once and
+    passes any hint that is already a valid slug through unchanged, falling
+    back to the scraper's own resolver for hints that need translation.
+    """
+    from catalog.models import GPU
+
+    catalog_slugs: frozenset[str] = frozenset(GPU.objects.values_list("slug", flat=True))
+
+    def hybrid(hint: str) -> str | None:
+        if hint in catalog_slugs:
+            return hint
+        return scraper_resolver(hint)
+
+    return hybrid
+
 
 _DATA_DIR = Path(__file__).resolve().parents[3] / "data" / "pricing"
 
@@ -62,7 +90,7 @@ class Command(BaseCommand):
                 entry = SCRAPERS[slug]
                 n = persist_prices(
                     prices,
-                    gpu_slug_resolver=entry.gpu_slug_resolver,
+                    gpu_slug_resolver=_make_hybrid_resolver(entry.gpu_slug_resolver),
                     scraped_at=artifact.scraped_at,
                 )
                 self.stdout.write(
