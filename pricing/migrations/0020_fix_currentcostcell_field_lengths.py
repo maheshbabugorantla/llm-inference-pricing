@@ -5,10 +5,12 @@ from django.db import migrations, models
 
 class Migration(migrations.Migration):
     """
-    State-only migration: correct max_length in the migration state for three
-    CurrentCostCell fields that were recorded as 64 in 0017 but should match
-    their catalog source columns (catalog.Model.slug = 128,
-    catalog.Provider.slug = 128, catalog.Provider.display_name = 128).
+    State-only migration: correct max_length for CurrentCostCell.model_slug.
+
+    Migration 0017 recorded model_slug as max_length=64, but the source column
+    catalog.Model.slug is max_length=128. provider_slug and provider_display_name
+    were correctly recorded at 64 in 0017 (matching pricing.Provider.slug = 64
+    and Provider.display_name = 64) and are not touched here.
 
     CurrentCostCell is unmanaged (managed=False), so no SQL is emitted.
     makemigrations does not auto-detect max_length changes on unmanaged models,
@@ -22,16 +24,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name="currentcostcell",
             name="model_slug",
-            field=models.CharField(max_length=128),
-        ),
-        migrations.AlterField(
-            model_name="currentcostcell",
-            name="provider_slug",
-            field=models.CharField(max_length=128),
-        ),
-        migrations.AlterField(
-            model_name="currentcostcell",
-            name="provider_display_name",
             field=models.CharField(max_length=128),
         ),
     ]
