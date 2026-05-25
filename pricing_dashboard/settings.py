@@ -97,6 +97,10 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": ["rest_framework.permissions.AllowAny"],
     "DEFAULT_PAGINATION_CLASS": "rest_framework.pagination.CursorPagination",
     "PAGE_SIZE": 50,
+    # Responses use snake_case throughout (no camelCase conversion layer).
+    # The Angular frontend is expected to consume snake_case keys directly.
+    # ADR: djangorestframework-camel-case was considered but rejected to keep
+    # filter params and response bodies consistent with Python conventions.
     "DEFAULT_RENDERER_CLASSES": [
         "rest_framework.renderers.JSONRenderer",
     ],

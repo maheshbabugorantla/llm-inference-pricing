@@ -90,11 +90,23 @@ class CostCellsEndpointTest(TestCase):
         for r in data["results"]:
             self.assertEqual(r["gpu_slug"], "nvidia-h100")
 
-    def test_max_usd_per_m_output_cap(self) -> None:
+    def test_max_usd_per_m_output_cap_excludes_rows_above(self) -> None:
+        # setUpTestData rows have usd_per_m_output ≈ 0.83 (hourly=$3, tps=1000).
+        # A cap of 0.001 must exclude all of them — asserting empty is the only
+        # way to detect a broken filter (iterating an empty list silently passes).
         response = self.client.get("/api/v1/cost-cells/?max_usd_per_m_output=0.001")
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["results"], [])
+
+    def test_max_usd_per_m_output_cap_includes_rows_below(self) -> None:
+        # A cap of 10.00 is above all seeded rows — all should be returned, and
+        # every returned row must satisfy the cap.
+        response = self.client.get("/api/v1/cost-cells/?max_usd_per_m_output=10.00")
         data = response.json()
+        self.assertEqual(response.status_code, 200)
+        self.assertGreater(len(data["results"]), 0)
         for r in data["results"]:
-            self.assertLessEqual(Decimal(r["usd_per_m_output"]), Decimal("0.001"))
+            self.assertLessEqual(Decimal(r["usd_per_m_output"]), Decimal("10.00"))
 
     def test_malformed_max_cap_returns_400(self) -> None:
         # NumberFilter validates the value; a non-numeric string is a client error.
