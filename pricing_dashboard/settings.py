@@ -116,7 +116,6 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "Read-only API for LLM inference cost cells.",
     "VERSION": "1.0.0",
     "SERVE_INCLUDE_SCHEMA": False,
-    "CAMELIZE_NAMES": True,
     "POSTPROCESSING_HOOKS": [
         "drf_spectacular.hooks.postprocess_schema_enums",
     ],
