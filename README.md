@@ -27,7 +27,7 @@ GitHub Actions (daily)
 Developer / CI
   └─ load_pricing --provider all
        └─ PricingSnapshot (TimescaleDB)
-            └─ current_cost_cells (materialized view, 9 indexes)
+            └─ current_cost_cells (materialized view, 11 indexes)
                  └─ REST API (/api/v1/cost-cells/)  ← cursor-paginated, filtered
 
 On-prem & reserved-cloud generators (run on seed / deployment save)

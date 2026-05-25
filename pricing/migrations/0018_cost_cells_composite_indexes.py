@@ -45,6 +45,13 @@ CREATE INDEX pricing_cost_cells_output_cost
 
 
 class Migration(migrations.Migration):
+    # NOTE: For a large production dataset, run these index builds manually with
+    # CREATE INDEX CONCURRENTLY outside a transaction before applying this
+    # migration, then fake-apply (migrate --fake) to avoid the exclusive lock.
+    # Plain CREATE INDEX is used here so the migration works in test environments,
+    # where CONCURRENTLY is prohibited inside Django's transaction-wrapped test DB
+    # setup.
+
     dependencies = [("pricing", "0017_currentcostcell")]
 
     operations = [

@@ -25,6 +25,13 @@ class Migration(migrations.Migration):
     queries fall back to a sequential scan or must traverse the
     (usd_per_m_output, row_hash) ordering index from the front, which
     is expensive as the view grows.
+
+    NOTE: For a large production dataset, run these index builds manually with
+    CREATE INDEX CONCURRENTLY outside a transaction before applying this
+    migration, then fake-apply (migrate --fake) to avoid the exclusive lock.
+    Plain CREATE INDEX is used here so the migration works in test environments,
+    where CONCURRENTLY is prohibited inside Django's transaction-wrapped test DB
+    setup.
     """
 
     dependencies = [("pricing", "0020_fix_currentcostcell_field_lengths")]
