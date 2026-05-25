@@ -116,6 +116,36 @@ class CostCellIntegrationTest(TransactionTestCase):
 
         self.assertEqual(count, 0)
 
+    def test_empty_region_converted_to_null(self):
+        gpu = GPUFactory(slug="nvidia-h100-pcie")
+        provider = ProviderFactory(slug="provider-noregion")
+        BenchmarkPointFactory(gpu=gpu, tp_size=1, prefill_tps_aggregate=6000, decode_tps_aggregate=350)
+        # region defaults to '' (NOT NULL blank=True on PricingSnapshot)
+        PricingSnapshotFactory(
+            provider=provider,
+            gpu=gpu,
+            tier="on_demand",
+            hourly_usd=Decimal("1.20"),
+            region="",
+            scraped_at=timezone.now(),
+        )
+
+        refresh_cost_cells(concurrently=False)
+
+        with connection.cursor() as c:
+            c.execute(
+                """
+                SELECT region FROM pricing_current_cost_cells
+                WHERE gpu_slug = %s AND provider_slug = %s
+                """,
+                ["nvidia-h100-pcie", "provider-noregion"],
+            )
+            row = c.fetchone()
+
+        self.assertIsNotNone(row)
+        # NULLIF(latest.region, '') converts '' → NULL in the view output
+        self.assertIsNone(row[0])
+
     def test_invariant_i5_no_nulls_in_cost_cells(self):
         gpu = GPUFactory(slug="nvidia-l4")
         provider = ProviderFactory(slug="provider-nullcheck")

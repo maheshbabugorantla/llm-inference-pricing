@@ -15,6 +15,11 @@ from django.db import migrations, models
 #      tuple gets its own row — omitting region would make selection
 #      nondeterministic when a provider has multiple regions for the same
 #      (provider, gpu, tier) key.
+#   5. NULLIF(latest.region, '') converts the empty-string sentinel used by
+#      PricingSnapshot (NOT NULL, blank=True) into SQL NULL, so the ORM
+#      field (null=True) accurately reflects the column's nullable output.
+#      row_hash still uses COALESCE(latest.region, '') so empty-region rows
+#      produce a stable hash regardless of the NULLIF on the output column.
 VIEW_SQL = """
 CREATE MATERIALIZED VIEW pricing_current_cost_cells AS
 WITH latest AS (
@@ -46,7 +51,7 @@ SELECT
     p.provider_type                                         AS provider_type,
     p.data_source_tier                                      AS data_source_tier,
     latest.tier                                             AS tier,
-    latest.region                                           AS region,
+    NULLIF(latest.region, '')                               AS region,
     latest.hourly_usd                                       AS hourly_usd,
     bp.decode_tps_aggregate::numeric(12, 2)                 AS decode_tps_aggregate,
     bp.prefill_tps_aggregate::numeric(12, 2)                AS prefill_tps_aggregate,
