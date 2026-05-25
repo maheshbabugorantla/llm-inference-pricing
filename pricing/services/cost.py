@@ -1,8 +1,14 @@
 from __future__ import annotations
 
 from decimal import Decimal
+from typing import TYPE_CHECKING
 
 from django.db import connection
+
+if TYPE_CHECKING:
+    from django.db.models import QuerySet
+
+    from pricing.models import CurrentCostCell
 
 
 def cost_per_million_tokens(
@@ -24,3 +30,9 @@ def refresh_cost_cells(*, concurrently: bool = True) -> None:
     )
     with connection.cursor() as c:
         c.execute(sql)
+
+
+def get_current_cost_cells_queryset() -> QuerySet[CurrentCostCell]:
+    from pricing.models import CurrentCostCell
+
+    return CurrentCostCell.objects.all()

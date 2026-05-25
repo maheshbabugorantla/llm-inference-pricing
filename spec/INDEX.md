@@ -27,6 +27,7 @@
 - [x] **M09** — Reserved cloud (`ReservedCapacityProduct`, `ReservedCloudDeployment`, generator) → `M09-reserved-cloud.md`
 - [x] **M10** — *(Optional)* ComputePrices.com drift detection → `M10-drift-detection.md`
 - [x] **M11** — Test quality uplift (refactor constraint-only tests into business scenarios) → `M11-test-quality-uplift.md`
+- [x] **M12** — Public REST API (DRF, catalog + providers + cost-cells endpoints, OpenAPI schema) → `M12-public-api.md` *(spec provided externally; see PR #9)*
 
 ## Dependency graph
 

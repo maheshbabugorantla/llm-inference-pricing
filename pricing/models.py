@@ -355,3 +355,93 @@ def _regenerate_reserved_on_save(
     from pricing.generators.reserved_cloud import regenerate_reserved_cloud_snapshots
 
     transaction.on_commit(regenerate_reserved_cloud_snapshots)
+
+
+class _ReadOnlyQuerySet(models.QuerySet["CurrentCostCell"]):
+    """QuerySet that blocks all write paths against the materialized view."""
+
+    _MSG = "CurrentCostCell is read-only — backed by a materialized view"
+
+    def update(self, **kwargs: object) -> int:
+        raise TypeError(self._MSG)
+
+    def delete(self) -> tuple[int, dict[str, int]]:
+        raise TypeError(self._MSG)
+
+    def create(self, **kwargs: object) -> CurrentCostCell:
+        raise TypeError(self._MSG)
+
+    def get_or_create(self, **kwargs: object) -> tuple[CurrentCostCell, bool]:  # type: ignore[override]
+        raise TypeError(self._MSG)
+
+    def update_or_create(self, **kwargs: object) -> tuple[CurrentCostCell, bool]:  # type: ignore[override]
+        raise TypeError(self._MSG)
+
+    def bulk_create(self, objs: object, **kwargs: object) -> list[object]:  # type: ignore[override]
+        raise TypeError(self._MSG)
+
+    def bulk_update(self, objs: object, fields: object, **kwargs: object) -> int:  # type: ignore[override]
+        raise TypeError(self._MSG)
+
+
+class _ReadOnlyManager(models.Manager["CurrentCostCell"]):
+    def get_queryset(self) -> _ReadOnlyQuerySet:
+        return _ReadOnlyQuerySet(self.model, using=self._db)
+
+
+class CurrentCostCell(models.Model):
+    """Read-only unmanaged model backed by the pricing_current_cost_cells materialized view."""
+
+    objects: models.Manager[CurrentCostCell] = _ReadOnlyManager()
+
+    row_hash = models.CharField(max_length=32, primary_key=True)
+    gpu_slug = models.CharField(max_length=64)
+    gpu_display_name = models.CharField(max_length=128)
+    model_slug = models.CharField(max_length=128)
+    model_display_name = models.CharField(max_length=128)
+    quantization_slug = models.CharField(max_length=64)
+    tp_size = models.PositiveIntegerField()
+    batch_size = models.PositiveIntegerField()
+    context_length = models.PositiveIntegerField()
+    provider_slug = models.CharField(max_length=64)
+    provider_display_name = models.CharField(max_length=64)
+    provider_type = models.CharField(max_length=16)
+    data_source_tier = models.CharField(max_length=24)
+    tier = models.CharField(max_length=64)
+    region = models.CharField(max_length=64, null=True, blank=True)  # noqa: DJ001
+    hourly_usd = models.DecimalField(max_digits=12, decimal_places=4)
+    decode_tps_aggregate = models.DecimalField(max_digits=12, decimal_places=2)
+    prefill_tps_aggregate = models.DecimalField(max_digits=12, decimal_places=2)
+    ttft_ms = models.FloatField(null=True)
+    usd_per_m_input = models.DecimalField(max_digits=12, decimal_places=4)
+    usd_per_m_output = models.DecimalField(max_digits=12, decimal_places=4)
+    scraped_at = models.DateTimeField()
+
+    class Meta:
+        managed = False
+        db_table = "pricing_current_cost_cells"
+        # Indexes are created by migrations 0016 (unique) and 0017 (covering).
+        # Django skips DDL for managed=False models, so AddIndexConcurrently
+        # is used explicitly. Names > 30 chars use the pcc_ prefix to satisfy
+        # Django's Index.max_name_length = 30 constraint.
+        #
+        #   UNIQUE  pricing_cost_cells_uniq        (row_hash)                          ← 0016
+        #           pricing_cost_cells_model        (model_slug)                        ← 0017
+        #           pricing_cost_cells_gpu          (gpu_slug)                          ← 0017
+        #           pricing_cost_cells_provider     (provider_slug)                     ← 0017
+        #           pcc_output_cost_hash            (usd_per_m_output, row_hash)        ← 0017
+        #           pcc_provider_output             (provider_slug, usd_per_m_output, row_hash)   ← 0017
+        #           pcc_provtype_output             (provider_type, usd_per_m_output, row_hash)   ← 0017
+        #           pricing_cost_cells_gpu_output   (gpu_slug, usd_per_m_output, row_hash)        ← 0017
+        #           pcc_model_output                (model_slug, usd_per_m_output, row_hash)      ← 0017
+        #           pricing_cost_cells_tier_output  (tier, usd_per_m_output, row_hash)            ← 0017
+        #           pcc_datasrc_output              (data_source_tier, usd_per_m_output, row_hash) ← 0017
+
+    def __str__(self) -> str:
+        return f"{self.provider_slug}/{self.gpu_slug}/{self.model_slug}"
+
+    def save(self, *args: object, **kwargs: object) -> None:
+        raise TypeError("CurrentCostCell is read-only — backed by a materialized view")
+
+    def delete(self, *args: object, **kwargs: object) -> tuple[int, dict[str, int]]:
+        raise TypeError("CurrentCostCell is read-only — backed by a materialized view")

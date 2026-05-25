@@ -57,7 +57,7 @@ jobs:
         run: ruff format --check
 
       - name: Type check
-        run: mypy catalog pricing
+        run: mypy catalog pricing api
 
       - name: Tests
         env:
@@ -67,4 +67,4 @@ jobs:
           DB_HOST: localhost
           DB_PORT: 5432
           REDIS_URL: redis://localhost:6379/0
-        run: coverage run manage.py test catalog pricing tests --noinput -v 0 && coverage report
+        run: coverage run manage.py test catalog pricing api tests --noinput -v 1 && coverage report

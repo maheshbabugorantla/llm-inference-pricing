@@ -62,11 +62,9 @@ class AppendixAFourWayComparisonTest(TransactionTestCase):
         with connection.cursor() as c:
             c.execute(
                 """
-                SELECT pricing_tier, usd_per_m_output
+                SELECT tier, usd_per_m_output
                 FROM pricing_current_cost_cells
-                WHERE model_id IN (
-                    SELECT id FROM catalog_model WHERE slug = 'qwen-2-5-coder-32b'
-                )
+                WHERE model_slug = 'qwen-2-5-coder-32b'
                   AND tp_size = 1
                   AND batch_size = 8
                   AND context_length = 32768

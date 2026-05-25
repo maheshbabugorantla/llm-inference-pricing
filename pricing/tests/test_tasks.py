@@ -476,7 +476,9 @@ class RefreshCostCellsTaskTest(TransactionTestCase):
         refresh_current_cost_cells.apply().get()
 
         with connection.cursor() as c:
-            c.execute("SELECT COUNT(*) FROM pricing_current_cost_cells WHERE provider_id = %s", [provider.id])
+            c.execute(
+                "SELECT COUNT(*) FROM pricing_current_cost_cells WHERE provider_slug = %s", [provider.slug]
+            )
             row_count = c.fetchone()[0]
 
         self.assertGreater(row_count, 0)
