@@ -10,11 +10,6 @@ class JSONOnlyRendererTest(SimpleTestCase):
     so that browser requests or Accept: text/html never receive an HTML page.
     """
 
-    API_PATHS = [
-        "/api/v1/health/",
-        "/api/schema/",
-    ]
-
     def _assert_json_response(self, path: str, accept: str) -> None:
         response = self.client.get(path, HTTP_ACCEPT=accept)
         content_type = response.get("Content-Type", "")
