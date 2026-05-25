@@ -96,9 +96,10 @@ class CostCellsEndpointTest(TestCase):
         for r in data["results"]:
             self.assertLessEqual(Decimal(r["usd_per_m_output"]), Decimal("0.001"))
 
-    def test_malformed_max_cap_ignored(self) -> None:
+    def test_malformed_max_cap_returns_400(self) -> None:
+        # NumberFilter validates the value; a non-numeric string is a client error.
         response = self.client.get("/api/v1/cost-cells/?max_usd_per_m_output=notanumber")
-        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.status_code, 400)
 
     def test_single_query(self) -> None:
         with self.assertNumQueries(1):

@@ -357,8 +357,25 @@ def _regenerate_reserved_on_save(
     transaction.on_commit(regenerate_reserved_cloud_snapshots)
 
 
+class _ReadOnlyQuerySet(models.QuerySet["CurrentCostCell"]):
+    """QuerySet that blocks bulk write operations against the materialized view."""
+
+    def update(self, **kwargs: object) -> int:
+        raise TypeError("CurrentCostCell is read-only — backed by a materialized view")
+
+    def delete(self) -> tuple[int, dict[str, int]]:
+        raise TypeError("CurrentCostCell is read-only — backed by a materialized view")
+
+
+class _ReadOnlyManager(models.Manager["CurrentCostCell"]):
+    def get_queryset(self) -> _ReadOnlyQuerySet:
+        return _ReadOnlyQuerySet(self.model, using=self._db)
+
+
 class CurrentCostCell(models.Model):
     """Read-only unmanaged model backed by the pricing_current_cost_cells materialized view."""
+
+    objects: models.Manager[CurrentCostCell] = _ReadOnlyManager()
 
     row_hash = models.CharField(max_length=32, primary_key=True)
     gpu_slug = models.CharField(max_length=64)
