@@ -41,7 +41,7 @@ class CostCellListView(generics.ListAPIView):  # type: ignore[misc]
     ordering = ("usd_per_m_output", "row_hash")
 
     def get_queryset(self) -> QuerySet[CurrentCostCell]:
-        qs: QuerySet[CurrentCostCell] = get_current_cost_cells_queryset()  # type: ignore[assignment]
+        qs = get_current_cost_cells_queryset()
         cap = self.request.query_params.get("max_usd_per_m_output")
         if cap:
             try:

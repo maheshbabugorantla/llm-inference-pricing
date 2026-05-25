@@ -6,7 +6,7 @@ from pricing.models import Provider
 
 
 class ProviderSerializer(serializers.ModelSerializer):  # type: ignore[misc]
-    last_scraped_at = serializers.SerializerMethodField()
+    last_scraped_at = serializers.DateTimeField(read_only=True, source="latest_scrape", allow_null=True)
 
     class Meta:
         model = Provider
@@ -19,9 +19,3 @@ class ProviderSerializer(serializers.ModelSerializer):  # type: ignore[misc]
             "is_active",
             "last_scraped_at",
         )
-
-    def get_last_scraped_at(self, obj: Provider) -> str | None:
-        latest: object = getattr(obj, "latest_scrape", None)
-        if latest is None:
-            return None
-        return str(latest)

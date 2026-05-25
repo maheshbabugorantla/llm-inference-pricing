@@ -8,29 +8,6 @@ from catalog.tests.factories import BenchmarkPointFactory, GPUFactory
 from pricing.tests.factories import PricingSnapshotFactory, ProviderFactory
 
 
-def _seed_cost_cell(
-    *,
-    provider_slug: str = "aws",
-    gpu_slug: str = "nvidia-a100",
-    usd_per_hour: str = "2.00",
-    decode_tps: float = 500.0,
-) -> None:
-    """Seed one BenchmarkPoint + PricingSnapshot so refresh_cost_cells produces a row."""
-    from django.db import connection
-
-    gpu = GPUFactory(slug=gpu_slug)
-    provider = ProviderFactory(slug=provider_slug, provider_type="cloud")
-    BenchmarkPointFactory(
-        gpu=gpu,
-        decode_tps_aggregate=decode_tps,
-        prefill_tps_aggregate=decode_tps,
-    )
-    PricingSnapshotFactory(provider=provider, gpu=gpu, hourly_usd=Decimal(usd_per_hour))
-    # Refresh the materialized view
-    with connection.cursor() as cur:
-        cur.execute("REFRESH MATERIALIZED VIEW pricing_current_cost_cells")
-
-
 class CostCellsEndpointTest(TestCase):
     @classmethod
     def setUpTestData(cls) -> None:
@@ -128,13 +105,7 @@ class CostCellsEndpointTest(TestCase):
         with self.assertNumQueries(1):
             self.client.get("/api/v1/cost-cells/")
 
-    def test_empty_db_returns_empty_list(self) -> None:
-        from django.db import connection
-
-        with connection.cursor() as cur:
-            cur.execute("REFRESH MATERIALIZED VIEW pricing_current_cost_cells")
-        # After refreshing with the seeded data it will have rows;
-        # just confirm no 500 on empty filter
+    def test_filter_with_no_matches_returns_empty_list(self) -> None:
         response = self.client.get("/api/v1/cost-cells/?provider_slug=nonexistent-provider")
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.json()["results"], [])
