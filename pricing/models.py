@@ -358,13 +358,21 @@ def _regenerate_reserved_on_save(
 
 
 class _ReadOnlyQuerySet(models.QuerySet["CurrentCostCell"]):
-    """QuerySet that blocks bulk write operations against the materialized view."""
+    """QuerySet that blocks all write paths against the materialized view."""
+
+    _MSG = "CurrentCostCell is read-only — backed by a materialized view"
 
     def update(self, **kwargs: object) -> int:
-        raise TypeError("CurrentCostCell is read-only — backed by a materialized view")
+        raise TypeError(self._MSG)
 
     def delete(self) -> tuple[int, dict[str, int]]:
-        raise TypeError("CurrentCostCell is read-only — backed by a materialized view")
+        raise TypeError(self._MSG)
+
+    def bulk_create(self, objs: object, **kwargs: object) -> list[object]:  # type: ignore[override]
+        raise TypeError(self._MSG)
+
+    def bulk_update(self, objs: object, fields: object, **kwargs: object) -> int:  # type: ignore[override]
+        raise TypeError(self._MSG)
 
 
 class _ReadOnlyManager(models.Manager["CurrentCostCell"]):

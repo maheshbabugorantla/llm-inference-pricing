@@ -115,12 +115,14 @@ class SchemaComponentTest(SimpleTestCase):
         call_command("spectacular", stdout=out)
         schema = yaml.safe_load(out.getvalue())
         components = schema.get("components", {}).get("schemas", {})
+        # Use the same predicate as test_schema_includes_costcell_component so
+        # this test always runs against the same component, regardless of whether
+        # drf-spectacular names it "CostCell", "CurrentCostCell", etc.
         cc_key = next(
-            (k for k in components if k.lower() == "costcell"),
+            (k for k in components if "costcell" in k.lower() or "cost_cell" in k.lower()),
             None,
         )
-        if cc_key is None:
-            self.skipTest("CostCell component not found")
-        fields = components[cc_key].get("properties", {})
+        self.assertIsNotNone(cc_key, f"No CostCell component found. Keys: {list(components)[:10]}")
+        fields = components[cc_key].get("properties", {})  # type: ignore[index]
         for expected in ("gpu_slug", "model_slug", "hourly_usd", "usd_per_m_output", "usd_per_m_input"):
             self.assertIn(expected, fields, f"missing field {expected!r} in {list(fields)[:10]}")
