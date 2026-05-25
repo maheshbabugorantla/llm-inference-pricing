@@ -3,10 +3,10 @@
 ComputePrices is an aggregator: each API call for a GPU returns prices from
 multiple cloud providers.  This command iterates every GPU in GPU_SLUG_MAP,
 fetches the on-demand prices, and creates PricingSnapshot rows attributed to
-the respective providers (runpod, aws, lambda, etc.).
+the respective providers.
 
-Only provider slugs and GPU slugs already present in the catalog are written;
-everything else is skipped with an info-level log.
+Providers discovered via ComputePrices that are not already in the catalog
+are created automatically with sensible defaults — no manual seeding required.
 """
 
 from __future__ import annotations
@@ -25,6 +25,29 @@ from pricing.scrapers.computeprices import GPU_SLUG_MAP, fetch_computeprices_gpu
 logger = logging.getLogger("pricing.management.scrape_computeprices")
 
 
+def _display_name(slug: str) -> str:
+    """Best-effort human display name from a provider slug."""
+    return slug.replace("-", " ").title()
+
+
+def _get_or_create_provider(slug: str, providers: dict[str, Provider]) -> Provider:
+    if slug not in providers:
+        provider, created = Provider.objects.get_or_create(
+            slug=slug,
+            defaults={
+                "display_name": _display_name(slug),
+                "provider_type": "cloud",
+                "data_source_tier": "realtime_api",
+                "has_api": False,
+                "is_active": True,
+            },
+        )
+        if created:
+            logger.info("auto-created provider %r from ComputePrices data", slug)
+        providers[slug] = provider
+    return providers[slug]
+
+
 class Command(BaseCommand):
     help = "Fetch on-demand GPU prices from ComputePrices.com and persist to the DB"
 
@@ -37,7 +60,7 @@ class Command(BaseCommand):
         snapshots: list[PricingSnapshot] = []
         errors = 0
         skipped_gpu = 0
-        skipped_provider = 0
+        new_providers = 0
 
         for our_slug in sorted(GPU_SLUG_MAP):
             if our_slug not in gpus:
@@ -56,14 +79,14 @@ class Command(BaseCommand):
 
             for item in items:
                 provider_slug = item["provider"]
-                if provider_slug not in providers:
-                    logger.info("provider %r not in catalog (gpu=%s) — skipping", provider_slug, our_slug)
-                    skipped_provider += 1
-                    continue
+                before = len(providers)
+                provider = _get_or_create_provider(provider_slug, providers)
+                if len(providers) > before:
+                    new_providers += 1
 
                 snapshots.append(
                     PricingSnapshot(
-                        provider=providers[provider_slug],
+                        provider=provider,
                         gpu=gpu,
                         tier="on_demand",
                         region="",
@@ -79,9 +102,8 @@ class Command(BaseCommand):
 
         self.stdout.write(
             self.style.SUCCESS(
-                f"computeprices: {len(snapshots)} snapshots created "
-                f"({skipped_gpu} GPUs not in catalog, "
-                f"{skipped_provider} providers not in catalog, "
-                f"{errors} fetch errors)"
+                f"computeprices: {len(snapshots)} snapshots created, "
+                f"{new_providers} new providers auto-registered "
+                f"({skipped_gpu} GPUs not in catalog, {errors} fetch errors)"
             )
         )
