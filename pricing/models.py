@@ -368,6 +368,15 @@ class _ReadOnlyQuerySet(models.QuerySet["CurrentCostCell"]):
     def delete(self) -> tuple[int, dict[str, int]]:
         raise TypeError(self._MSG)
 
+    def create(self, **kwargs: object) -> CurrentCostCell:
+        raise TypeError(self._MSG)
+
+    def get_or_create(self, **kwargs: object) -> tuple[CurrentCostCell, bool]:  # type: ignore[override]
+        raise TypeError(self._MSG)
+
+    def update_or_create(self, **kwargs: object) -> tuple[CurrentCostCell, bool]:  # type: ignore[override]
+        raise TypeError(self._MSG)
+
     def bulk_create(self, objs: object, **kwargs: object) -> list[object]:  # type: ignore[override]
         raise TypeError(self._MSG)
 
